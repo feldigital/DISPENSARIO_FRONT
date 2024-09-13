@@ -1,0 +1,49 @@
+<div class="card-header mb-2" [formGroup]="busquedaForm">
+    <div class="text-container">
+        Relación de pendientes en la bodega
+    </div>
+    <div class="date-inputs">
+        <input type="text" formControlName="listFilter" 
+        class="form-control border-end-0 date-input" placeholder="Buscar por nombre medicamento">
+    </div>
+    <div class="date-inputs">
+        <input type="date" formControlName="fechainicial" class="form-control border-end-0 date-input">
+        <div class="date-label">al</div>
+        <input type="date" formControlName="fechafinal" class="form-control border-end-0 date-input">
+    </div>
+    <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button" (click)="buscarRegistro(parametro)">
+        Buscar</button>
+</div>
+
+
+
+
+<div class="alert alert-info my-2" *ngIf="listaPendienteBodega?.length == 0">
+    No hay medicamentos penidientes, asociados a esta bodega en la fecha seleccionada!
+</div>
+
+
+<div *ngIf="listaPendienteBodega?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Item</th>
+                <th>Cum</th>
+                <th>Nombre </th>
+                <th>Presentación</th>
+                <th>Existencia</th>
+                <th>Pendiente</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let itemt of listaPendienteBodegaFiltro let i= index">
+                <td>{{i+1}}</td>
+                <td>{{itemt.cum}}</td>
+                <td>{{itemt.nombre}}</td>
+                <td>{{itemt.forma}}</td>
+                <td>{{itemt.cantidad}}</td>
+                <td>{{itemt.pendiente}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

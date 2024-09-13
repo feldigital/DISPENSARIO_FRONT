@@ -1,0 +1,55 @@
+<div class="card bg-light" *ngIf="formula">
+    <div class="card-header">{{titulo}}: {{formula.nroFormula}}</div>
+    <div class="card-body">
+      <h4 class="card-title">
+        <a [routerLink]="['/paciente']" class="btn btn-light btn-xs">&laquo; volver</a>
+      </h4>
+  
+      <ul class="list-group my-2">
+        <li class="list-group-item list-group-item-primary">Datos del cliente</li>
+        <li class="list-group-item">{{formula.paciente.pNombre}}</li>
+        <li class="list-group-item">{{formula.paciente.pApellido}}</li>
+      </ul>
+  
+      <ul class="list-group my-2">
+        <li class="list-group-item list-group-item-primary">Datos de la factura</li>
+        <li class="list-group-item">Folio: {{formula.idFormula}}</li>
+        <li class="list-group-item">Descripción: {{formula.nroFormula}}</li>
+        <li class="list-group-item">Fecha: {{formula.fecSolicitud}}</li>
+      </ul>
+  
+      <table class="table table-striped table-hover table-bordered my-3">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of formula.items">
+            <td>{{item.medicamento.nombre}}</td>
+            <td>{{item.medicamento.valor}}</td>
+            <td>{{item.cantidad}}</td>
+            <td>{{item.importe}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <h5 class="float-right">
+        <span>Gran Total</span>: <span class="badge badge-secondary">{{formula.total}}</span>
+      </h5>
+  
+      <div class="card border-info mb-4" style="max-width: 350px;">
+        <div class="card card-header">
+          Observaciones
+        </div>
+        <div class="card card-body">
+          <p *ngIf="!formula.observacion">No tiene observación</p>
+          <p *ngIf="formula.observacion">{{formula.observacion}}</p>
+        </div>
+  
+      </div>
+    </div>
+  </div>
+  

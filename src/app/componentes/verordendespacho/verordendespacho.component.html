@@ -1,0 +1,97 @@
+<div class="card-body">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card-header">
+                Bodega de origen
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{listaregistros?.bodegaOrigen?.nombre}} </p>
+                <p><strong>Dirección:</strong> {{listaregistros?.bodegaOrigen?.direccion}}</p>
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}}</p>
+                <p><strong>Funcionario despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>
+                <p><strong>Departamento:</strong> {{listaregistros?.bodegaOrigen?.departamento}}</p>
+                <p><strong>Municipio:</strong> {{listaregistros?.bodegaOrigen?.municipio}}</p>
+                <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>
+                
+               
+                <!-- Agrega aquí más datos del paciente según sea necesario -->
+            </div>
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="card-header">
+                Bodega de destino
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{listaregistros?.bodegaDestino?.nombre}} </p>
+                <p><strong>Dirección:</strong> {{listaregistros?.bodegaDestino?.direccion}}</p>
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}}</p>
+                <p><strong>Funcionario ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>
+                <p><strong>Departamento:</strong> {{listaregistros?.bodegaDestino?.departamento}}</p>
+                <p><strong>Municipio:</strong> {{listaregistros?.bodegaDestino?.municipio}}</p>
+            </div>           
+
+        </div>
+    </div>
+
+
+
+<div class="alert alert-info my-4" >
+    Lista de medicamentos asociados a la orden de despacho número {{listaregistros?.idDespacho}}  del {{listaregistros?.fechaDespacho}} 
+</div>
+<div *ngIf="listaItemsFormula?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Item</th>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>CUM</th>
+                <th>Invima</th>
+                <th>Laboratorio</th>
+                <th>Lote</th>
+                <th>Vencimiento</th>
+                <th>Cantidad</th>
+                <th *ngIf="listaregistros?.estado==='Envío'">Control</th>                
+            </tr>
+        </thead>
+        <tbody>       
+                <tr *ngFor="let item of listaItemsFormula; let i = index">     
+                    <td>{{ i+1 }}</td>               
+                    <td>{{ item.medicamento.nombre }}</td>
+                    <td>{{ item.medicamento.forma.nombre }}</td>
+                    <td>{{ item.medicamento.codigoCum }}</td>   
+                    <td>{{ item.invima }}</td>  
+                    <td>{{ item.laboratorio }}</td>  
+                    <td>{{ item.lote }}</td>  
+                    <td>{{ item.fechaVencimiento }}</td>                 
+                    <td>
+                        <div *ngIf="!item.control && listaregistros?.estado==='Recepción'">
+                            <mat-icon [ngStyle]="{'color':'green'}">check</mat-icon>
+                            {{ item.cantidad }}
+                        </div> 
+                        <input *ngIf="listaregistros?.estado==='Envío'" type="number" [(ngModel)]="item.cantidadDespacho" placeholder="Cantidad recibida" class="form-control" 
+                        (change)="verificarCantidad(item, $event)"/>
+                    </td>  
+                    <td>
+                        <mat-icon *ngIf="item.control" [ngStyle]="{'color':'#009A94'}">done</mat-icon>
+                        <mat-icon *ngIf="!item.control && listaregistros?.estado==='Envío'" [ngStyle]="{'color':'red'}">clear</mat-icon>
+                    </td>                   
+                </tr>          
+        </tbody>
+    </table>
+</div>
+
+<hr>
+<div class="row">
+    <div class="col-6">
+        <button class="btn btn-outline-primary w-50" [routerLink]="['/historialordendespacho']" >
+           Regresar</button>
+    </div>        
+    <div class="col-6" *ngIf="listaregistros?.estado==='Envío'">
+        <button class="btn btn-outline-primary w-50" (click)="procesarOrdenDespachoIngreso()">
+            Validar y Generar ingresos</button>
+    </div>              
+</div>           
+</div>

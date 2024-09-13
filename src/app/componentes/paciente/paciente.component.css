@@ -1,0 +1,28 @@
+/* Alineación vertical de etiquetas y controles */
+.form-group {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Ajusta las proporciones según sea necesario */
+    gap: 0.75rem; /* Espacio entre etiqueta y control */
+    align-items: center;
+    margin-bottom: 0px; /* Espaciado entre controles */
+}
+
+.form-label {
+    justify-self: start; /* Alinea la etiqueta a la izquierda dentro del grid */
+}
+
+.uniform-control {
+    width: 100%; /* Asegura que el control ocupe todo el ancho disponible en la columna */
+    height: calc(2.25rem + 2px); /* Ajusta la altura según tus necesidades */
+    border-radius: 0.25rem; /* Opcional: para bordes redondeados */
+    font-size: 1rem; /* Ajusta el tamaño de la fuente según tus necesidades */
+}
+
+/* Alineación de checkboxes */
+.form-check-input {
+    margin-top: 0.3rem; /* Ajusta el espaciado para alinear verticalmente con la etiqueta */
+}
+
+.form-check-label {
+    margin-bottom: 0; /* Elimina el margen inferior para una alineación más ajustada */
+}

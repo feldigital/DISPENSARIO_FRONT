@@ -1,0 +1,85 @@
+<div class="text-container">
+    <div [formGroup]="generalForm" class="input-group mb-2">
+        <span class="input-group-text bg-transparent">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </span>
+        <input type="text" formControlName="pNombre" class="form-control border-end-0"
+            placeholder="Buscar por primer nombre">
+
+        <span class="input-group-text bg-transparent">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </span>
+        <input type="text" formControlName="sNombre" class="form-control border-end-0"
+            placeholder="Buscar por segundo nombre">
+        <span class="input-group-text bg-transparent">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </span>
+        <input type="text" formControlName="pApellido" class="form-control border-end-0"
+            placeholder="Buscar por primer apellido">
+        <span class="input-group-text bg-transparent">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </span>
+        <input type="text" formControlName="sApellido" class="form-control border-end-0"
+            placeholder="Buscar por segundo apellido">
+    </div>
+</div>
+
+
+<div class="alert alert-info my-4" *ngIf="listaregistros?.length == 0">
+    No hay registros para mostrar!
+</div>
+<div *ngIf="listaregistros?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Item</th>
+                <th>Tipo</th>
+                <th>Documento</th>
+                <th>Nombres y apellidos</th>
+                <th>Nacimiento</th>
+                <th>Municipio</th>
+                <th>EPS</th>
+                <th>Formula</th>
+                <th>Gestión</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let itemt of listaregistros let i= index"
+                [ngStyle]="{'color': itemt.estado ? 'black' : 'red' }">
+
+                <td>{{i+1}}</td>
+                <td>{{itemt.tipoDoc}}</td>
+                <td>{{itemt.numDocumento}}</td>
+                <td>{{primerasmayusculas(itemt.pNombre + ' ' + itemt.sNombre +' '+ itemt.pApellido +' '+ itemt.sApellido
+                    )}}</td>
+                <td>{{ itemt.fecNacimiento | date:'dd/MM/yyyy' }} </td>
+                <td>{{itemt.municipio.nombre}} </td>
+                <td>{{itemt.eps.codigo}}</td>
+                <td>
+                    <mat-icon class="pointer-cursor" title="Nueva formula" [ngStyle]="{'color':'#009A94'}"
+                        [routerLink]="['/formula', itemt.idPaciente]">playlist_add</mat-icon>
+
+                    <mat-icon class="pointer-cursor" title="formulas paciente" [ngStyle]="{'color':'#009A94'}"
+                        [routerLink]="['/historialformula', itemt.idPaciente]">list_alt</mat-icon>
+                </td>
+                <td>
+                    <mat-icon class="pointer-cursor" title="Actualizar el paciente" [ngStyle]="{'color':'#009A94'}"
+                        [routerLink]="['/paciente', itemt.idPaciente]">edit</mat-icon>
+                    <mat-icon class="pointer-cursor" title="Eliminar el paciente" [ngStyle]="{'color':'red'}"
+                        (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+
+                </td>
+                <!--    <td>
+                   
+                    <button title="Eliminar el paciente" type="button" class="btn btn-sm"
+                        (click)="eliminarRegistro(itemt)">                     
+                    </button> 
+                </td>
+                -->
+
+
+            </tr>
+        </tbody>
+    </table>
+</div>

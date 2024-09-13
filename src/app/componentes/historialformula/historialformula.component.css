@@ -1,0 +1,140 @@
+
+
+.card-header {
+    background: linear-gradient(to right, #71E0D2, #5D8FA5);
+    color: #fff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  
+  
+  :host ::ng-deep .mat-tooltip {
+    background-color: #f44336; /* Color de fondo del tooltip */
+    color: white; /* Color del texto del tooltip */
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en líneas múltiples en pantallas pequeñas */
+  }
+  
+  .card-title {
+    margin-right: 1rem;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+  
+  .search-input {
+    flex: 1;
+    max-width: 400px;
+    margin-left: auto; /* Alinea el input de búsqueda a la derecha */
+  }
+  
+  .input-group-text {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  
+  .form-control {
+    flex: 1;
+    border-radius: 25px;
+  }
+  
+  .input-group .form-control {
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
+  }
+  
+  .input-group .input-group-text {
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+  }
+  
+  .input-group .form-control.border-end-0 {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+ 
+  
+  .btn-custom-gradient {
+    background: linear-gradient(to right, #71E0D2, #67ACD6);
+    color: white;
+    border: none;
+    transition: color 0.3s;
+    min-width: 140px;
+   
+  }
+
+  .btn-custom-gradient:hover {
+    color: black; /* Color del texto al pasar el mouse */
+  }
+  
+  
+  .buscar-button {
+    margin: 0 10px; /* Añade márgenes alrededor del botón */
+    border-radius: 25px;
+  }
+  
+  .btn-custom-gradient-d {
+    background: linear-gradient(to right, #ff9966, #ff5e62);
+    color: white;
+    border: none;
+    min-width: 140px;
+  }
+  .btn-custom-gradient-d:hover {
+    color: black; /* Color del texto al pasar el mouse */
+  }
+  
+  /* Estilos responsivos */
+  @media (max-width: 576px) {
+    .card-header, .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .card-title {
+      margin-bottom: 0.5rem;
+    }
+  
+    .search-input {
+      width: 100%;
+      max-width: none; /* Elimina el límite máximo de ancho en pantallas pequeñas */
+      margin-left: 0; /* Resetea el margen izquierdo */
+    }
+  
+    .input-group-text {
+      padding: 0.375rem 0.75rem;
+    }
+  
+    .form-control {
+      width: 100%;
+    }
+  
+    .table-responsive {
+      overflow-x: auto; /* Añade desplazamiento horizontal en tablas para pantallas pequeñas */
+    }
+  }
+  
+  .date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Reduce el espacio entre los elementos */
+  }
+  
+  .date-input {
+    width: 120px; /* Ajusta este valor para hacer más delgado el input */
+    padding: 0.15rem; /* Ajusta el padding para hacer el input más compacto */
+    font-size: 0.875rem; /* Ajusta el tamaño de la fuente si es necesario */
+  }
+  
+  .date-label {
+    margin: 0 2px; /* Espacio entre el input y la etiqueta 'al' */
+  }
+  

@@ -1,0 +1,68 @@
+.card-header {
+    background: linear-gradient(to right, #71E0D2, #5D8FA5);
+    color: #fff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .text-container {
+    flex: 1;
+  }
+  
+  .icons-container {
+    display: flex;
+    gap: 10px;
+  }
+  
+  mat-icon {
+    cursor: pointer;
+  }
+  
+  :host ::ng-deep .mat-tooltip {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en líneas múltiples en pantallas pequeñas */
+  }
+  
+  .card-title {
+    margin-right: 1rem;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+    
+  .input-group-text {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  
+  .form-control {
+    flex: 1;
+    border-radius: 25px;
+  }
+  
+  .input-group .form-control {
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
+  }
+  
+  .input-group .input-group-text {
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+  }
+  
+  .input-group .form-control.border-end-0 {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  
+  

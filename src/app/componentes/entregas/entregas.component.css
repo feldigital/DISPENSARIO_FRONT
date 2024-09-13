@@ -1,0 +1,27 @@
+.card-body {
+  padding: 10px; /* Reduce el espacio interno */
+}
+
+.card-body p {
+  margin: 4px 0; /* Reduce el margen entre párrafos */
+  font-size: 14px; /* Ajusta el tamaño de fuente */
+  line-height: 1.3; /* Ajusta el espacio entre líneas */
+}
+
+.card-body p strong {
+  font-weight: 600; /* Asegura que los títulos sean visibles pero no demasiado grandes */
+}
+
+.card {
+  margin: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  padding: 8px;
+  border-radius: 8px 8px 0 0;
+}

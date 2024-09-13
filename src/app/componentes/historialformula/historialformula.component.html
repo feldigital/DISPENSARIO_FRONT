@@ -1,0 +1,65 @@
+<div class="alert alert-info my-2" *ngIf="listaFormula?.length == 0">
+    No hay formulas asociadas a este paciente para mostrar!
+</div>
+<div *ngIf="listaFormula?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Nro. Formula</th>
+                <th>F. Prescripción</th>
+                <th>IPS prescribe </th>
+                <th>Fecha y hora de solicitud</th>
+                <th>Continuidad</th>
+                <th>CM Valor</th>
+                <th>Nro Items</th>
+                <th>Gestión</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let itemt of listaFormula let i= index">
+
+                <!-- <td>{{i+1}}</td>-->
+                <td>{{itemt.idFormula}}</td>
+                <td>{{itemt.fecPrescribe | date: 'dd/MM/YYYY'}}</td>
+                <td>{{primerasmayusculas(itemt.ips.nombre)}}</td>
+                <!-- <td>{{itemt.nroFormula}}</td> -->
+                <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}}</td>
+                <td>{{itemt.continuidad}}</td>
+                <td> 
+                   <!-- <mat-icon title="Cobro cuota moderadora si" *ngIf="itemt.cobroCM" [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon> -->
+                   <div *ngIf="itemt.cobroCM">
+                   <mat-icon  [ngStyle]="{'color':'#009A94'}">check </mat-icon> {{itemt.valorCM}}
+                </div>
+                </td>
+                <td> <button title="ver item de la formula" type="button" class="btn btn-sm"
+                    (click)="verDetalles(itemt)">
+                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>  </button> {{itemt.items.length}}</td>
+                <!--<td>{{itemt.total}}</td>-->
+                
+                <td><!--   offline_pin    -->
+                    <mat-icon *ngIf="itemt.estadoanulada" title="Formula anulada"  class="pointer-cursor"
+                    [ngStyle]="{'color':'red'}"  (click)="informeAnulacion(itemt)">block</mat-icon>
+
+                    <button *ngIf="!itemt.estado && !itemt.estadoanulada" title="generar la entrega de medicamentos" type="button"
+                        class="btn btn-success btn-sm btn-custom-gradient-d" (click)="guardarEntregaFormula(itemt)">
+                        Generar entrega </button>
+                    <button *ngIf="itemt.estado" title="ver la entrega" type="button"
+                        class="btn btn-sm btn-custom-gradient" [routerLink]="['/entrega', itemt.idFormula]">
+                        Ver entrega 
+                        <mat-icon *ngIf="itemt.entregaCompleta" [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon>
+                        <mat-icon *ngIf="!itemt.entregaCompleta" [ngStyle]="{'color':'green'}">check</mat-icon>
+                    </button>
+
+                    <mat-icon *ngIf="!itemt.estado && !itemt.estadoanulada" title="Anular la formula" class="pointer-cursor"
+                    [ngStyle]="{'color':'orange'}"  (click)="anularFormula(itemt)">block</mat-icon>
+ 
+                    <mat-icon *ngIf="!itemt.estado && !itemt.estadoanulada" title="Editar la formula" class="pointer-cursor"
+                    [ngStyle]="{'color':'#009A94'}"  [routerLink]="['/formula/formula', itemt.idFormula]">edit</mat-icon>
+
+                    <mat-icon *ngIf="!itemt.estado && ControlEliminar(itemt)" title="Eliminar formula"
+                    [ngStyle]="{'color':'red'}"  (click)="eliminarFormula(itemt)">delete_sweep</mat-icon> 
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

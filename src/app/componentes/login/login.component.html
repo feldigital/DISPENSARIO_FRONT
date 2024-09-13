@@ -1,0 +1,35 @@
+<div class="login-container">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div>
+            <label for="idBodega">Dispensario de medicamento:</label>
+            <select class="form-select" formControlName="idBodega" required>
+                <option selected value="">Seleccione la bodega</option>
+                <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">{{item.nombre }} - {{item.puntoEntrega }}</option>
+            </select>
+            <div *ngIf="loginForm.get('idBodega')?.invalid && loginForm.get('idBodega')?.touched">
+              <small *ngIf="loginForm.get('idBodega')?.errors?.['required']">Dispensario es requerido.</small>
+              
+            </div>
+          </div>
+      
+        <div>
+        <label for="Usuario">Usuario:</label>
+        <input id="usuario" formControlName="usuario" type="number">
+        <div *ngIf="loginForm.get('usuario')?.invalid && loginForm.get('usuario')?.touched">
+          <small *ngIf="loginForm.get('usuario')?.errors?.['required']">El Usuario es requerido.</small>
+         
+        </div>
+      </div>
+      
+      <div>
+        <label for="password">Password:</label>
+        <input id="password" formControlName="password" type="password">
+        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          <small *ngIf="loginForm.get('password')?.errors?.['required']">Password es requerido.</small>
+          <small *ngIf="loginForm.get('password')?.errors?.['minlength']">Contraseña debe ser mayor a 6 characteres de longitud.</small>
+        </div>
+      </div>
+      
+      <button type="submit" [disabled]="loginForm.invalid">Login</button>
+    </form>
+  </div>

@@ -1,0 +1,301 @@
+<div class="card bg-light">
+  <div class="card-body">
+    <form [formGroup]="facturaForm">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group row">
+            <label for="cliente" class="col-sm-4 col-form-label">Documento</label>
+            <div class="col-sm-8">
+              <div class="input-group">
+                <input type="text" (keyup.enter)="buscarDocumento()" formControlName="paciente" class="form-control"
+                  placeholder="Digite el documento" />
+                <button type="button" class="btn btn-info btn-sm" (click)="buscarDocumento()">Buscar paciente</button>
+              </div>
+              <div class="alert alert-danger mt-2"
+                *ngIf="facturaForm.get('paciente')?.invalid && (facturaForm.get('paciente')?.touched)">
+                El número del paciente es requerido.
+              </div>
+            </div>
+          </div>
+    
+          <div class="form-group row align-items-center">
+            <label for="ipsPrescribe" class="col-sm-4 col-form-label">IPS que prescribe</label>
+            <div class="col-sm-8">
+              <mat-form-field class="w-100">
+                <mat-label>Buscar IPS</mat-label>
+                <input type="text" matInput formControlName="ips" [matAutocomplete]="autoips" />
+                <button mat-icon-button matSuffix (click)="openDialogIps()">
+                  <mat-icon>add_circle</mat-icon>
+                </button>
+                <mat-autocomplete #autoips="matAutocomplete" [displayWith]="displayIps"
+                  (optionSelected)="onOptionSelectedIps($event.option.value)">
+                  <mat-option *ngFor="let option of ipsFiltrados" [value]="option">
+                    {{ option.nombre }}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+          </div>
+
+
+<div class="form-group row align-items-center">
+  <label for="medicoPrescribe" class="col-sm-4 col-form-label">Médico prescribe</label>
+  <div class="col-sm-8">
+    <mat-form-field class="w-100">
+      <mat-label>Buscar médico</mat-label>
+      <input type="text" matInput formControlName="medico" [matAutocomplete]="automedico" />
+      <button mat-icon-button matSuffix (click)="openDialogMedico()">
+        <mat-icon>add_circle</mat-icon>
+      </button>
+      <mat-autocomplete #automedico="matAutocomplete" [displayWith]="displayMedico"
+        (optionSelected)="onOptionSelectedMedico($event.option.value)">
+        <mat-option *ngFor="let option of medicosFiltrados" [value]="option">
+          {{ option.nombre }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+    <div class="alert alert-danger mt-2" 
+         *ngIf="facturaForm.get('medico')?.invalid && facturaForm.get('medico')?.touched">
+      Médico que prescribe la fórmula es requerido.
+    </div>
+  </div>
+</div>
+
+
+            <div class="form-group row">
+              <label for="fecPrescribe" class="col-sm-4 col-form-label">Fecha de prescripción</label>
+              <div class="col-sm-8">
+                <div class="diagnosticos-group">
+                  <input type="date" formControlName="fecPrescribe" class="form-control"  [max]="hoy" />
+                  <input class="form-check-input" type="checkbox" formControlName="origenurgencia" />
+                  Origen urgencia
+                </div>
+                <div class="alert alert-danger mt-2"
+                  *ngIf="facturaForm.get('fecPrescribe')?.invalid && (facturaForm.get('fecPrescribe')?.touched)">
+                  La fecha de la prescripción de la fórmula es requerida.
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="diagnosticos" class="col-sm-4 col-form-label">Diagnósticos</label>
+              <div class="col-sm-8">
+                <div class="diagnosticos-group">
+                  <input type="text"  formControlName="cieP" class="form-control" placeholder="Dx principal" 
+                  maxlength="4" (focus)="actualizarComentario($event)"  (input)="convertirAMayusculasCieP($event)"
+                  (blur)="ocultarComentario()" 
+                  (input)="actualizarComentario($event)" />
+                  <input type="text"  formControlName="cieR1" class="form-control" placeholder="Dx rel 1"
+                  maxlength="4" (focus)="actualizarComentario($event)"(input)="convertirAMayusculasCieR1($event)"
+                    (blur)="ocultarComentario()" 
+                    (input)="actualizarComentario($event)"/>
+                  <input type="text"  formControlName="cieR2" class="form-control" placeholder="Dx rel 2"
+                  maxlength="4" (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieR2($event)"
+                    (blur)="ocultarComentario()" 
+                    (input)="actualizarComentario($event)"/>
+                    <input type="text"  formControlName="cieR3" class="form-control" placeholder="Dx rel 3"
+                    maxlength="4" (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieR3($event)"
+                      (blur)="ocultarComentario()" 
+                      (input)="actualizarComentario($event)"/>
+                   
+                </div>
+                <div class="alert alert-danger mt-2"
+                  *ngIf="facturaForm.get('cieP')?.invalid && (facturaForm.get('cieP')?.touched)">
+                  El Dx Principal es requerido.
+                  
+                </div>
+                <div class="alert alert-danger mt-2" *ngIf="comentarioVisible">            
+                  <small *ngIf="comentarioVisible" class="form-text text-muted">
+                    {{ mensajeComentario }}
+                  </small>                
+                </div>
+
+                <div class="alert alert-danger mt-2" *ngIf="comentarioVisible">
+                 <small *ngIf="comentarioVisible" class="form-text text-muted">
+                    {{ mensajeErrorDx }}
+                  </small>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="programa" class="col-sm-4 col-form-label">Programa</label>
+              <div class="col-sm-8">
+                <div class="diagnosticos-group">
+                  <select class="form-select" formControlName="programa">
+                    <option selected value="">Seleccionar el programa</option>
+                    <option value="1">Mayores de 70 años no incluidos en cohortes</option>
+                    <option value="2">Menores de 70 años no incluidos en cohortes</option>
+                    <option value="3">Hipertensión arterial</option>
+                    <option value="4">Diabetes Mellitu</option>
+                    <option value="5">Cardiopatias y Enfermedades Cerebrovasculares</option>
+                    <option value="6">Terapia de remplazo renal</option>
+                    <option value="7">Artritis y otras autoinmunes</option>
+                    <option value="8">Epoc</option>
+                    <option value="9">Asma</option>
+                    <option value="10">Vih</option>
+                    <option value="11">TBC o Hepatitis C</option>
+                    <option value="12">Enfermedad neurologica</option>
+                    <option value="13">Salud Mental</option>
+                    <option value="14">Hemofilia</option>
+                    <option value="15">Discapacitados</option>
+                    <option value="16">Enfermedad Huerfana</option>
+                    <option value="17">Trasplantes</option>
+                    <option value="18">Desnutrición</option>
+                    <option value="19">Gestantes</option>
+                  </select>
+                </div>
+                <div class="alert alert-danger mt-2"
+                  *ngIf="facturaForm.get('programa')?.invalid && (facturaForm.get('programa')?.touched)">
+                  El programa del paciente es requerido.
+                </div>
+              </div>
+            </div>
+            <div class="form-group row">
+              <label for="observacion" class="col-sm-4 col-form-label">Observación</label>
+              <div class="col-sm-8">
+                <textarea formControlName="observacion" class="form-control"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="observacion" class="col-sm-4 col-form-label">Cuota Moderadora</label>
+              <div class="col-sm-8" *ngIf="mostrarComponente">
+                <p><mat-slide-toggle formControlName="cobroCM" labelPosition="before" 
+                    [checked]="cobroCuotaModeradora()">Cobro la cuota moderadora!</mat-slide-toggle></p>
+                <h5 class="float-right mt-3" *ngIf="pacienteActual?.regimen==='C'">
+                  <span class="text-green"> {{pacienteActual.categoria.nombre}} : {{ pacienteActual.categoria.valor |
+                    currency:'COP':'symbol-narrow':'1.0-0'}} </span>
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+            <div *ngIf="mostrarComponente" class="card" class="col-md-7">
+              <!--
+              <div class="card-header">
+                Datos del Paciente
+              </div>
+
+              <div class="card-body">
+              -->
+              
+                <p><strong>Nombre:</strong> {{pacienteActual.pNombre}} {{pacienteActual.sNombre}}
+                  {{pacienteActual.pApellido}} {{pacienteActual.sApellido}}</p>
+                <p><strong>Eps:</strong> {{pacienteActual.eps.nombre}}</p>
+                <p><strong>Dirección:</strong> {{pacienteActual.direccion}}</p>
+                <p><strong>Celular:</strong>  
+               <!--   <input type="number" [value]="pacienteActual.celularPrincipal" placeholder="Celular 1"  /> - 
+                  <input type="number" [value]="pacienteActual.celularSecundario" placeholder="Celular 2 "    /> -->
+                  {{pacienteActual.celularPrincipal}}  - 
+                  {{pacienteActual.celularSecundario}}
+                </p>
+                <p><strong>Sexo:</strong> {{pacienteActual.sexo}} </p>      
+              </div>
+            <div *ngIf="mostrarComponente" class="card" class="col-md-5">  
+              <p><strong>Municipio:</strong> {{pacienteActual.municipio.nombre}} -
+                {{pacienteActual.municipio.departamento.nombre}}</p>                      
+              <p><strong>Dispensario:</strong> {{pacienteActual.dispensario}} </p>       
+              <div class="blink" *ngIf="pacienteActual.pave">             
+                <p> <strong>Paciente PAVE</strong></p>              
+              </div>
+              <div class="porta" *ngIf="pacienteActual.portabilidad">             
+                <p> <strong>Portabilidad - {{pacienteActual.mpoportabilidad.nombre}}</strong></p>              
+              </div>
+            </div>
+          </div>
+            <div class="form-group row align-items-center">
+              <label class="col-sm-4 col-form-label">Agregar lista de medicamentos</label>
+              <div class="col-sm-8">
+                <mat-form-field appearance="fill" class="w-100">
+                  <mat-label>Buscar medicamento a agregar</mat-label>
+                  <input type="text" matInput formControlName="medicamento" [matAutocomplete]="automedicamento" />
+                  <mat-autocomplete #automedicamento="matAutocomplete" (optionSelected)="seleccionarMedicamento($event)">
+                    <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option">
+                      {{ option.nombre }}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+                <div class="alert alert-danger mt-2" *ngIf="facturaForm.get('autocompleteControl')?.invalid">
+                  No ha seleccionado los medicamentos de la fórmula.
+                </div>
+              </div>
+            </div>
+
+
+            <div class="alert alert-info mt-4" *ngIf="formula.items.length == 0">
+              No hay medicamentos asignados para la fórmula, debe agregar al menos uno.
+            </div>
+
+            <table class="table table-striped table-hover table-sm mt-3" *ngIf="formula.items.length > 0">
+              <thead class="thead-colored">
+                <tr>
+                  <th *ngIf="facturaForm.get('checkcontinuidad')?.value"></th>
+                  <th>Medicamento</th>
+                  <th style="width: 180px;">Frecuencia</th>
+                  <th style="width: 80px;">Duración</th>
+                  <th style="width: 80px;">Cantidad</th>
+                  <th style="width: 80px;">Eliminar</th>
+                  <th>Inventario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of formula.items; let i = index" formArrayName="posfechados">
+                  <td *ngIf="facturaForm.get('checkcontinuidad')?.value">
+                    <input class="form-check-input" type="checkbox" [formControlName]="i" />
+                  </td>
+                  <td>{{ item.medicamento.nombre }}</td>
+                  <td>
+                    <select class="form-select" [value]="item.frecuencia"
+                      (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
+                      <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
+                        [attr.data-multiplicador]="frecuencia.multiplicador">
+                        {{frecuencia.nombre}}
+                      </option>
+                      </select>
+                  </td>
+                  <td>
+                    <input type="number" [value]="item.duracion" class="form-control col-sm-4"
+                      (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)" />
+                  </td>
+                  <td>
+                    <input type="number" [value]="item.cantidad" class="form-control col-sm-4"
+                      (change)="actualizarCantidad(item.medicamento.idMedicamento, $event)"
+                      [disabled]="item.habilitarCantidad"
+                      [ngStyle]="{'background-color': item.habilitarCantidad ?  'gris' : '#A5E3C6'}" />
+                  </td>
+                  <td>
+                    <button class="btn btn-danger btn-sm" type="button"
+                      (click)="eliminarItemFormula(item.medicamento.idMedicamento)">x</button>
+                  </td>
+                  <td>{{ existencias[item.medicamento.idMedicamento] || '0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+
+            <h6 class="float-right mt-3" *ngIf="formula.items.length > 0" style="display: flex; align-items: center;">
+              <input class="form-check-input" type="checkbox" formControlName="checkcontinuidad" />
+              Post fechar fórmula:
+              <input class="form-control" formControlName="cantidadmeses" type="number"
+                placeholder="Ingrese Nro. de meses" *ngIf="facturaForm.get('checkcontinuidad')?.value"
+                style="margin-left: 10px; width: 200px;" />
+            </h6>
+
+
+            <div class="form-group row mt-3">
+              <div class="col-sm-12">
+                <input type="button" (click)="create()" value="Guardar Fórmula" class="btn btn-secondary w-100"
+                [disabled]="!facturaForm.valid" />
+              </div>
+            </div>
+          </div>
+        </div>
+    </form>
+    <div *ngIf="mostrarComponente" class="mt-4">
+      <app-historialformula [idPaciente]="pacienteActual.idPaciente" ></app-historialformula>  <!-- [triggerActualizar]="formulaAgregada"  [datoRecibido]="datoParaHijo"-->
+    </div>
+  </div>
+</div>

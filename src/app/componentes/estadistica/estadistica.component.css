@@ -1,0 +1,28 @@
+mat-sidenav-container {
+    height: 100vh; /* Asegúrate de que el contenedor tenga altura */
+    display: flex; /* Asegura que el contenedor use Flexbox */
+  }
+  
+  mat-sidenav {
+    width: 250px;
+    background: #fff; /* Asegúrate de que el fondo sea visible */
+  }
+  
+  mat-toolbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
+  
+  mat-nav-list {
+    margin-top: 56px; /* Offset for toolbar */
+  }
+  
+  mat-list-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  mat-icon {
+    margin-right: 16px;
+  }

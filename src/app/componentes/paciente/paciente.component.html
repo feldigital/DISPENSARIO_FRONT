@@ -1,0 +1,250 @@
+<div class="container mt-4">
+    <form [formGroup]="generalForm" (ngSubmit)="create()" class="w-100">
+        <div class="row">
+            <!-- Tipo de Documento -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="tipoDoc" class="form-label">Tipo documento</label>
+                    <select id="tipoDoc" class="form-select uniform-control" formControlName="tipoDoc">
+                        <option selected value="">Seleccionar Tipo de documento</option>
+                        <option value="CC">CC</option>                      
+                        <option value="TI">TI</option>
+                        <option value="RC">RC</option>
+                        <option value="NV">NV</option>
+                        <option value="CE">CE</option>
+                        <option value="PA">PA</option>
+                        <option value="PT">PT</option>
+                        <option value="SV">SV</option>                        
+                        <option value="PE">PE</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Número de Documento -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="numDocumento" class="form-label">Documento</label>
+                    <input id="numDocumento" type="text" formControlName="numDocumento" 
+                    placeholder="Ingrese el documento" class="form-control uniform-control" required (blur)="buscarDocumento()">
+                </div>
+            </div>
+            <!-- Primer Apellido -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="pApellido" class="form-label">Primer Apellido</label>
+                    <input id="pApellido" type="text" formControlName="pApellido" placeholder="Ingrese el primer apellido" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Segundo Apellido -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="sApellido" class="form-label">Segundo Apellido</label>
+                    <input id="sApellido" type="text" formControlName="sApellido" placeholder="Ingrese el segundo apellido" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Primer Nombre -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="pNombre" class="form-label">Primer Nombre</label>
+                    <input id="pNombre" type="text" formControlName="pNombre" placeholder="Ingrese el primer nombre" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Segundo Nombre -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="sNombre" class="form-label">Segundo Nombre</label>
+                    <input id="sNombre" type="text" formControlName="sNombre" placeholder="Ingrese el segundo nombre" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Fecha de Nacimiento -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="fecNacimiento" class="form-label">F. de Nacimiento</label>
+                    <input id="fecNacimiento" type="date" formControlName="fecNacimiento" class="form-control uniform-control" required [max]="hoy" >
+                </div>
+            </div>
+            <!-- Sexo -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="sexo" class="form-label">Sexo</label>
+                    <select id="sexo" class="form-select uniform-control" formControlName="sexo">
+                        <option selected value="">Seleccionar sexo</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Zona -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="zona" class="form-label">Zona</label>
+                    <select id="zona" class="form-select uniform-control" formControlName="zona">
+                        <option selected value="">Seleccionar zona</option>
+                        <option value="U">Urbana</option>
+                        <option value="R">Rural</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Barrio -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="barrio" class="form-label">Barrio</label>
+                    <input id="barrio" type="text" formControlName="barrio" placeholder="Ingrese el barrio" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Dirección -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="direccion" class="form-label">Dirección</label>
+                    <input id="direccion" type="text" formControlName="direccion" placeholder="Ingrese la dirección" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Celular Principal -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="celularPrincipal" class="form-label">Celular Principal</label>
+                    <input id="celularPrincipal" type="text" formControlName="celularPrincipal" placeholder="Ingrese el celular principal" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Celular Secundario -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="celularSecundario" class="form-label">Celular Secundario</label>
+                    <input id="celularSecundario" type="text" formControlName="celularSecundario" placeholder="Ingrese el celular secundario" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Email -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="email" class="form-label">Correo Electrónico</label>
+                    <input id="email" type="email" formControlName="email" placeholder="Ingrese el correo electrónico" class="form-control uniform-control" required>
+                </div>
+            </div>
+            <!-- Departamento -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="departamento" class="form-label">Departamento</label>
+                    <select id="departamento" class="form-select uniform-control" formControlName="departamento" (change)="onDptoSeleccionado()" required>
+                        <option selected value="">Seleccione el departamento</option>
+                        <option *ngFor="let item of listaDpto" [ngValue]="item.codigo">{{item.nombre}}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Municipio -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="municipio" class="form-label">Municipio</label>
+                    <select id="municipio" class="form-select uniform-control" formControlName="municipio" required>
+                        <option selected value="">Seleccione el municipio</option>
+                        <option *ngFor="let item of listaMpio" [ngValue]="item.codigo">{{item.nombre}}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- EPS -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="eps" class="form-label">EPS</label>
+                    <select id="eps" class="form-select uniform-control" formControlName="eps">
+                        <option selected value="">Seleccionar EPS</option>
+                        <option *ngFor="let item of listaEps" [ngValue]="item.codigo">{{item.nombre}}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Régimen -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="regimen" class="form-label">Régimen</label>
+                    <select id="regimen" class="form-select uniform-control" formControlName="regimen">
+                        <option selected value="">Seleccionar régimen</option>
+                        <option value="C">Contributivo</option>
+                        <option value="S">Subsidiado</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Tipo de Afiliado -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="tipoAfiliado" class="form-label">Tipo de Afiliado</label>
+                    <select id="tipoAfiliado" class="form-select uniform-control" formControlName="tipoAfiliado">
+                        <option selected value="">Seleccionar tipo de afiliado</option>
+                        <option value="C">Cotizante</option>
+                        <option value="B">Beneficiario</option>
+                        <option value="BS">Beneficiario Subsidiado</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Categoría -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <select id="categoria" class="form-select uniform-control" formControlName="categoria">
+                        <option selected value="">Seleccionar categoría del afiliado</option>
+                        <option *ngFor="let item of listaCategoria" [ngValue]="item.codigo">{{item.nombre}} - {{item.valor}}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Dispensario -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="dispensario" class="form-label">Dispensario</label>
+                    <select id="dispensario" class="form-select uniform-control" formControlName="dispensario">
+                        <option selected value="">Seleccionar el dispensario del afiliado</option>
+                        <option value="SERSUMAGD">SERSUMAGD</option>
+                        <option value="SISM DISPENSARIO">SISM DISPENSARIO</option>
+                        <option value="SUPLYMEDICAL">SUPLYMEDICAL</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Estado -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group d-flex align-items-center">
+                    <input id="estado" class="form-check-input me-2" type="checkbox" formControlName="estado">
+                    <label for="estado" class="form-check-label">Estado</label>
+                </div>
+            </div>
+             <!-- Estado -->
+             <div class="col-md-4 mb-1">
+                <div class="form-group d-flex align-items-center">
+                    <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="portabilidad">
+                    <label for="portabilidad" class="form-check-label">Portabilidad</label>
+                </div>
+            </div>
+             <!-- Departamento portabilidad -->
+             <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="dptoportabilidad" class="form-label">Dpto Portabilidad</label>
+                    <select id="dptoportabilidad" class="form-select uniform-control" formControlName="dptoportabilidad" (change)="onDptoPortabilidadSeleccionado()" >
+                        <option selected value="">Seleccione el departamento portabilidad</option>
+                        <option *ngFor="let item of listaDpto" [ngValue]="item.codigo">{{item.nombre}}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Municipio portabilidad -->
+            <div class="col-md-4 mb-1">
+                <div class="form-group">
+                    <label for="mpoportabilidad" class="form-label">Mpio portabilidad </label>
+                    <select id="mpoportabilidad" class="form-select uniform-control" formControlName="mpoportabilidad" >
+                        <option selected value="">Seleccione el municipio de portabilidad</option>
+                        <option *ngFor="let item of listaMpioPortabilidad" [ngValue]="item.codigo">{{item.nombre}}</option>
+                    </select>
+                </div>
+            </div>
+ <!-- Fecha de vencimiento portabilidad -->
+ <div class="col-md-4 mb-1">
+    <div class="form-group">
+        <label for="fecVencePortabilidad" class="form-label">F. Vence portabilidad</label>
+        <input id="fecVencePortabilidad" type="date" formControlName="fecVencePortabilidad" class="form-control uniform-control" [min]="hoy" >
+    </div>
+</div>
+
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-6">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="far fa-save"></i> {{this.nombrebtn}}
+                </button>
+            </div>
+        </div>
+    </form>
+    <app-buscarpaciente></app-buscarpaciente>
+</div>

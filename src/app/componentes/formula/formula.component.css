@@ -1,0 +1,231 @@
+.card-body {
+    padding: 10px; /* Reduce el espacio interno */
+  }
+  
+  .card-body p {
+    margin: 5px 0; /* Reduce el margen entre párrafos */
+    font-size: 14px; /* Ajusta el tamaño de fuente */
+    line-height: 1.2; /* Ajusta el espacio entre líneas */
+  }
+  
+  .card-body p strong {
+    font-weight: 600; /* Asegura que los títulos sean visibles pero no demasiado grandes */
+  }
+
+
+.card {
+    margin: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-header {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 2px; /* 10 Reduce el espacio entre los grupos de formularios */
+  }
+  
+  .form-group.row {
+    display: flex;
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+  }
+  
+  .form-group label {
+    font-weight: bold;
+    margin-bottom: 0; /* Elimina el margen inferior de las etiquetas */
+  }
+  
+  .form-control,
+  .btn {
+    border-radius: 5px;
+  }
+  
+  .alert {
+    border-radius: 5px;
+    margin-top: 5px; /* Reduce el espacio antes de las alertas */
+  }
+  
+  .float-right {
+    margin-top: 5px; /* 10Reduce el espacio antes del texto flotante */
+    font-weight: bold;
+  }
+  
+  @media (max-width: 768px) {
+    .form-group {
+      flex-direction: column;
+    }
+  
+    .form-group label {
+      margin-bottom: 5px;
+    }
+  }
+
+ 
+ .mat-form-field {
+    width: 100%;
+
+  }
+ 
+  .mat-form-field .mat-form-field-infix {
+    padding: 0 2px; /* Ajusta el padding para reducir la altura */
+
+  }
+  
+  .mat-option {
+    font-size: 12px; /* Ajusta el tamaño de fuente */
+    line-height: 1.0; /* Reduce la altura de las opciones */
+    padding: 2px 12px; /* Reduce el padding para opciones más compactas */
+    transition: background-color 0.2s;
+  }
+  
+  .mat-option:hover {
+    background-color: #f1f1f1; /* Color de fondo al pasar el ratón */
+  }
+  
+  .mat-autocomplete-panel {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 300px; /* Limita la altura máxima del panel */
+    overflow-y: auto;
+  }
+  
+  .mat-input-element {
+    padding: 5px 10px; /* Ajusta el padding para reducir la altura */
+  }
+  
+  .input-container {
+    margin-bottom: 2px; /* Reduce el margen entre los contenedores de entrada */
+  }
+  
+  @media (max-width: 768px) {
+    .mat-input-element {
+      padding: 5px 10px; /* Ajusta el padding para pantallas más pequeñas */
+    }
+  
+   .mat-option {
+      font-size: 13px;
+      padding: 5px 12px;
+    }
+  }
+  .diagnosticos-group {
+    display: flex; /* Usa Flexbox para alinear los elementos en una fila */
+    gap: 10px; /* Espacio entre los campos de entrada */
+  }
+  
+  .diagnosticos-group .form-control {
+    flex: 1; /* Hace que cada input ocupe el mismo espacio disponible */
+    margin-bottom: 0; /* Elimina el margen inferior para que el espacio entre los inputs sea uniforme */
+  }
+  
+  .alert {
+    margin-top: 10px; /* Espacio adicional encima de la alerta */
+  }
+
+  .input-group {
+    display: flex; /* Usa Flexbox para alinear los elementos en una fila */
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+  }
+  
+  .input-group .form-control {
+    flex: 1; /* Hace que el campo de entrada ocupe todo el espacio disponible */
+    margin-right: 10px; /* Espacio entre el campo de entrada y el botón */
+  }
+  
+  .input-group .btn {
+    flex-shrink: 0; /* Evita que el botón se reduzca de tamaño */
+  }
+  
+  .alert {
+    margin-top: 10px; /* Espacio adicional encima de la alerta */
+  }
+
+  .text-green {
+    color: green;
+  }
+
+  .thead-colored {
+    background-color: #5D8EA4;
+    color: white;
+  }
+  
+  .table {
+    width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 20px;
+    font-size: 14px; /* Cambia a tu tamaño deseado */
+  }
+   
+    
+  .table td {
+    padding: 8px; /* Reduce el relleno de las celdas de la tabla */
+    text-align: center;
+  }  
+  
+  .table th {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+    padding: 0.4rem;
+  }
+  
+  .table td {
+    vertical-align: middle;
+    border: 1px solid #dee2e6;
+    padding: 0.3rem;
+  }
+  
+  .blink {
+    animation: glowing 1.5s ease-in-out infinite;
+    background-color: #ff4d4d; /* Fondo rojo */
+    border-radius: 15px; /* Bordes ovalados */
+    padding: 10px; /* Espaciado */
+    color: white; /* Texto en blanco */
+    box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px #39548B, 0 0 20px #39548B;
+}
+ 
+/*
+.porta {
+  animation: blinker 1s linear infinite; 
+  background-color: #39548B; 
+  border-radius: 15px; 
+  padding: 10px; 
+  color: white; 
+}
+
+/* Definición de la animación de parpadeo 
+@keyframes blinker {
+  50% {
+    opacity: 0; 
+  }
+}
+*/
+.porta {
+  animation: glowing 1.5s ease-in-out infinite;
+  background-color: #39548B;
+  border-radius: 15px;
+  padding: 10px;
+  color: white;
+  box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px #39548B, 0 0 20px #39548B;
+}
+
+@keyframes glowing {
+  0%, 100% {
+    box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px #39548B, 0 0 20px #f37053;
+  }
+  50% {
+    box-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px #39548B, 0 0 40px #ec2828;
+  }
+}

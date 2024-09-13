@@ -1,0 +1,95 @@
+<div class="container">
+
+<form [formGroup]="generalForm">
+<div>
+    <label>
+      <input type="radio" formControlName="tipoConsulta" value="origen" (change)="onBodegaChange($event)">
+      Consultar ordenes de despacho de salidas
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="radio" formControlName="tipoConsulta" value="destino"  (change)="onBodegaChange($event)">
+      Consultar ordenes de despacho de entradas
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="radio" formControlName="tipoConsulta" value="todas"  (change)="onBodegaChange($event)">
+      Consultar todas las ordenes de despacho
+    </label>
+  </div>
+
+<div class="input-group mb-2">
+    <select class="form-select" formControlName="idBodega" required (change)="onBodegaChange($event)">
+        <option selected value="0">Seleccione la bodega a consultar</option>
+        <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">{{item.nombre }} - {{item.puntoEntrega }}</option>
+    </select>
+
+</div>
+
+
+<div class="alert alert-info my-2" *ngIf="listaOrdendespacho?.length == 0">
+    No hay ordenes de despacho a esta bodega para mostrar!
+</div>
+<div *ngIf="listaOrdendespacho?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Orden</th>
+                <th>Fecha </th>
+                <th>Origen </th>
+                <th>Destino</th>
+                <th>Despacho</th>
+                <th>Fecha</th>
+                <th>Entrada</th>
+                <th>Items</th>
+                <th>Estado</th>
+                <th>Gestión</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let itemt of listaOrdendespacho let i= index">              
+                <td>
+                  <mat-icon *ngIf="itemt.bodegaOrigen.idBodega===idBodegaSeleccionada"  [ngStyle]="{'color':'red'}">remove_circle_outline </mat-icon> 
+                  <mat-icon *ngIf="itemt.bodegaDestino.idBodega===idBodegaSeleccionada"  [ngStyle]="{'color':'green'}">control_point </mat-icon> 
+                  {{itemt.idDespacho}}</td>
+                <td>{{itemt.fechaDespacho | date: 'dd/MM/YYYY'}}</td>
+                <td>{{itemt.bodegaOrigen.nombre}}</td>             
+                <td>{{itemt.bodegaDestino.nombre}}</td>
+                <td>{{primerasmayusculas(itemt.funcionarioDespacho)}}</td>
+                <td>{{itemt.fechaEntradaDestino | date: 'dd/MM/YYYY'}}</td>
+                <td>{{primerasmayusculas(itemt.funcionarioEntradaDestino)}}</td>                
+                <td>{{itemt.itemsDespacho.length}}</td>
+                <td>{{itemt.estado}}</td>
+                <td> 
+                 <div>                
+                   <mat-icon class="puntero"  title="Imprimir la orden despacho" [ngStyle]="{'color':'#009A94'}" [matMenuTriggerFor]="menu">print</mat-icon>
+                   <mat-icon class="puntero" *ngIf="itemt.estado==='Creación'" title="Editar la orden despacho" [ngStyle]="{'color':'#009A94'}" [routerLink]="['/despacho', itemt.idDespacho]">edit</mat-icon>
+                   <mat-icon class="puntero" *ngIf="itemt.estado==='Envío'"  title="Recepcionar la orden despacho"  [ngStyle]="{'color':'orange'}" [routerLink]="['/verordendespacho', itemt.idDespacho]">input </mat-icon> 
+                   <mat-icon class="puntero" *ngIf="itemt.estado==='Creación'" title="Eliminar la orden despacho" [ngStyle]="{'color':'red'}" (click)="eliminarOrdenDespacho(itemt)" >delete_sweep</mat-icon>
+                   <mat-icon class="puntero" *ngIf="itemt.estado==='Recepción'" title="Ver la orden despacho"[ngStyle]="{'color':'green'}"  [routerLink]="['/verordendespacho', itemt.idDespacho]">check_circle_outline </mat-icon> 
+                </div>
+
+                <mat-menu #menu="matMenu">
+                  <button (click)='reporteOrdenDespacho(itemt, false)' mat-menu-item>
+                      <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
+                      <span>O. despacho sin cantidades</span>
+                  </button>
+                  <button (click)='reporteOrdenDespacho(itemt, true)' mat-menu-item>
+                      <mat-icon [ngStyle]="{'color':'#009A94'}">print</mat-icon>
+                      <span>O. despacho con cantidades</span>
+                  </button>
+
+                  
+              </mat-menu>
+
+                </td>
+           </tr>
+        </tbody>
+    </table>
+</div>
+
+</form>
+
+</div>

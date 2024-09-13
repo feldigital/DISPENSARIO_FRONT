@@ -1,0 +1,102 @@
+<div class="card-body">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card-header">
+                Datos del paciente
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{listaregistros.paciente.pNombre}} {{listaregistros.paciente.sNombre}} {{listaregistros.paciente.pApellido}} {{listaregistros.paciente.sApellido}}
+                </p>
+                <p><strong>Eps:</strong> {{listaregistros.paciente.eps.nombre}}</p>
+                <p><strong>Regimen:</strong> {{listaregistros.paciente.regimen}}</p>
+                <p><strong>Dirección:</strong> {{listaregistros.paciente.direccion}}</p>
+                <p><strong>Teléfono:</strong> {{listaregistros.paciente.celularPrincipal}}</p>
+                <p><strong>Municipio:</strong> {{listaregistros.paciente.municipio.nombre}} - {{listaregistros.paciente.municipio.departamento.nombre}}</p>
+                <!-- Agrega aquí más datos del paciente según sea necesario -->
+            </div>
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="card-header">
+                Datos de la formula Nro. <strong>{{listaregistros.idFormula}}</strong>
+            </div>
+            <div class="card-body">
+                <p><strong>IPS que prescribe:</strong> {{listaregistros.ips.nombre}}</p>
+                <p><strong>Medico que prescribe:</strong> {{listaregistros.medico.nombre}}</p>
+                <p><strong>Fecha de prescripción:</strong> {{listaregistros.fecPrescribe | date: 'dd/MM/YYYY'}}</p>
+                <p><strong>Fecha y hora de solicitud:</strong> {{listaregistros.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}}</p>
+                <p><strong>Continuidad:</strong> {{listaregistros.continuidad }}</p> 
+                <p><strong>Programa:</strong> {{listaregistros.programa}}</p> 
+                <p><strong>Diagnostico:</strong> {{listaregistros.cieP}} {{listaregistros.cieR1}} {{listaregistros.cieR2}} </p> 
+                <p><strong>Observación de la formula:</strong> {{listaregistros.observacion}}</p>
+                <!-- Agrega aquí más datos del paciente según sea necesario -->
+            </div>           
+
+        </div>
+    </div>
+</div>
+
+
+<div class="alert alert-info my-4" *ngIf="listaItemsFormula?.length == 0">
+    No hay medicamentos asociados a esta formula para mostrar!
+</div>
+<div *ngIf="listaItemsFormula?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>Cant. prescrita</th>
+                <th>Pendientes</th>
+                <th>Estado</th>
+                <th>Entregados</th>
+                <th>Fecha entrega</th>
+                <th>Medio entrega</th>
+                <th>Dispensario</th>
+                <th>Quien entrega</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let item of listaItemsFormula; let i = index">
+                <tr>
+                    <!-- Celdas para la información del medicamento -->
+                   <!-- <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ item.medicamento.codigoCum }}</td>-->
+                    <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{ item.medicamento.nombre }}</td>
+                    <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{ item.medicamento.forma.nombre }}</td>
+                    <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ item.cantidad }}</td>   
+                    <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ calcularPendiente(item) }}</td> 
+                    <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">     
+                         <mat-icon title="Entrega completa" *ngIf="item.cantidad == item.totalEntregado" [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon>
+                         
+                        <button title="Entregar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0"  type="button"  
+                        class="btn btn-sm"  (click)="entregarPendiente(item)">  <mat-icon [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
+                        <button title="Entregar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado>0"  type="button"  
+                        class="btn btn-sm"  (click)="entregarPendiente(item)">  <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
+
+                    </td>                   
+                </tr>
+                <!-- Filas para cada entrega -->
+                <tr *ngFor="let entrega of item.itemsEntrega">
+                    <td class="centered">{{ entrega.cantidadEntregada || 0 }}</td>
+                    <td>{{ entrega.fecEntrega | date: 'dd/MM/YYYY : hh:mm' || '' }}</td>
+                    <td>{{ entrega.medioEntrega || '' }}</td>
+                    <td>{{ primerasmayusculas(entrega.bodega.puntoEntrega) || '' }}</td>
+                    <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>                   
+                </tr>             
+            </ng-container>
+        </tbody>
+    </table>
+</div>
+
+<hr>
+<div class="row">
+    <div class="col-6">
+        <button class="btn btn-outline-primary w-50"  [routerLink]="['/formula', listaregistros.paciente.idPaciente]" >
+           Regresar</button>
+    </div>        
+    <div class="col-6">
+        <button class="btn btn-outline-primary w-50" >
+            Imprimr</button>
+    </div>              
+</div>           
