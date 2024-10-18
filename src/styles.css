@@ -44,6 +44,7 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
   }
   
 
+
   .icon-container {
     display: flex;
     justify-content: center; /* Centrar horizontalmente */
@@ -53,6 +54,30 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
   .mat-icon {
     margin: 0 5px; /* Espacio horizontal entre los íconos */
   }
+
+
+  
+  .btn-custom-gradient {
+    background: linear-gradient(to right, #71E0D2, #67ACD6);
+    color: white;
+    border: none;
+    transition: color 0.3s;
+   
+  }
+  .btn-custom-gradient:hover {
+    color: black; /* Color del texto al pasar el mouse */
+  }
+  
+  .btn-custom-gradient-d {
+    background: linear-gradient(to right, #ff9966, #ff5e62);
+    color: white;
+    border: none;
+    min-width: 100px;
+    padding: 0.3rem 1rem;
+    font-size: 14px;
+  }
+  
+
 
 
   /* Estilos responsivos */

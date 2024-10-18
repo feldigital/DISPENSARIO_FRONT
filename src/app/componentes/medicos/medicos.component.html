@@ -56,8 +56,7 @@
                     <th>Item</th>
                     <th>Nro. Registro</th>
                     <th>Nombre del médico</th>
-                    <th>Editar</th>
-                    <th>Eliminar</th>
+                    <th>Gestión</th>                   
                 </tr>
             </thead>
             <tbody>
@@ -68,11 +67,10 @@
                     <td>{{itemt.registroMedico}}</td>
                     <td>{{primerasmayusculas(itemt.nombre)}}</td>
                     <td>
-                        <button title="Actualizar el médico" type="button" class="btn btn-sm"
+                        <button title="Editar el médico" type="button" class="btn btn-sm"
                             (click)="mostrarRegistro(itemt)">
                             <mat-icon [ngStyle]="{'color':'#009A94'}">edit</mat-icon> </button>
-                    </td>
-                    <td>
+                  
                         <button title="Eliminar el médico" type="button" class="btn btn-sm"
                             (click)="eliminarRegistro(itemt)">
                             <mat-icon [ngStyle]="{'color':'red'}">delete_sweep</mat-icon>

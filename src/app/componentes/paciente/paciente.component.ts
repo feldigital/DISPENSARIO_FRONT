@@ -24,8 +24,9 @@ export class PacienteComponent implements OnInit {
   //listaFormula: any;
   parametro: any;
   hoy!: string;
- // mostrarComponente: Boolean=false;
- // datoParaHijo: number = NaN;
+  mostrarPortabilidad = false;
+  // mostrarComponente: Boolean=false;
+  // datoParaHijo: number = NaN;
 
 
   constructor(
@@ -38,7 +39,7 @@ export class PacienteComponent implements OnInit {
 
     //this.cargarRegistros();
     this.nombrebtn = "Crear";
-   // this.banderaRegistro = true;
+    // this.banderaRegistro = true;
     this.cargarDepartamentos();
     this.cargarEps();
     this.cargarCategoria();
@@ -52,9 +53,9 @@ export class PacienteComponent implements OnInit {
     this.activatedRoute.paramMap.subscribe(params => {
       let pacienteId = +params.get('id')!;
       console.log("llegue al componente para modificación: ");
-      this.servicio.getRegistroId(pacienteId).subscribe(cliente => {       
-        this.mostrarRegistro(cliente);   
-        console.log("llegue al componente para modificación: ");  
+      this.servicio.getRegistroId(pacienteId).subscribe(cliente => {
+        this.mostrarRegistro(cliente);
+        console.log("llegue al componente para modificación: ");
         console.log(cliente);
       });
     });
@@ -72,11 +73,11 @@ export class PacienteComponent implements OnInit {
     );
 
   }
-  
+
   onDptoPortabilidadSeleccionado() {
     const dptoSeleccionado = this.generalForm.get('dptoportabilidad')?.value;
     this.servicioBodega.getMunicipiosDepartamento(dptoSeleccionado).subscribe((resp: any) => {
-      this.listaMpioPortabilidad  = resp;
+      this.listaMpioPortabilidad = resp;
     },
       (err: any) => { console.error(err) }
     );
@@ -95,7 +96,7 @@ export class PacienteComponent implements OnInit {
     this.servicio.getEps()
       .subscribe((resp: any) => {
         this.listaEps = resp;
-        
+
       },
         (err: any) => { console.error(err) }
       );
@@ -104,12 +105,12 @@ export class PacienteComponent implements OnInit {
     this.servicio.getCategoria()
       .subscribe((resp: any) => {
         this.listaCategoria = resp;
-     
+
       },
         (err: any) => { console.error(err) }
       );
   }
-  buscarDocumento(){
+  buscarDocumento() {
     const numDocumento = this.generalForm.get('numDocumento')?.value;
     if (numDocumento) {
       // Lógica para buscar el documento      
@@ -119,18 +120,18 @@ export class PacienteComponent implements OnInit {
             Swal.fire({
               icon: 'info',
               title: `EXISTE`,
-              text: `El documento  número  ` + numDocumento + ` que esta ingresando ya existe con el nombre `+ respuesta.pNombre + ' ' +  respuesta.sNombre +' '+  respuesta.pApellido +' '+  respuesta.sApellido ,
+              text: `El documento  número  ` + numDocumento + ` que esta ingresando ya existe con el nombre ` + respuesta.pNombre + ' ' + respuesta.sNombre + ' ' + respuesta.pApellido + ' ' + respuesta.sApellido,
             });
-            this.mostrarRegistro(respuesta);          
+            this.mostrarRegistro(respuesta);
           } else {
-            console.log('Documento no encontrado');           
+            console.log('Documento no encontrado');
           }
         },
         (error) => {
           console.error('Error al buscar el documento', error);
         }
       );
-        } 
+    }
 
   }
 
@@ -145,7 +146,7 @@ export class PacienteComponent implements OnInit {
         sApellido: [''],
         pNombre: ['', [Validators.required]],
         sNombre: [''],
-        estado: ['true', [Validators.required]],
+        estado: [true, [Validators.required]],
         fecNacimiento: [''],
         sexo: [''],
         zona: [''],
@@ -175,65 +176,133 @@ export class PacienteComponent implements OnInit {
 
 
   mostrarRegistro(itemt: any) {
-   // this.mostrarComponente=true;
-   // this.datoParaHijo=itemt.idPaciente;
+    // this.mostrarComponente=true;
+    // this.datoParaHijo=itemt.idPaciente;
     this.nombrebtn = "Actualizar"
-  // Convertir las fechas solo si no son null o undefined
-  var fn = itemt.fecNacimiento ? new Date(itemt.fecNacimiento) : null;
-  var fp = itemt.fecVencePortabilidad ? new Date(itemt.fecVencePortabilidad) : null;
-
+    // Convertir las fechas solo si no son null o undefined
+    var fn = itemt.fecNacimiento ? new Date(itemt.fecNacimiento) : null;
+    var fp = itemt.fecVencePortabilidad ? new Date(itemt.fecVencePortabilidad) : null;
+    // Obtener municipios del departamento del paciente
     this.servicioBodega.getMunicipiosDepartamento(itemt.departamento).subscribe(
       (municipios: any[]) => {
         this.listaMpio = municipios;
-        // Una vez cargados los municipios, establece los valores del formulario
-       // this.listaFormula=itemt.formulas;
-        this.generalForm.setValue({
-          idPaciente: itemt.idPaciente,
-          pApellido: itemt.pApellido,
-          sApellido: itemt.sApellido,
-          pNombre: itemt.pNombre,
-          sNombre: itemt.sNombre,
-          tipoDoc: itemt.tipoDoc,
-          numDocumento: itemt.numDocumento,
-          // Asignar null si fn es null, de lo contrario asignar la fecha en formato ISO
-          fecNacimiento: fn ? fn.toJSON().slice(0, 10) : null,
-          sexo: itemt.sexo,
-          zona: itemt.zona,
-          barrio: itemt.barrio,
-          direccion: itemt.direccion,
-          celularPrincipal: itemt.celularPrincipal,
-          celularSecundario: itemt.celularSecundario,
-          email: itemt.email,
-          eps: itemt.eps.codigo,
-          regimen: itemt.regimen,
-          tipoAfiliado: itemt.tipoAfiliado,
-          categoria: itemt.categoria.codigo,
-          //tipoPoblacion: itemt.tipoPoblacion,
-          //categoriaSisben: itemt.categoriaSisben,
-          departamento: itemt.departamento,
-          municipio: itemt.municipio.codigo,
-          estado: itemt.estado,
-          dispensario: itemt.dispensario,
-
-          dptoportabilidad: itemt.dptoportabilidad || '',
-          mpoportabilidad:itemt.mpoportabilidad?.codigo || '',
-          portabilidad: itemt.portabilidad,
-          // Asignar null si fp es null, de lo contrario asignar la fecha en formato ISO
-        fecVencePortabilidad: fp ? fp.toJSON().slice(0, 10) : null,
-
-        })
+        // Establecer los valores del formulario después de obtener los municipios del paciente
+        this.generalForm.patchValue({
+          municipio: itemt.municipio?.codigo || ''  // Asegura que haya un valor por defecto
+        });
       },
       (err) => {
         console.error(err);
       }
     );
+
+    // Si el paciente está en portabilidad, obtener municipios del departamento de portabilidad
+    if (itemt.portabilidad) {
+      this.servicioBodega.getMunicipiosDepartamento(itemt.dptoportabilidad).subscribe(
+        (municipios: any[]) => {
+          this.listaMpioPortabilidad = municipios;  // Asigna la lista de municipios para portabilidad
+          this.generalForm.patchValue({
+            mpoportabilidad: itemt.mpoportabilidad?.codigo || ''
+          });
+        },
+        (err) => {
+          console.error(err);
+        }
+      );
+    }
+
+  // Usar patchValue para establecer los valores del formulario sin necesidad de todos los controles
+  this.generalForm.patchValue({
+    idPaciente: itemt.idPaciente,
+    pApellido: itemt.pApellido,
+    sApellido: itemt.sApellido,
+    pNombre: itemt.pNombre,
+    sNombre: itemt.sNombre,
+    tipoDoc: itemt.tipoDoc,
+    numDocumento: itemt.numDocumento,
+    fecNacimiento: fn ? fn.toJSON().slice(0, 10) : null,
+    sexo: itemt.sexo,
+    zona: itemt.zona,
+    barrio: itemt.barrio,
+    direccion: itemt.direccion,
+    celularPrincipal: itemt.celularPrincipal,
+    celularSecundario: itemt.celularSecundario,
+    email: itemt.email,
+    eps: itemt.eps.codigo,
+    regimen: itemt.regimen,
+    tipoAfiliado: itemt.tipoAfiliado,
+    categoria: itemt.categoria.codigo,
+    departamento: itemt.departamento,
+    estado: itemt.estado,
+    dispensario: itemt.dispensario,
+    dptoportabilidad: itemt.dptoportabilidad || '',
+    portabilidad: itemt.portabilidad,
+    fecVencePortabilidad: fp ? fp.toJSON().slice(0, 10) : null
+  });
+
+    // Ejecutar manualmente la función onPortabilidadChange si es necesario
+    this.onPortabilidadChange({ target: { checked: itemt.portabilidad } });
+
+
+
+
+    /*
+        this.servicioBodega.getMunicipiosDepartamento(itemt.departamento).subscribe(
+          (municipios: any[]) => {
+            this.listaMpio = municipios;
+            // Una vez cargados los municipios, establece los valores del formulario
+           // this.listaFormula=itemt.formulas;
+            this.generalForm.setValue({
+              idPaciente: itemt.idPaciente,
+              pApellido: itemt.pApellido,
+              sApellido: itemt.sApellido,
+              pNombre: itemt.pNombre,
+              sNombre: itemt.sNombre,
+              tipoDoc: itemt.tipoDoc,
+              numDocumento: itemt.numDocumento,
+              // Asignar null si fn es null, de lo contrario asignar la fecha en formato ISO
+              fecNacimiento: fn ? fn.toJSON().slice(0, 10) : null,
+              sexo: itemt.sexo,
+              zona: itemt.zona,
+              barrio: itemt.barrio,
+              direccion: itemt.direccion,
+              celularPrincipal: itemt.celularPrincipal,
+              celularSecundario: itemt.celularSecundario,
+              email: itemt.email,
+              eps: itemt.eps.codigo,
+              regimen: itemt.regimen,
+              tipoAfiliado: itemt.tipoAfiliado,
+              categoria: itemt.categoria.codigo,
+              //tipoPoblacion: itemt.tipoPoblacion,
+              //categoriaSisben: itemt.categoriaSisben,
+              departamento: itemt.departamento,
+              municipio: itemt.municipio.codigo,
+              estado: itemt.estado,
+              dispensario: itemt.dispensario,
+    
+              dptoportabilidad: itemt.dptoportabilidad || '',
+              mpoportabilidad:itemt.mpoportabilidad?.codigo || '',
+              portabilidad: itemt.portabilidad,
+              // Asignar null si fp es null, de lo contrario asignar la fecha en formato ISO
+            fecVencePortabilidad: fp ? fp.toJSON().slice(0, 10) : null,
+    
+            });
+     // Ejecutar manualmente el método `onPortabilidadChange`
+     this.onPortabilidadChange({ target: { checked: itemt.portabilidad } });
+    
+          },
+          (err) => {
+            console.error(err);
+          }
+        );*/
+
   }
 
   create() {
     if (this.generalForm.valid) {
       if (this.nombrebtn == "Crear") {
         this.servicio.create(this.generalForm.value).subscribe(ciclo => {
-     //     this.cargarRegistros();
+          //     this.cargarRegistros();
           Swal.fire({
             icon: 'success',
             title: `Ok`,
@@ -241,7 +310,7 @@ export class PacienteComponent implements OnInit {
           });
           this.nombrebtn = "Crear";
           this.generalForm.reset();
-     //     this.mostrarComponente=false;
+          //     this.mostrarComponente=false;
         },
           err => {
             Swal.fire({
@@ -264,7 +333,7 @@ export class PacienteComponent implements OnInit {
             text: `El paciente ha sido actualizado correctameente`,
           });
           this.generalForm.reset();
-       //   this.mostrarComponente=false;
+          //   this.mostrarComponente=false;
 
         },
           err => {
@@ -288,37 +357,41 @@ export class PacienteComponent implements OnInit {
 
   }
 
-/*
-  eliminarRegistro(itemt: PacienteI) {
-    Swal.fire({
-      title: 'Desea eliminar?',
-      text: `El paciente ` + itemt.pNombre + ` de la base de datos.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, eliminar!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.servicio.delete(itemt.idPaciente).subscribe(resp => {
-          this.listaregistros = this.listaregistros.filter((cli: PacienteI) => cli !== itemt);
-          Swal.fire({
-            icon: 'success',
-            title: `Ok`,
-            text: `El paciente ha sido eliminado correctamente.`,
-          });
-        },
-          err => {
-            Swal.fire({
-              icon: 'error',
-              title: `Error`,
-              text: err.mensaje,
-            });
-          });
-      }
-    });
+  onPortabilidadChange(event: any): void {
+    this.mostrarPortabilidad = event.target.checked;
   }
-*/
+
+  /*
+    eliminarRegistro(itemt: PacienteI) {
+      Swal.fire({
+        title: 'Desea eliminar?',
+        text: `El paciente ` + itemt.pNombre + ` de la base de datos.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, eliminar!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.servicio.delete(itemt.idPaciente).subscribe(resp => {
+            this.listaregistros = this.listaregistros.filter((cli: PacienteI) => cli !== itemt);
+            Swal.fire({
+              icon: 'success',
+              title: `Ok`,
+              text: `El paciente ha sido eliminado correctamente.`,
+            });
+          },
+            err => {
+              Swal.fire({
+                icon: 'error',
+                title: `Error`,
+                text: err.mensaje,
+              });
+            });
+        }
+      });
+    }
+  */
 
 
   public primerasmayusculas(str: string): string {

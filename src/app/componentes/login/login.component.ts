@@ -54,9 +54,9 @@ export class LoginComponent {
     if (this.loginForm.valid) {
       this.usuarioservicio.getRegistroId(this.loginForm.get('usuario')?.value)
       .subscribe((resp: any) => {
-       console.log(resp);
-       console.log(this.loginForm.get('password')?.value);
-       console.log(this.loginForm.get('idBodega')?.value);
+      // console.log(resp);
+      // console.log(this.loginForm.get('password')?.value);
+      // console.log(this.loginForm.get('idBodega')?.value);
         if(resp.password===this.loginForm.get('password')?.value && resp.idBodega===this.loginForm.get('idBodega')?.value){
                  
           sessionStorage.setItem("nombre", resp.nombre);

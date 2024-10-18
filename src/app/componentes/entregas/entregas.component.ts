@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormulaI } from 'src/app/modelos/formula.model';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { PacienteService } from 'src/app/servicios/paciente.service';
@@ -18,6 +17,7 @@ export class EntregasComponent implements OnInit, OnChanges {
   parametro: any;
   @Input() formulaRecibida: number = NaN;
   existencias: { [key: number]: number } = {};
+  hoy!: string;
 
   constructor(
     private servicio: PacienteService,
@@ -37,6 +37,8 @@ export class EntregasComponent implements OnInit, OnChanges {
       this.buscarRegistro(this.formulaRecibida);
       this.parametro = this.formulaRecibida;
     }
+
+    this.hoy = new Date().toISOString().split('T')[0];
   }
 
 
@@ -50,9 +52,7 @@ export class EntregasComponent implements OnInit, OnChanges {
     this.servicioformula.getFormulaId(id)
       .subscribe((resp: any) => {
         this.listaregistros = resp;
-        console.log(resp);
         this.listaItemsFormula = resp.items;
-        console.log(this.listaItemsFormula);
         // this.listaItemsFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
       });
   }
@@ -61,18 +61,27 @@ export class EntregasComponent implements OnInit, OnChanges {
     try {
       let bodegaString = sessionStorage.getItem("bodega");
       let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
-      let funcionario= sessionStorage.getItem("nombre"); 
-      const cantidad = await this.existenciaAcutal(itemt.medicamento.idMedicamento, bodega);  
+      let funcionario = sessionStorage.getItem("nombre");
+      const cantidad = await this.existenciaAcutal(itemt.medicamento.idMedicamento, bodega);
       Swal.fire({
         title: "Entrega de pendiente",
-        html: `             
-        <div>${itemt.medicamento.nombre}<br><br>Cantidad en bodega: ${cantidad}</div>
-        <input id="cantidadentregada" type="number" placeholder="Ingrese cantidad a entregar" class="swal2-input"> 
-        <select id="selectMedio" class="form-select">
-          <option value="-1">Seleccione el medio de entrega</option>
-          <option value="Presencial">Presencial</option>
-          <option value="Domicilio">Domicilio</option>               
-        </select>     
+        html: `  
+        <div class="swal-container">           
+    <div>${itemt.medicamento.nombre}<br><br>Cantidad en bodega: ${cantidad}</div>
+    <input id="cantidadentregada" type="number" placeholder="Ingrese cantidad a entregar" class="form-control mb-1" />
+    <div class="form-group">      
+      <select id="selectMedio" class="form-select">
+        <option value="-1">Seleccione el medio de entrega</option>
+        <option value="Presencial">Presencial</option>
+        <option value="Domicilio">Domicilio</option>                         
+      </select>   
+    </div>  
+    <label for="entrega">Fecha de entrega</label>
+    <input id="fechaentrega" type="date" class="form-control mb-1" max="${this.hoy}">
+    <input id="checkRecibe" class="form-check-input" style="margin-right: 5px" type="checkbox" /> Recibe el mismo paciente
+    <input id="tipoRecibe" type="text" placeholder="Tipo" class="form-control mb-1" />
+    <input id="documentoRecibe" type="text" placeholder="Documento" class="form-control mb-1" />
+  </div>  
         `,
         showCancelButton: true,
         confirmButtonText: 'Entregar',
@@ -81,37 +90,61 @@ export class EntregasComponent implements OnInit, OnChanges {
         if (result.isConfirmed) {
 
           let selectElement = document.getElementById('selectMedio') as HTMLSelectElement;
-          let selectElementinput = document.getElementById('cantidadentregada') as HTMLInputElement;
           const selectedValue = selectElement.value;
-          if (selectedValue !== '-1') {
+          
+          let selectElementdate = document.getElementById('fechaentrega') as HTMLInputElement;         
+          const selectedValueDate = selectElementdate.value;
+         
+
+          if (selectedValue !== '-1' && selectedValueDate !== '') {
+            let selectElementinput = document.getElementById('cantidadentregada') as HTMLInputElement;
             const cantidadAentregar = parseInt(selectElementinput.value);
             let pendiente = itemt.cantidad - itemt.totalEntregado;
             if (cantidadAentregar > pendiente) {
 
               Swal.fire('Verificar!', `Ingresaste una mayor cantidad de medicamentos para entregar, que la cantidad que tiene el paciente, como pendiente`, 'error');
             } else {
-              if (cantidad >= cantidadAentregar) {
-                if (cantidadAentregar>0){
-                if (funcionario && bodegaString){
-                this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar)
-                  .subscribe({
-                    next: (data: any) => {
-                      console.log(data);
-                      Swal.fire('Correcto!', `Ingresado y descargado correctamente el medicamento pendiente ${itemt.medicamento.nombre}`, 'success');
-                      this.buscarRegistro(this.parametro);
-                    },
-                    error: (err) => {
-                      console.error('Error al guardar la entrega', err);
-                    }
-                  });
-                  }else{
+              if (cantidad >= cantidadAentregar) { 
+                if (cantidadAentregar > 0) {
+                  if (funcionario && bodegaString) {
+
+                    let selectElementtipo = document.getElementById('tipoRecibe') as HTMLSelectElement;
+                    const selectedValuetipo = selectElementtipo.value;
+                    
+                    let selectElementdocumento = document.getElementById('documentoRecibe') as HTMLInputElement;         
+                    const selectedValuedocumento = selectElementdocumento.value;
+
+                 if (selectedValuetipo !== '' && selectedValuedocumento !== '') {
+                    this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar, selectedValuetipo, selectedValuedocumento,selectedValueDate)
+                      .subscribe({
+                        next: (data: any) => {
+                          console.log(data);
+                          Swal.fire('Correcto!', `Ingresado y descargado correctamente el medicamento pendiente ${itemt.medicamento.nombre}`, 'success');
+                          this.buscarRegistro(this.parametro);
+                        },
+                        error: (err) => {
+                          console.error('Error al guardar la entrega', err);
+                        }
+                      });
+                   
+                 
+                    } 
+                    else {
+                      Swal.fire({
+                        icon: 'error',
+                        title: `Quien recibe!`,
+                        text: 'No ha diligenciado los datos de quien recibe el medicamento pendiente prescrito en la formula número ' + itemt.idFormula + ' recuerde debe ser un mayor de edad',
+                      });
+                    }              
+                  
+                    } else {
                     Swal.fire({
                       icon: 'error',
                       title: `Verificar`,
                       text: "Usuario no esta  logueado para realizar la dispensación de medicamentos, por favor inicie sesión!",
                     });
                   }
-                }else{
+                } else {
                   Swal.fire({
                     icon: 'error',
                     title: `Verificar`,
@@ -124,14 +157,123 @@ export class EntregasComponent implements OnInit, OnChanges {
               }
             }
           } else {
-            Swal.fire('Falta!', `No has seleccionado el medio de entrega, para descargar el pendiente del medicamento ${itemt.medicamento.nombre}`, 'warning');
+            Swal.fire('Falta!', `No has seleccionado el medio de entrega y/o la fecha de entrega, para descargar el pendiente del medicamento ${itemt.medicamento.nombre}`, 'warning');
           }
         }
       });
+      // Después de renderizar SweetAlert, configuramos el evento 'change' del checkbox
+    document.getElementById('checkRecibe')?.addEventListener('change', (event) => this.onRecibeChange(event, itemt));
     } catch (error) {
       console.error('Error obteniendo la existencia actual:', error);
     }
   }
+
+  onRecibeChange(event: Event, itemt: any): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    const tipoRecibeInput = document.getElementById('tipoRecibe') as HTMLInputElement;
+    const documentoRecibeInput = document.getElementById('documentoRecibe') as HTMLInputElement;
+
+    if (isChecked) {
+      if (this.CalcularEdad(this.listaregistros.paciente.fecNacimiento) > 17) {
+        // Asignar valores si el paciente es mayor de 17 años
+        tipoRecibeInput.value = this.listaregistros.paciente.tipoDoc;
+        documentoRecibeInput.value = this.listaregistros.paciente.numDocumento;
+      } else {
+        // Si el paciente es menor de edad, mostrar alerta y limpiar los campos
+        tipoRecibeInput.value = "";
+        documentoRecibeInput.value = "";
+        Swal.fire({
+          icon: 'error',
+          title: `Edad no permitida!`,
+          text: 'El paciente no tiene la edad para recibir los medicamentos de la formula número ' + itemt.idFormula + ' por favor agregue los datos del tutor responsable',
+        });
+      }
+    } else {
+      // Limpiar los campos si se desactiva el checkbox
+      tipoRecibeInput.value = "";
+      documentoRecibeInput.value = "";
+    }
+  }
+
+  CalcularEdad(fn: Date): number {
+    if (fn !== null && fn !== undefined) {
+      const convertAge = new Date(fn);
+      const timeDiff = Math.abs(Date.now() - convertAge.getTime());
+      let edad = Math.floor((timeDiff / (1000 * 3600 * 24)) / 365);
+      if (edad) {
+        return edad;
+      }
+    }
+    return 0;
+  }
+
+  public async subsanarPendiente(itemt: any) {
+    try {
+      this.hoy = new Date().toISOString().split('T')[0];
+      let bodegaString = sessionStorage.getItem("bodega");
+      let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
+      let funcionario = sessionStorage.getItem("nombre");
+      const cantidad = await this.existenciaAcutal(itemt.medicamento.idMedicamento, bodega);
+      Swal.fire({
+        title: "Cancelación administrativa",
+        html: `  
+        <div class="swal-container">           
+        <div >${itemt.medicamento.nombre}<br>Cantidad en bodega: ${cantidad}</div><br>
+         <label for="entrega">Cantidad pendiente: ${itemt.cantidad - itemt.totalEntregado} </label>
+        <div class="form-group">      
+        <select id="selectMedio" class="form-select">
+          <option value="-1">Seleccione motivo de la cancelacion de la entrega</option>
+          <option value="Desabastecido">Desabastecido</option> 
+          <option value="Agotado">Agotado</option>   
+            <option value="Usuario Fallecido">Usuario Fallecido</option>                    
+        </select>   
+         </div>         
+          </div>  
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Subsanar',
+        cancelButtonText: 'Cancelar',
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          let selectElement = document.getElementById('selectMedio') as HTMLSelectElement;
+          const selectedValue = selectElement.value;
+          if (selectedValue != '-1') {
+            if (funcionario && bodegaString) {
+              const cantidadAentregar = itemt.cantidad - itemt.totalEntregado;
+              this.servicioformula.subsanacionItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar)
+                .subscribe({
+                  next: (data: any) => {
+                    Swal.fire('Correcto!', `Ingresado y notificado correctamente por ${selectedValue},  el medicamento pendiente ${itemt.medicamento.nombre}`, 'success');
+                    this.buscarRegistro(this.parametro);
+                  },
+                  error: (err) => {
+                    console.error('Error al guardar la entrega', err);
+                  }
+                });
+
+
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: `Verificar`,
+                text: "Usuario no esta  logueado para realizar la dispensación de medicamentos, por favor inicie sesión!",
+              });
+            }
+
+
+          } else {
+
+            Swal.fire('Falta!', `No has seleccionado el motivo por el que se cancelara la entrega el pendiente del medicamento ${itemt.medicamento.nombre}`, 'warning');
+          }
+
+        }
+      });
+
+    } catch (error) {
+      console.error('Error obteniendo la existencia actual:', error);
+    }
+  }
+
 
   public existenciaAcutal(idMedicamento: number, idBodega: number): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -162,4 +304,16 @@ export class EntregasComponent implements OnInit, OnChanges {
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
   }
 
+
+  calcularEdad(fn: Date): string {
+    if (fn !== null && fn !== undefined) {
+      const convertAge = new Date(fn);
+      const timeDiff = Math.abs(Date.now() - convertAge.getTime());
+      let edad = Math.floor((timeDiff / (1000 * 3600 * 24)) / 365);
+      if (edad) {
+        return edad.toString();
+      }
+    }
+    return '-';
+  }
 }

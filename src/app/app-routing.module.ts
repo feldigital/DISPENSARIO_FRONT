@@ -24,7 +24,7 @@ import { VerordendespachoComponent } from './componentes/verordendespacho/verord
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'menu', component: MenuComponent, //canActivate: [AuthGuard],
+  { path: 'menu', component: MenuComponent, canActivate: [AuthGuard],
     children: [
       { path: 'bodega', component: BodegaComponent },
       { path: 'medicamento', component: MedicamentoComponent },

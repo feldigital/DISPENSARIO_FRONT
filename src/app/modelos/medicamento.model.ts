@@ -11,6 +11,7 @@ export class MedicamentoI {
     codigoBarra: String;
     fecCreacion: Date;
     estado: Boolean;
+    desabastecido: Boolean;
     via: number;
     forma: number;
 
@@ -28,6 +29,7 @@ export class MedicamentoI {
         this.codigoBarra="";
         this.fecCreacion=new Date();
         this.estado=true;
+        this.desabastecido=false;
         this.via= NaN;
         this.forma= NaN;
         this.estado = true;

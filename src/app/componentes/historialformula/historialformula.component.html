@@ -10,8 +10,9 @@
                 <th>IPS prescribe </th>
                 <th>Fecha y hora de solicitud</th>
                 <th>Continuidad</th>
-                <th>CM Valor</th>
+                <th>Cuota M</th>
                 <th>Nro Items</th>
+                <th>¿Quien recibe?</th>
                 <th>Gestión</th>
             </tr>
         </thead>
@@ -33,9 +34,29 @@
                 </td>
                 <td> <button title="ver item de la formula" type="button" class="btn btn-sm"
                     (click)="verDetalles(itemt)">
-                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>  </button> {{itemt.items.length}}</td>
+                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>  </button> {{itemt.items.length}}
+                </td>
                 <!--<td>{{itemt.total}}</td>-->
-                
+                <td>
+                    <div *ngIf="itemt.editing">
+                       
+                        <input class="form-check-input" style="margin-right: 5px" type="checkbox" [(ngModel)]="itemt.recibe" (change)="onRecibeChange($event, itemt)"> Recibe el mismo paciente
+                        <input type="text" [(ngModel)]="itemt.tipoRecibe" placeholder="Tipo" class="form-control mb-1" (input)="onInputChange($event, itemt)" />
+                        <input type="text" [(ngModel)]="itemt.documentoRecibe" placeholder="Documento" class="form-control mb-1" />
+                    </div>
+                    <div *ngIf="!itemt.editing">
+                        {{itemt.tipoRecibe}}  {{itemt.documentoRecibe}}
+                    </div>
+                    <mat-icon *ngIf="!itemt.estado && !itemt.editing && !itemt.estadoanulada" title="Editar cantidad" class="pointer-cursor" title="Editar cantidad" 
+                    [ngStyle]="{'color':'#009A94'}" (click)="editarquienRecibe(itemt)">edit</mat-icon>
+
+                <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Cancelar" class="pointer-cursor" title="Cancelar edición" 
+                [ngStyle]="{'color':'orange'}" (click)="cancelarquienRecibe(itemt)">clear</mat-icon>
+
+                <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Guardar cantidad" class="pointer-cursor" title="Fijar cantidad" 
+                [ngStyle]="{'color':'#009A94'}" (click)="guardarquienRecibe(itemt)">check</mat-icon>
+                </td>
+               
                 <td><!--   offline_pin    -->
                     <mat-icon *ngIf="itemt.estadoanulada" title="Formula anulada"  class="pointer-cursor"
                     [ngStyle]="{'color':'red'}"  (click)="informeAnulacion(itemt)">block</mat-icon>
@@ -54,10 +75,11 @@
                     [ngStyle]="{'color':'orange'}"  (click)="anularFormula(itemt)">block</mat-icon>
  
                     <mat-icon *ngIf="!itemt.estado && !itemt.estadoanulada" title="Editar la formula" class="pointer-cursor"
-                    [ngStyle]="{'color':'#009A94'}"  [routerLink]="['/formula/formula', itemt.idFormula]">edit</mat-icon>
-
+                    [ngStyle]="{'color':'#009A94'}"  [routerLink]="['/formula/formula', itemt.idFormula]">visibility</mat-icon>
+<!--
                     <mat-icon *ngIf="!itemt.estado && ControlEliminar(itemt)" title="Eliminar formula"
                     [ngStyle]="{'color':'red'}"  (click)="eliminarFormula(itemt)">delete_sweep</mat-icon> 
+                    -->
                 </td>
             </tr>
         </tbody>

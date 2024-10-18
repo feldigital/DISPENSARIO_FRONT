@@ -77,7 +77,9 @@
 
                 <div class="input-group mb-2">
                     <!--  <mat-slide-toggle formControlName="estado">Estado !</mat-slide-toggle> -->
-                    <input class="form-check-input" type="checkbox" formControlName="estado"> Estado
+                    <input class="form-check-input" style="margin-right: 5px" type="checkbox" formControlName="estado"> Vigente 
+
+                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="desabastecido"> Desabastecido
                 </div>
 
                 <hr>
@@ -124,6 +126,15 @@
                     <td>{{itemt.via.nombre}}</td>
                     <td>{{ '$ ' + (itemt.valor | number:'1.0-0') }}</td>          
                     <td>
+
+                        <mat-icon title="Asociar el medicamento al contrato" class="pointer-cursor" 
+                        [ngStyle]="{'color':'#009A94'}"  (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon> 
+
+
+                        <mat-icon title="Quitar el medicamento del contrato" class="pointer-cursor" 
+                        [ngStyle]="{'color':'orange'}"  (click)="modificarContrato(itemt,1)">clear</mat-icon> 
+
+
                         <mat-icon title="Actualizar el medicamento" class="pointer-cursor" 
                         [ngStyle]="{'color':'#009A94'}"  (click)="mostrarRegistro(itemt)">edit</mat-icon> 
 

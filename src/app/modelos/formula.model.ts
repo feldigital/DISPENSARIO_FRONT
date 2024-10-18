@@ -24,8 +24,11 @@ export class FormulaI {
   valorCM: number;
   continuidad:string;  
   origenurgencia:boolean;
+  pgp:boolean;
   programa: string;
   idBodega: number;
+  fecIngreso: Date;
+  estadoanulada: boolean;
   
   constructor() {
     this.idFormula = NaN;
@@ -36,6 +39,7 @@ export class FormulaI {
     this.fecPrescribe = new Date();  
     this.fecSolicitud = new Date();  
     this.paciente = new PacienteI();  
+    this.fecIngreso = new Date();  
     this.total = NaN;
     this.estado = false;
     this.cieP = ""; 
@@ -46,8 +50,10 @@ export class FormulaI {
     this.valorCM = NaN;
     this.continuidad = "";
     this.origenurgencia=false;
+    this.pgp = false;
     this.programa="";
     this.idBodega = NaN;
+    this.estadoanulada = false;
 }
 
   calcularGranTotal(): number {

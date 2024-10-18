@@ -6,13 +6,15 @@
             </div>
             <div class="card-body">
                 <p><strong>Nombre:</strong> {{listaregistros.paciente.pNombre}} {{listaregistros.paciente.sNombre}} {{listaregistros.paciente.pApellido}} {{listaregistros.paciente.sApellido}}
-                </p>
+                    <strong> Documento:</strong> {{listaregistros.paciente.tipoDoc}} - {{listaregistros.paciente.numDocumento}}</p>
+                <p><strong>Sexo:</strong> {{listaregistros.paciente.sexo}} <strong> - Edad:</strong>  {{calcularEdad(listaregistros.paciente.fecNacimiento)}} años</p>
                 <p><strong>Eps:</strong> {{listaregistros.paciente.eps.nombre}}</p>
-                <p><strong>Regimen:</strong> {{listaregistros.paciente.regimen}}</p>
+                <p><strong>Regimen:</strong> {{listaregistros.paciente.regimen}} <strong>Categoria:</strong> {{listaregistros.paciente.categoria.nombre}}</p>
+                <!--<p><strong>Categoria:</strong> {{listaregistros.paciente.categoria.nombre}}</p> -->
                 <p><strong>Dirección:</strong> {{listaregistros.paciente.direccion}}</p>
                 <p><strong>Teléfono:</strong> {{listaregistros.paciente.celularPrincipal}}</p>
                 <p><strong>Municipio:</strong> {{listaregistros.paciente.municipio.nombre}} - {{listaregistros.paciente.municipio.departamento.nombre}}</p>
-                <!-- Agrega aquí más datos del paciente según sea necesario -->
+
             </div>
         </div>
 
@@ -24,10 +26,10 @@
             <div class="card-body">
                 <p><strong>IPS que prescribe:</strong> {{listaregistros.ips.nombre}}</p>
                 <p><strong>Medico que prescribe:</strong> {{listaregistros.medico.nombre}}</p>
-                <p><strong>Fecha de prescripción:</strong> {{listaregistros.fecPrescribe | date: 'dd/MM/YYYY'}}</p>
-                <p><strong>Fecha y hora de solicitud:</strong> {{listaregistros.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}}</p>
+                <p><strong>Fecha de prescripción:</strong> {{listaregistros.fecPrescribe | date: 'dd/MM/YYYY'}} <strong>Fecha y hora de solicitud:</strong>{{listaregistros.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}} </p>
+              <!--  <p><strong>Fecha y hora de solicitud:</strong> {{listaregistros.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}}</p>-->
                 <p><strong>Continuidad:</strong> {{listaregistros.continuidad }}</p> 
-                <p><strong>Programa:</strong> {{listaregistros.programa}}</p> 
+                <p><strong>Programa:</strong> {{listaregistros.programa.nombre}}</p> 
                 <p><strong>Diagnostico:</strong> {{listaregistros.cieP}} {{listaregistros.cieR1}} {{listaregistros.cieR2}} </p> 
                 <p><strong>Observación de la formula:</strong> {{listaregistros.observacion}}</p>
                 <!-- Agrega aquí más datos del paciente según sea necesario -->
@@ -55,6 +57,7 @@
                 <th>Medio entrega</th>
                 <th>Dispensario</th>
                 <th>Quien entrega</th>
+                <th>Quien recibe</th>
             </tr>
         </thead>
         <tbody>
@@ -69,20 +72,34 @@
                     <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">     
                          <mat-icon title="Entrega completa" *ngIf="item.cantidad == item.totalEntregado" [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon>
                          
-                        <button title="Entregar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0"  type="button"  
-                        class="btn btn-sm"  (click)="entregarPendiente(item)">  <mat-icon [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
-                        <button title="Entregar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado>0"  type="button"  
-                        class="btn btn-sm"  (click)="entregarPendiente(item)">  <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
+                        <button title="Gestionar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0"  type="button"  
+                        class="btn btn-sm" [matMenuTriggerFor]="menu" >  <mat-icon [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
+                        <button title="Gestionar Pendiente"  *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado>0"  type="button"  
+                        class="btn btn-sm" [matMenuTriggerFor]="menu" >  <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
+
+                        <mat-menu #menu="matMenu">
+                            <button (click)="entregarPendiente(item)" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
+                                <span>Entregar pendiente</span>
+                            </button>
+                            <button (click)="subsanarPendiente(item)" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
+                                <span>Cancelacion Administrativa</span>
+                            </button>
+
+                           
+                        </mat-menu>
 
                     </td>                   
                 </tr>
                 <!-- Filas para cada entrega -->
-                <tr *ngFor="let entrega of item.itemsEntrega">
+                <tr *ngFor="let entrega of item.itemsEntrega" [ngStyle]="{'color': entrega.estado  ? 'black' : 'red' }">
                     <td class="centered">{{ entrega.cantidadEntregada || 0 }}</td>
                     <td>{{ entrega.fecEntrega | date: 'dd/MM/YYYY : hh:mm' || '' }}</td>
                     <td>{{ entrega.medioEntrega || '' }}</td>
                     <td>{{ primerasmayusculas(entrega.bodega.puntoEntrega) || '' }}</td>
-                    <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>                   
+                    <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>     
+                    <td>{{ entrega.tipoRecibe | uppercase }} {{ entrega.documentoRecibe }}</td>                 
                 </tr>             
             </ng-container>
         </tbody>
@@ -94,9 +111,12 @@
     <div class="col-6">
         <button class="btn btn-outline-primary w-50"  [routerLink]="['/formula', listaregistros.paciente.idPaciente]" >
            Regresar</button>
-    </div>        
+    </div>
+    
+    <!--
     <div class="col-6">
         <button class="btn btn-outline-primary w-50" >
             Imprimr</button>
-    </div>              
+    </div>
+    -->              
 </div>           

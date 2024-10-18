@@ -17,7 +17,7 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
   pacienteActual: any;
   listaItemFactura: any;
   parametro: any;
-  @Input() idPaciente: number = NaN; 
+  @Input() idPaciente: number = NaN;
   private intervalId: any;
 
   constructor(
@@ -53,13 +53,10 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
       clearInterval(this.intervalId);
     }
   }
-  
-/*
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['idPaciente'] && !changes['idPaciente'].isFirstChange()) {
-      this.buscarRegistro(this.idPaciente);
-    }
-  }*/
+
+  onInputChange(event: any,itemt: any) {
+    itemt.tipoRecibe = event.target.value.toUpperCase();
+  }
 
   public buscarRegistro(id: number) {
     this.servicio.getRegistroId(id)
@@ -67,6 +64,13 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
         this.pacienteActual = resp;
         console.log(resp);
         this.listaFormula = resp.formulas;
+        this.listaFormula = this.listaFormula.map((item: any) => ({
+          ...item,
+         // estado: false, // O cualquier lógica que determine el estado
+          editing: false,
+         
+        }));
+
         this.listaFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
       });
 
@@ -117,7 +121,8 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
 
   public ControlEliminar(itemt: any): boolean {
     const fha = new Date();
-    const fechaSolicitud = new Date(itemt.fecSolicitud);
+    //const fechaSolicitud = new Date(itemt.fecSolicitud);
+    const fechaSolicitud = itemt.fecSolicitud ? new Date(itemt.fecSolicitud) : new Date();
     // Calcular la diferencia en milisegundos entre la fecha actual y la fecha de solicitud
     const diferenciaEnMilisegundos = fha.getTime() - fechaSolicitud.getTime();
     // Convertir la diferencia a minutos
@@ -146,6 +151,8 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
         controlPrescribe.setDate(fechaActual.getDate() - 30);
         if (fechaPrescribe >= controlPrescribe) {
 
+          if(itemt.tipoRecibe && itemt.documentoRecibe){
+
           Swal.fire({
             title: 'Confirma la entrega',
             text: `Se procedera a hacer el proceso de descargue de los medicamentos del inventario de la bodega al que esta suscrito el funcionario ` + funcionario!,
@@ -157,18 +164,28 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
           }).then((result) => {
             if (result.isConfirmed) {
 
-              this.servicioformula.saveEntregaFormula(itemt.idFormula, bodega, funcionario!, "Presencial")
-            .subscribe({
-              next: (data: any) => {
-                this.router.navigate(['/entrega', itemt.idFormula]);
-              },
-              error: (err) => {
-                console.error('Error al guardar la entrega', err);
-              }
-            });
-             
+              this.servicioformula.saveEntregaFormula(itemt.idFormula, bodega, funcionario!, "Presencial",itemt.tipoRecibe,itemt.documentoRecibe)
+                .subscribe({
+                  next: (data: any) => {
+                    this.router.navigate(['/entrega', itemt.idFormula]);
+                  },
+                  error: (err) => {
+                    console.error('Error al guardar la entrega', err);
+                  }
+                });
+
             }
           });
+        }
+        else{
+          Swal.fire({
+            icon: 'error',
+            title: `Quien recibe!`,
+            text: 'No ha diligenciado los datos de quien recibe los medicamentos prescritos en la formula número ' + itemt.idFormula + ' recuerde debe ser un mayor de edad',
+          });
+        }
+
+
         } else {
           Swal.fire({
             icon: 'error',
@@ -203,68 +220,116 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
   }
 
 
-//placeholder="Ingrese la observación de la anulación"
+  //placeholder="Ingrese la observación de la anulación"
 
 
-public anularFormula(itemt: any) {   
-  let funcionario = sessionStorage.getItem("nombre");     
-  Swal.fire({
-    title: 'Anular Fórmula',     
-    html: `             
+  public anularFormula(itemt: any) {
+    let funcionario = sessionStorage.getItem("nombre");
+    Swal.fire({
+      title: 'Anular Fórmula',
+      html: `             
       <div>Ingrese la observación que se registrará en la base de datos para verificar el motivo por el cual se está anulando la fórmula:</div>
       <textarea id="obsanulacion" placeholder="Ingrese la observación de la anulación" 
         style="width: 100%; height: 110px; padding: 10px; font-size: 14px; border-radius: 20px;"></textarea>
     `,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Si, anular!'     
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const obsanulacion = (document.getElementById('obsanulacion') as HTMLTextAreaElement).value;
-      if (obsanulacion && funcionario) {
-        this.servicioformula.anularFormula(itemt.idFormula, funcionario!, obsanulacion).subscribe(
-          (resp) => {
-                  this.buscarRegistro(resp.paciente.idPaciente);            
-            // Mostrar Swal solo si el servicio responde correctamente
-            Swal.fire({
-              icon: 'success',
-              title: 'Ok',
-              text: `La fórmula número ${itemt.idFormula} se ha anulada correctamente.`,
-            });
-          },
-          (err) => {
-            console.error('Error del servidor:', err); // Verificar el error
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: err?.mensaje || 'Ocurrió un error al intentar anular la fórmula.',
-            });
-          }
-        );
-      } else {
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, anular!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        const obsanulacion = (document.getElementById('obsanulacion') as HTMLTextAreaElement).value;
+        // if (obsanulacion.length > 10){
+        if (obsanulacion.length > 10 && funcionario) {
+          this.servicioformula.anularFormula(itemt.idFormula, funcionario!, obsanulacion).subscribe(
+            (resp) => {
+              this.buscarRegistro(resp.paciente.idPaciente);
+              // Mostrar Swal solo si el servicio responde correctamente
+              Swal.fire({
+                icon: 'success',
+                title: 'Ok',
+                text: `La fórmula número ${itemt.idFormula} se ha anulada correctamente.`,
+              });
+            },
+            (err) => {
+              console.error('Error del servidor:', err); // Verificar el error
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err?.mensaje || 'Ocurrió un error al intentar anular la fórmula.',
+              });
+            }
+          );
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No ha diligenciado caracteres suficiente en el motivo por el cual se va a anular la fórmula (mínimo 10 carácteres).',
+          });
+        }
+      }
+    });
+  }
+
+
+
+  informeAnulacion(item: any) {
+    Swal.fire({
+      icon: 'info',
+      title: `Información`,
+      text: 'Formula numero ' + item.idFormula + ' anulada por funcionario ' + item.funcionarioanula + ' observación ' + item.observacion,
+    });
+  }
+
+  editarquienRecibe(itemt: any) {
+    itemt.editing = true;
+  }
+
+  cancelarquienRecibe(itemt: any) {
+    itemt.editing = false;
+  }
+
+  guardarquienRecibe(itemt: any) {
+    itemt.editing = false;
+  }
+
+  onRecibeChange(event: Event, itemt: any): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    if (isChecked) {
+      if (this.CalcularEdad(this.pacienteActual.fecNacimiento) > 17) {
+        itemt.tipoRecibe = this.pacienteActual.tipoDoc;
+        itemt.documentoRecibe = this.pacienteActual.numDocumento;
+       
+      }
+      else
+      {
+        itemt.tipoRecibe = "";
+        itemt.documentoRecibe = "";
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'No se ha diligenciado el motivo por el cual se va a anular la fórmula.',
+          title: `Edad no permitida!`,
+          text: 'El paciente no tiene la edad para recibir los medicamentos de la formula número ' + itemt.idFormula + ' por favor agregue los datos del tutor responsable',
         });
       }
+    } else {
+      itemt.tipoRecibe = "";
+      itemt.documentoRecibe = "";
     }
-  });
-}
+  }
 
-
-
-informeAnulacion(item: any){
-  Swal.fire({
-    icon: 'info',
-    title: `Información`,
-    text: 'Formula numero '+ item.idFormula +' anulada por funcionario ' + item.funcionarioanula + ' observación ' +item.observacion ,
-  });
-}
-
-
+  CalcularEdad(fn: Date): number {
+    if (fn !== null && fn !== undefined) {
+      const convertAge = new Date(fn);
+      const timeDiff = Math.abs(Date.now() - convertAge.getTime());
+      let edad = Math.floor((timeDiff / (1000 * 3600 * 24)) / 365);
+      if (edad) {
+        return edad;
+      }
+    }
+    return 0;
+  }
 
   public primerasmayusculas(str: string): string {
     if (!str) {

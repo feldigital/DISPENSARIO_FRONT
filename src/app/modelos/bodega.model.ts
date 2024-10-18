@@ -9,6 +9,7 @@ export class BodegaI {
     telefono: String;
     puntoEntrega: String;
     estado: boolean;
+    dispensa: boolean;
     email: String;
 
 
@@ -24,6 +25,7 @@ export class BodegaI {
         this.puntoEntrega = "";   
         this.email = "";      
         this.estado = true;
+        this.dispensa = false;
 
     }
 

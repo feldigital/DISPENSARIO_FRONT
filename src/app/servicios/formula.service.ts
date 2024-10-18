@@ -10,18 +10,11 @@ import { environment } from 'src/environments/environment';
 })
 export class FormulaService {
   
- /* private formulasSubject = new BehaviorSubject<any[]>([]);
-  formulas$ = this.formulasSubject.asObservable();*/
 
   private urlEndPoint = environment.apiUrl+'/formula';
   constructor(private http: HttpClient) { }
 
-  /*
-  addFormula(newFormula: any) {
-    const currentFormulas = this.formulasSubject.value;
-    this.formulasSubject.next([...currentFormulas, newFormula]);
-  }
- */
+  
 
   getFormulaId(id: number): Observable<any> {
     const params = new HttpParams()
@@ -58,6 +51,17 @@ filtrarMedicamentos(term: string): Observable<MedicamentoI[]> {
   );
 }
 
+
+filtrarMedicamentosEps(term: string,codEps: string): Observable<MedicamentoI[]> {
+  const encodedTerm = encodeURIComponent(term);
+  const params = new HttpParams()
+  .set('term', encodedTerm)
+  .set('codEps', codEps);
+  return this.http.get<MedicamentoI[]>(`${this.urlEndPoint}/filtrar-medicamento-eps`, {params}).pipe(
+    catchError(this.handleError<MedicamentoI[]>('filtrarMedicamentos', []))
+  );
+}
+
 private handleError<T>(operation = 'operation', result?: T) {
   return (error: any): Observable<T> => {
     console.error(`${operation} failed: ${error.message}`);
@@ -65,7 +69,7 @@ private handleError<T>(operation = 'operation', result?: T) {
   };
 } 
 
-saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , medioEntrega: string) {
+saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , medioEntrega: string, tipoRecibe: string, documentoRecibe: string) {
  // const headers = { 'Content-Type': 'application/json' }; 
  const   fechaEntrega=new Date();
  const fechaEntregaISO = fechaEntrega.toISOString();
@@ -74,7 +78,9 @@ saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , med
   .set('idBodega', idBodega)
   .set('funcionario', funcionario)
   .set('medioEntrega', medioEntrega)
-  .set('fechaEntrega', fechaEntregaISO) ;
+  .set('fechaEntrega', fechaEntregaISO)
+  .set('tipoRecibe', tipoRecibe)
+  .set('documentoRecibe', documentoRecibe) ;
   return this.http.get<any>(`${this.urlEndPoint}/entrega`, {params}).pipe(
   catchError(e => {
     return throwError(e);
@@ -83,7 +89,27 @@ saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , med
 }
 
 
-saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number) {
+saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number,tipoRecibe: string, documentoRecibe: string,fEntrega: string ) {
+ // const headers = { 'Content-Type': 'application/json' };  
+  const   fechaEntrega=new Date();
+  const fechaEntregaISO = fechaEntrega.toISOString();
+   const params = new HttpParams()
+   .set('idItem', idItem)
+   .set('idBodega', idBodega)
+   .set('funcionario', funcionario)
+   .set('medioEntrega', medioEntrega)
+   .set('cantidadAentregar', cantidadAentregar)
+   .set('fechaEntrega', fechaEntregaISO) 
+   .set('tipoRecibe', tipoRecibe)
+   .set('documentoRecibe', documentoRecibe) ;  
+   return this.http.get<any>(`${this.urlEndPoint}/entrega/pendiente`, {params}).pipe(
+   catchError(e => {
+     return throwError(e);
+   })
+ );
+ }
+
+ subsanacionItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number) {
   // const headers = { 'Content-Type': 'application/json' };   
    const params = new HttpParams()
    .set('idItem', idItem)
@@ -91,12 +117,13 @@ saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, med
    .set('funcionario', funcionario)
    .set('medioEntrega', medioEntrega)
    .set('cantidadAentregar', cantidadAentregar);    
-   return this.http.get<any>(`${this.urlEndPoint}/entrega/pendiente`, {params}).pipe(
+   return this.http.get<any>(`${this.urlEndPoint}/entrega/subsanacion`, {params}).pipe(
    catchError(e => {
      return throwError(e);
    })
  );
  }
+
 
  getDxFormula(codigo: string): Observable<any> {
   const params = new HttpParams()
@@ -132,4 +159,38 @@ anularFormula(idFormula: number, funcionario: string, observacion: string) {
    })
  );
  }
+
+
+ 
+getCuotasModeradorasPDF(id: number,fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('idBodega', id)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/cuotamoderadora`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+ 
+  
+getFormulasPrescritas(fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/prescritas`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+
+
 }

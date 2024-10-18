@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { MedicamentoI } from '../modelos/medicamento.model';
+import { EpsMedicamentoI } from '../modelos/epsMedicamento.model';
 
 @Injectable({
   providedIn: 'root'
@@ -98,6 +99,31 @@ export class MedicamentoService {
         return throwError(e);
       }));
   } 
+
+
+  public adicionarMedicamento(registro: EpsMedicamentoI) {
+    const headers = { 'Content-Type': 'application/json' };  
+    console.log(registro);
+    return this.http.post<EpsMedicamentoI>(`${this.urlEndPoint}/eps`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+  
+  public quitarMedicamento(idMedicamento: number,codEps: string ): Observable<void> {
+    const params = new HttpParams()
+    .set('idMedicamento', idMedicamento)
+    .set('codEps', codEps);  
+    return this.http.delete<void>(`${this.urlEndPoint}/eps`,{params}).pipe(
+      catchError(e => {
+        if (e.error.mensaje) {
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  }
+
 
 
 }

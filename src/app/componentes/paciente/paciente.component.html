@@ -1,8 +1,8 @@
 <div class="container mt-4">
     <form [formGroup]="generalForm" (ngSubmit)="create()" class="w-100">
         <div class="row">
-            <!-- Tipo de Documento -->
-            <div class="col-md-4 mb-1">
+            <!-- Tipo de Documento    <div class="col-md-6 col-lg-3 mb-2"> -->
+             <div class="col-md-4 mb-1"> 
                 <div class="form-group">
                     <label for="tipoDoc" class="form-label">Tipo documento</label>
                     <select id="tipoDoc" class="form-select uniform-control" formControlName="tipoDoc">
@@ -31,35 +31,40 @@
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="pApellido" class="form-label">Primer Apellido</label>
-                    <input id="pApellido" type="text" formControlName="pApellido" placeholder="Ingrese el primer apellido" class="form-control uniform-control" required>
+                    <input id="pApellido" type="text" formControlName="pApellido" 
+                    placeholder="Ingrese el primer apellido" class="form-control uniform-control" required>
                 </div>
             </div>
             <!-- Segundo Apellido -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="sApellido" class="form-label">Segundo Apellido</label>
-                    <input id="sApellido" type="text" formControlName="sApellido" placeholder="Ingrese el segundo apellido" class="form-control uniform-control" required>
+                    <input id="sApellido" type="text" formControlName="sApellido" 
+                    placeholder="Ingrese el segundo apellido" class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Primer Nombre -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="pNombre" class="form-label">Primer Nombre</label>
-                    <input id="pNombre" type="text" formControlName="pNombre" placeholder="Ingrese el primer nombre" class="form-control uniform-control" required>
+                    <input id="pNombre" type="text" formControlName="pNombre" 
+                    placeholder="Ingrese el primer nombre" class="form-control uniform-control" required>
                 </div>
             </div>
             <!-- Segundo Nombre -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="sNombre" class="form-label">Segundo Nombre</label>
-                    <input id="sNombre" type="text" formControlName="sNombre" placeholder="Ingrese el segundo nombre" class="form-control uniform-control" required>
+                    <input id="sNombre" type="text" formControlName="sNombre" 
+                    placeholder="Ingrese el segundo nombre" class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Fecha de Nacimiento -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="fecNacimiento" class="form-label">F. de Nacimiento</label>
-                    <input id="fecNacimiento" type="date" formControlName="fecNacimiento" class="form-control uniform-control" required [max]="hoy" >
+                    <input id="fecNacimiento" type="date" formControlName="fecNacimiento" 
+                    class="form-control uniform-control" required [max]="hoy" >
                 </div>
             </div>
             <!-- Sexo -->
@@ -88,35 +93,40 @@
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="barrio" class="form-label">Barrio</label>
-                    <input id="barrio" type="text" formControlName="barrio" placeholder="Ingrese el barrio" class="form-control uniform-control" required>
+                    <input id="barrio" type="text" formControlName="barrio" 
+                    placeholder="Ingrese el barrio" class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Dirección -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="direccion" class="form-label">Dirección</label>
-                    <input id="direccion" type="text" formControlName="direccion" placeholder="Ingrese la dirección" class="form-control uniform-control" required>
+                    <input id="direccion" type="text" formControlName="direccion" 
+                    placeholder="Ingrese la dirección" class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Celular Principal -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="celularPrincipal" class="form-label">Celular Principal</label>
-                    <input id="celularPrincipal" type="text" formControlName="celularPrincipal" placeholder="Ingrese el celular principal" class="form-control uniform-control" required>
+                    <input id="celularPrincipal" type="text" formControlName="celularPrincipal" 
+                    placeholder="Ingrese el celular principal" class="form-control uniform-control" required>
                 </div>
             </div>
             <!-- Celular Secundario -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="celularSecundario" class="form-label">Celular Secundario</label>
-                    <input id="celularSecundario" type="text" formControlName="celularSecundario" placeholder="Ingrese el celular secundario" class="form-control uniform-control" required>
+                    <input id="celularSecundario" type="text" formControlName="celularSecundario" 
+                    placeholder="Ingrese el celular secundario" class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Email -->
             <div class="col-md-4 mb-1">
                 <div class="form-group">
                     <label for="email" class="form-label">Correo Electrónico</label>
-                    <input id="email" type="email" formControlName="email" placeholder="Ingrese el correo electrónico" class="form-control uniform-control" required>
+                    <input id="email" type="email" formControlName="email" placeholder="Ingrese el correo electrónico" 
+                    class="form-control uniform-control" >
                 </div>
             </div>
             <!-- Departamento -->
@@ -204,12 +214,12 @@
              <!-- Estado -->
              <div class="col-md-4 mb-1">
                 <div class="form-group d-flex align-items-center">
-                    <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="portabilidad">
+                    <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="portabilidad" (change)="onPortabilidadChange($event)">
                     <label for="portabilidad" class="form-check-label">Portabilidad</label>
                 </div>
             </div>
              <!-- Departamento portabilidad -->
-             <div class="col-md-4 mb-1">
+             <div class="col-md-4 mb-1" *ngIf="mostrarPortabilidad">
                 <div class="form-group">
                     <label for="dptoportabilidad" class="form-label">Dpto Portabilidad</label>
                     <select id="dptoportabilidad" class="form-select uniform-control" formControlName="dptoportabilidad" (change)="onDptoPortabilidadSeleccionado()" >
@@ -219,7 +229,7 @@
                 </div>
             </div>
             <!-- Municipio portabilidad -->
-            <div class="col-md-4 mb-1">
+            <div class="col-md-4 mb-1" *ngIf="mostrarPortabilidad">
                 <div class="form-group">
                     <label for="mpoportabilidad" class="form-label">Mpio portabilidad </label>
                     <select id="mpoportabilidad" class="form-select uniform-control" formControlName="mpoportabilidad" >
@@ -229,7 +239,7 @@
                 </div>
             </div>
  <!-- Fecha de vencimiento portabilidad -->
- <div class="col-md-4 mb-1">
+ <div class="col-md-4 mb-1" *ngIf="mostrarPortabilidad">
     <div class="form-group">
         <label for="fecVencePortabilidad" class="form-label">F. Vence portabilidad</label>
         <input id="fecVencePortabilidad" type="date" formControlName="fecVencePortabilidad" class="form-control uniform-control" [min]="hoy" >

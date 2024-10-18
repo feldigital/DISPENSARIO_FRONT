@@ -9,6 +9,8 @@ import { Observable, debounceTime, of, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { FfarmaceuticaComponent } from '../ffarmaceutica/ffarmaceutica.component';
 import { VadministracionComponent } from '../vadministracion/vadministracion.component';
+import { PacienteService } from 'src/app/servicios/paciente.service';
+import { EpsMedicamentoI } from 'src/app/modelos/epsMedicamento.model';
 
 @Component({
   selector: 'app-medicamento',
@@ -24,11 +26,14 @@ export class MedicamentoComponent implements OnInit {
   listFormas: any;
   listVias: any;
   listaregistrosFiltrados: MedicamentoI[] | any;
+  listaEps:any;
+  
 
 
   constructor(
     private fb: FormBuilder,
     private servicio: MedicamentoService,
+    private servicioPaciente: PacienteService,
     private formaservicio: FormaService,
     private viaservicio: ViaService,
     public dialog: MatDialog
@@ -112,7 +117,8 @@ export class MedicamentoComponent implements OnInit {
         fecCreacion: [''],
         via: ['', [Validators.required]],
         forma: ['', [Validators.required]],
-        estado: ['true', [Validators.required]],
+        estado: [true, [Validators.required]],
+        desabastecido: [false, [Validators.required]],
    //     listFilter:[''],
       
 
@@ -138,6 +144,7 @@ export class MedicamentoComponent implements OnInit {
       via: itemt.via.idVia,
       forma: itemt.forma.idForma,
       estado: itemt.estado,
+      desabastecido: itemt.desabastecido,
      // listFilter: '',      
     })
   }
@@ -254,12 +261,98 @@ export class MedicamentoComponent implements OnInit {
             Swal.fire({
               icon: 'error',
               title: `Error`,
-              text: err.mensaje,
+              text: err.error.mensaje,
             });
           });
       }
     });
   }
+
+  public modificarContrato(itemt: any, tipo: number): void {
+    const titulo = tipo === 0 
+      ? 'Adicionando el medicamento al contrato' 
+      : 'Quitando el medicamento del contrato';
+  
+    const confirmButtonText = tipo === 0 ? 'Adicionar' : 'Quitar';
+  
+    this.listadeEps().then((listadeEps) => {
+      Swal.fire({
+        title: titulo,
+        html: `
+          <div class="swal-container">           
+            <div>${itemt.nombre}</div><br>
+            <div class="form-group">      
+              <select id="selectEps" class="form-select">
+                <option value="-1">Seleccione la EPS</option>
+                ${listadeEps}                    
+              </select>   
+            </div>         
+          </div>  
+        `,
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancelar',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const selectElement = document.getElementById('selectEps') as HTMLSelectElement;
+          const selectedValue = selectElement.value;
+          
+          if (selectedValue !== '-1') {
+            let mensaje="";
+            if (tipo === 0) {
+              const epsMedicamento = new EpsMedicamentoI();
+              epsMedicamento.idMedicamento = itemt.idMedicamento;
+              epsMedicamento.codEps = selectedValue;
+              mensaje=`Se realizó el trámite de adición del medicamento ${itemt.nombre} al contrato con la EPS ${selectedValue} con éxito!`;
+              this.ejecutarAccion(() => this.servicio.adicionarMedicamento(epsMedicamento), mensaje);
+            } else {
+              mensaje=`Se realizó el trámite de eliminación del medicamento ${itemt.nombre} al contrato con la EPS ${selectedValue} con éxito!`;
+              this.ejecutarAccion(() => this.servicio.quitarMedicamento(itemt.idMedicamento, selectedValue), mensaje);
+            }
+          } else {
+            Swal.fire(
+              'Falta!',
+              `No has seleccionado la EPS para proceder con el tramite del medicamento ${itemt.nombre}`, 
+              'warning'
+            );
+          }
+        }
+      });
+    });
+  }
+  
+  private async listadeEps(): Promise<string | undefined> {
+    try {
+      const resp: any = await this.servicioPaciente.getEps().toPromise();
+      return resp.map((item: { codigo: any; nombre: any }) => 
+        `<option value="${item.codigo}">${item.codigo} - ${item.nombre}</option>`
+      ).join('');
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+  
+  private ejecutarAccion(accion: () => any, mensajet: string): void {
+    accion().subscribe(
+      () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Ok',
+          text: mensajet,
+        });
+      },
+      (err: { error: { mensaje: string } }) => {
+         Swal.fire({
+          icon: 'error',
+          title: 'Error...',
+          text: 'No se pudo realizar el trámite con el medicamento!',
+          footer: err.error.mensaje,
+        });
+      }
+    );
+  }
+
 
   public primerasmayusculas(str: string): string {
     if (!str) {

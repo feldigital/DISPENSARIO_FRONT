@@ -27,9 +27,6 @@
     border-radius: 8px 8px 0 0;
   }
   
-  .card-body {
-    padding: 20px;
-  }
   
   .form-group {
     margin-bottom: 2px; /* 10 Reduce el espacio entre los grupos de formularios */
@@ -158,34 +155,8 @@
     color: white;
   }
   
-  .table {
-    width: 100%;
-    margin-bottom: 1rem;
-    background-color: transparent;
-    border-collapse: collapse;
-    overflow: hidden;
-    border-radius: 20px;
-    font-size: 14px; /* Cambia a tu tamaño deseado */
-  }
-   
-    
-  .table td {
-    padding: 8px; /* Reduce el relleno de las celdas de la tabla */
-    text-align: center;
-  }  
-  
-  .table th {
-    text-align: center;
-    vertical-align: middle;
-    border: 1px solid #dee2e6;
-    padding: 0.4rem;
-  }
-  
-  .table td {
-    vertical-align: middle;
-    border: 1px solid #dee2e6;
-    padding: 0.3rem;
-  }
+
+
   
   .blink {
     animation: glowing 1.5s ease-in-out infinite;
@@ -196,22 +167,6 @@
     box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px #39548B, 0 0 20px #39548B;
 }
  
-/*
-.porta {
-  animation: blinker 1s linear infinite; 
-  background-color: #39548B; 
-  border-radius: 15px; 
-  padding: 10px; 
-  color: white; 
-}
-
-/* Definición de la animación de parpadeo 
-@keyframes blinker {
-  50% {
-    opacity: 0; 
-  }
-}
-*/
 .porta {
   animation: glowing 1.5s ease-in-out infinite;
   background-color: #39548B;
