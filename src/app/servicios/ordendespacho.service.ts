@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, of, throwError } from 'rxjs';
 import { OrdenDespachoI } from '../modelos/ordendespacho.model';
-import { MedicamentoI } from '../modelos/medicamento.model';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -10,11 +9,9 @@ import { environment } from 'src/environments/environment';
 })
 export class OrdendespachoService {
 
-  private urlEndPoint = environment.apiUrl+'/despacho';
-  
+  private urlEndPoint = environment.apiUrl+'/despacho';  
 
   constructor(private http: HttpClient) { }
-
   
   getOrdenDespachoId(id: number): Observable<any> {
     const params = new HttpParams()
@@ -22,11 +19,11 @@ export class OrdendespachoService {
     return this.http.get<any>(`${this.urlEndPoint}/unica`, {params});
   }
 
-
-
-  getOrdenDespachoBodegaOrigen( idBodega: number): Observable<any> {
+  getOrdenDespachoBodegaOrigen( idBodega: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
-    .set('idBodegaOrigen', idBodega);     
+    .set('idBodegaOrigen', idBodega)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);     
     return this.http.get<OrdenDespachoI>(`${this.urlEndPoint}/bodegaorigen`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
@@ -36,9 +33,11 @@ export class OrdendespachoService {
         return throwError(e);
       }));
   } 
-  getOrdenDespachoBodegaDestino( idBodega: number): Observable<any> {
+  getOrdenDespachoBodegaDestino( idBodega: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
-    .set('idBodegaDestino', idBodega);     
+    .set('idBodegaDestino', idBodega)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);     
     return this.http.get<OrdenDespachoI>(`${this.urlEndPoint}/bodegadestino`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
@@ -49,9 +48,11 @@ export class OrdendespachoService {
       }));
   } 
 
-  getOrdenDespachoBodegaTodas( idBodega: number): Observable<any> {
+  getOrdenDespachoBodegaTodas( idBodega: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
-    .set('idBodega', idBodega);     
+    .set('idBodega', idBodega)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);     
     return this.http.get<OrdenDespachoI>(`${this.urlEndPoint}/bodega`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
@@ -68,6 +69,11 @@ export class OrdendespachoService {
     return this.http.delete<void>(`${this.urlEndPoint}`, {params});
   }
 
+  deleteItem(id: number): Observable<void> {
+    const params = new HttpParams()
+    .set('id', id);
+    return this.http.delete<void>(`${this.urlEndPoint}/item`, {params});
+  }
   
 
   create(registro: OrdenDespachoI): Observable<OrdenDespachoI> {
@@ -97,7 +103,7 @@ public update(registro: OrdenDespachoI) {
 }
 
 
-
+/*
 
 saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , medioEntrega: string) {
  // const headers = { 'Content-Type': 'application/json' };   
@@ -129,6 +135,7 @@ saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, med
    })
  );
  }
+ */
 
  descargarinventarioBodegacange(idDespacho: number, idBodega: number, funcionario: string) {
   const params = new HttpParams()
@@ -159,6 +166,24 @@ cargarinventariocangeBodega(idDespacho: number, idBodega: number, funcionario: s
       return throwError(e);
     }));
 } 
+
+
+getDetalleOrdenDespacho( idBodega: number,fInicial: string, fFinal: string, tipoReporte: number): Observable<any> {
+  const params = new HttpParams()
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal)
+  .set('tipoReporte', tipoReporte);     
+  return this.http.get<OrdenDespachoI>(`${this.urlEndPoint}/detallesalida`,{params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+} 
+
 
 
 }

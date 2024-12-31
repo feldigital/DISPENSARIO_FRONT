@@ -1,0 +1,69 @@
+
+<div class="container mt-2"> 
+    <div class="input-group mb-2 d-flex justify-content-between align-items-center" [formGroup]="generalForm">
+        <span class="bodega-nombre">
+            <strong>{{listaPacienteFiltro[0]?.bodega || ''}}</strong> Pacientes con pendiente del medicamento: <strong>{{listaPacienteFiltro[0]?.nombreMedicamento || ''}}</strong>
+        </span>
+        <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button ml-auto"
+        [routerLink]="['/menu/pendiente', idBodega]">
+                    Regresar</button>
+
+   </div>   
+    <div *ngIf="listaPacienteFiltro?.length > 0">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="thead-colored">
+                    <tr>
+                        <th>Item</th>
+                        <th>Documento</th>
+                        <th>Nombres y apellidos paciente</th>
+                        <th>Celular</th>
+                        <th>EPS </th>
+                        <th>PAVE </th>
+                        <th>Formula </th>
+                        <th>Fecha del pendiente</th>
+                        <th>Cantidad</th>  
+                        <th>Gestión</th>                    
+                    </tr>
+                </thead>           
+
+
+                <tbody>
+                    <tr *ngFor="let itemt of listaPacienteFiltro let i= index">
+                        <td>{{i+1}}</td>
+                        <td>{{itemt.tipoDoc || ''}}-{{itemt.numDocumento || ''}}</td>
+                        <td>{{itemt.pNombre || ''}} {{itemt.sNombre || ''}} {{itemt.pApellido || ''}} {{itemt.sApellido || ''}}</td>
+                        <td>{{itemt.telefono}}</td>
+                        <td>{{itemt.codEps}}</td>
+                        <td>{{itemt.estado}}</td>
+                        <td>{{itemt.idFormula || ''}}</td>
+                        <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
+                        <td>{{itemt.pendiente}}</td>   
+                        <td> 
+                            <button title="Gestionar Pendiente"
+                            *ngIf=" itemt.cantidadEntrega===0" type="button"
+                            class="btn btn-sm" [matMenuTriggerFor]="menu"> <mat-icon
+                                [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
+                        <button title="Gestionar Pendiente"
+                            *ngIf="itemt.cantidadEntrega>0" type="button"
+                            class="btn btn-sm" [matMenuTriggerFor]="menu"> <mat-icon
+                                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
+
+                        <mat-menu #menu="matMenu">
+                            <button  mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
+                                <span>Entregar pendiente</span>
+                            </button>
+                            <button  mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
+                                <span>Cancelacion Administrativa</span>
+                            </button>
+
+
+                        </mat-menu>
+</td>                    
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>

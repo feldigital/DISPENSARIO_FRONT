@@ -11,6 +11,7 @@ import { FfarmaceuticaComponent } from '../ffarmaceutica/ffarmaceutica.component
 import { VadministracionComponent } from '../vadministracion/vadministracion.component';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { EpsMedicamentoI } from 'src/app/modelos/epsMedicamento.model';
+import { BodegaService } from 'src/app/servicios/bodega.service';
 
 @Component({
   selector: 'app-medicamento',
@@ -27,6 +28,7 @@ export class MedicamentoComponent implements OnInit {
   listVias: any;
   listaregistrosFiltrados: MedicamentoI[] | any;
   listaEps:any;
+  listaBodegas:any;
   
 
 
@@ -34,6 +36,7 @@ export class MedicamentoComponent implements OnInit {
     private fb: FormBuilder,
     private servicio: MedicamentoService,
     private servicioPaciente: PacienteService,
+    private servicioBodega: BodegaService,
     private formaservicio: FormaService,
     private viaservicio: ViaService,
     public dialog: MatDialog
@@ -119,6 +122,8 @@ export class MedicamentoComponent implements OnInit {
         forma: ['', [Validators.required]],
         estado: [true, [Validators.required]],
         desabastecido: [false, [Validators.required]],
+        agotado: [false, [Validators.required]],
+        controlado: [false, [Validators.required]],
    //     listFilter:[''],
       
 
@@ -128,7 +133,6 @@ export class MedicamentoComponent implements OnInit {
 
 
   mostrarRegistro(itemt: any) {
-    console.log(itemt);
     this.nombrebtn = "Actualizar"
     this.generalForm.setValue({
       idMedicamento: itemt.idMedicamento,
@@ -145,6 +149,8 @@ export class MedicamentoComponent implements OnInit {
       forma: itemt.forma.idForma,
       estado: itemt.estado,
       desabastecido: itemt.desabastecido,
+      agotado: itemt.agotado,
+      controlado: itemt.controlado,
      // listFilter: '',      
     })
   }
@@ -206,7 +212,7 @@ export class MedicamentoComponent implements OnInit {
         );
       }
       else {
-        console.log(this.generalForm.value);
+        
         this.servicio.update(this.generalForm.value).subscribe(ciclo => {
 
           this.cargarRegistros();
@@ -228,8 +234,7 @@ export class MedicamentoComponent implements OnInit {
           });
       }
     } else {
-      console.log(this.generalForm.value);
-      Swal.fire({
+       Swal.fire({
         icon: 'warning',
         title: "!Alerta",
         text: 'Datos incompletos para crear el medicamento en la base de datos!'
@@ -353,6 +358,98 @@ export class MedicamentoComponent implements OnInit {
     );
   }
 
+  public modificarMedicamentoBodega(itemt: any, tipo: number): void {
+    const titulo = tipo === 0 
+      ? 'Adicionando el medicamento a la bodega' 
+      : 'Quitando el medicamento de la bodega';
+  
+    const confirmButtonText = tipo === 0 ? 'Adicionar' : 'Quitar';
+  
+    this.listadeBodegas().then((listadeBodegas) => {
+      Swal.fire({
+        title: titulo,
+        html: `
+          <div class="swal-container">           
+            <div>${itemt.nombre}</div><br>
+            <div class="form-group">      
+              <select id="selectBodega" class="form-select">
+                <option value="-1">Seleccione la bodega</option>
+                ${listadeBodegas}                    
+              </select>   
+            </div>         
+          </div>  
+        `,
+        showCancelButton: true,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: 'Cancelar',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const selectElement = document.getElementById('selectBodega') as HTMLSelectElement;
+          const selectedValue = selectElement.value;
+          
+          if (selectedValue !== '-1') {
+            let mensaje="";
+            if (tipo === 0) {             
+              mensaje=`Se realizó el trámite de adición del medicamento ${itemt.nombre} a la bodega   ${selectedValue} con éxito!`;
+              this.ejecutarAccion(() => this.servicio.agregarMedicamentoUnaBodega(itemt.idMedicamento,+selectedValue), mensaje);
+            } else {
+              mensaje=`Se realizó el retiro del medicamento ${itemt.nombre} en la bodega con éxito!`;
+              this.ejecutarAccion(() => this.servicio.quitarMedicamento(itemt.idMedicamento, selectedValue), mensaje);
+            }
+          } else {
+            Swal.fire(
+              'Falta!',
+              `No has seleccionado la bodega para proceder con el tramite del medicamento ${itemt.nombre}`, 
+              'warning'
+            );
+          }
+        }
+      });
+    });
+  }
+  
+  private async listadeBodegas(): Promise<string | undefined> {
+    try {
+      const resp: any = await this.servicioBodega.getRegistrosActivos().toPromise();
+      return resp.map((item: { idBodega: any; nombre: any }) => 
+        `<option value="${item.idBodega}">${item.idBodega} - ${item.nombre}</option>`
+      ).join('');
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  public agregarMedicamentotodasBodega(itemt: any): void {       
+      Swal.fire({    
+        title: 'Confirmar',
+        text: `Agregar el medicamento ${itemt.nombre} en todas las bodegas activas!`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, agregar!'
+      }).then((result) => {
+        if (result.isConfirmed) { 
+            this.servicio.agregarMedicamentoBodegatodas (itemt.idMedicamento).subscribe(resp => {            
+              Swal.fire({
+                icon: 'success',
+                title: `Ok`,
+                text: `El medicamento ha sido agregado correctamente.`,
+              });
+            },
+              err => {
+                Swal.fire({
+                  icon: 'error',
+                  title: `Error`,
+                  text: err.error.mensaje,
+                });
+              });           
+        }
+      });
+    
+  }
+
 
   public primerasmayusculas(str: string): string {
     if (!str) {
@@ -360,6 +457,14 @@ export class MedicamentoComponent implements OnInit {
     }
     str = str.toLowerCase();
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
+  }
+
+  reporteEnConstruccion() {
+    Swal.fire({
+      icon: 'info',
+      title: `En construcción!`,
+      text: `El proceso esta en proceso de construcción, te estaremos informando cuando esté disponible!`,
+    });
   }
 
 

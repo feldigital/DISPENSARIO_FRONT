@@ -69,10 +69,36 @@ export class MedicosComponent {
       });
   }
 
+  buscarRegistro() {
+    const numRegistro = this.generalForm.get('registroMedico')?.value;
 
+    console.log("Esto es lo que voy a buscar en la base de datos:"+ numRegistro);
+    if (numRegistro) {
+      // Lógica para buscar el documento      
+      this.servicio.buscarMedicosRegistro(numRegistro).subscribe(
+        (respuesta) => {
+          if (respuesta && Object.keys(respuesta).length > 0) { // Si es un objeto
+            this.listaregistrosFiltrados = respuesta;
+            Swal.fire({
+              icon: 'info',
+              title: 'EXISTE',
+              text: `El número de registro ${numRegistro} que está ingresando ya existe con los datos de ${this.listaregistrosFiltrados[0].nombre}. Por favor verificar y/o actualizar el dato, recuerde no volverlo a crear!`,
+            });
+          } else {
+            console.log("La respuesta está vacía o no tiene datos relevantes.");
+          }
+          
+        },
+        (error) => {
+          console.error('Error al buscar el documento', error);
+        }
+      );
+    }
+
+  }
 
   mostrarRegistro(itemt: any) {
-    console.log(itemt);
+   
     this.nombrebtn = "Actualizar"
     this.generalForm.setValue({
       idMedico: itemt.idMedico,

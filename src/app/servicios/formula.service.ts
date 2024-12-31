@@ -17,6 +17,7 @@ export class FormulaService {
   
 
   getFormulaId(id: number): Observable<any> {
+    console.log("Estoy buscando en el servicio la formula  #: " + id)
     const params = new HttpParams()
     .set('id', id);
     return this.http.get<any>(`${this.urlEndPoint}/unica`, {params});
@@ -32,13 +33,23 @@ export class FormulaService {
 
   create(registro: FormulaI): Observable<FormulaI> {
     const headers = { 'Content-Type': 'application/json' };   
-    //console.log(JSON.stringify(registro));
-    console.log(registro);
+    //console.log(JSON.stringify(registro));   
     return this.http.post<FormulaI>(this.urlEndPoint, JSON.stringify(registro), { headers }).pipe(
       catchError(e => {
         return throwError(e);
       })
     );
+}
+
+update(registro: FormulaI): Observable<FormulaI> {
+  const headers = { 'Content-Type': 'application/json' };   
+  //console.log(JSON.stringify(registro));
+  console.log(registro);
+  return this.http.put<FormulaI>(this.urlEndPoint, JSON.stringify(registro), { headers }).pipe(
+    catchError(e => {
+      return throwError(e);
+    })
+  );
 }
 
 
@@ -53,9 +64,9 @@ filtrarMedicamentos(term: string): Observable<MedicamentoI[]> {
 
 
 filtrarMedicamentosEps(term: string,codEps: string): Observable<MedicamentoI[]> {
-  const encodedTerm = encodeURIComponent(term);
+  //const encodedTerm = encodeURIComponent(term);
   const params = new HttpParams()
-  .set('term', encodedTerm)
+  .set('term', term)
   .set('codEps', codEps);
   return this.http.get<MedicamentoI[]>(`${this.urlEndPoint}/filtrar-medicamento-eps`, {params}).pipe(
     catchError(this.handleError<MedicamentoI[]>('filtrarMedicamentos', []))
@@ -191,6 +202,54 @@ getFormulasPrescritas(fInicial: string, fFinal: string): Observable<any> {
       return throwError(e);
     }));
  }
+
+  
+getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/noprocesadas`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+
+  
+ getFormulasDetalladas(idBodega: number, fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/reportes`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+
+ getFormulasDetalladasAnuladas(idBodega: number, fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/anuladas`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+
 
 
 }

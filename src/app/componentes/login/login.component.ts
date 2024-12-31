@@ -53,22 +53,14 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.usuarioservicio.getRegistroId(this.loginForm.get('usuario')?.value)
-      .subscribe((resp: any) => {
-      // console.log(resp);
-      // console.log(this.loginForm.get('password')?.value);
-      // console.log(this.loginForm.get('idBodega')?.value);
-        if(resp.password===this.loginForm.get('password')?.value && resp.idBodega===this.loginForm.get('idBodega')?.value){
-                 
+      .subscribe((resp: any) => {        
+      
+        if(resp.password===this.loginForm.get('password')?.value && resp.idBodega===this.loginForm.get('idBodega')?.value){                 
           sessionStorage.setItem("nombre", resp.nombre);
           sessionStorage.setItem("bodega", resp.idBodega);
-          this.authservicio.login();
-      /*    Swal.fire({
-          icon: 'success',
-          title: `login exitoso`,
-          text: `Bienvenido `+  resp.nombre,
-        });*/
-        this.router.navigate(['/menu']); // Redirige al componente de menú
-     
+          sessionStorage.setItem("nivel", resp.nivel);
+          this.authservicio.login();      
+        this.router.navigate(['/menu']); // Redirige al componente de menú     
       }
       else
       {Swal.fire({

@@ -140,13 +140,22 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
       const fechaActual = new Date(); // Obtener la fecha actual
       const fechaPrescribe = new Date(itemt.fecPrescribe); // Convertir itemt.fecPrescribe a objeto Date
       // Formatear la fecha a 'dd/MM/yyyy'
-      const fechaFormateada = fechaPrescribe.toLocaleDateString('es-ES', {
+    /*  const fechaFormateada = fechaPrescribe.toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
       });
-
-      if (fechaPrescribe <= fechaActual) {
+*/
+      const resetHora = (fecha: Date): Date => {
+        return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+      };
+      
+      // Reseteamos las horas
+      const fechaActualSinHora = resetHora(fechaActual);
+      const fechaPrescribeSinHora = resetHora(fechaPrescribe);
+      
+     
+      if (fechaPrescribeSinHora <= fechaActualSinHora) {
         const controlPrescribe = new Date(fechaActual);
         controlPrescribe.setDate(fechaActual.getDate() - 30);
         if (fechaPrescribe >= controlPrescribe) {
@@ -167,13 +176,12 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
               this.servicioformula.saveEntregaFormula(itemt.idFormula, bodega, funcionario!, "Presencial",itemt.tipoRecibe,itemt.documentoRecibe)
                 .subscribe({
                   next: (data: any) => {
-                    this.router.navigate(['/entrega', itemt.idFormula]);
+                    this.router.navigate(['/menu/entrega', itemt.idFormula]);
                   },
                   error: (err) => {
                     console.error('Error al guardar la entrega', err);
                   }
                 });
-
             }
           });
         }
@@ -190,7 +198,7 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
           Swal.fire({
             icon: 'error',
             title: `Formula expiró!`,
-            text: `La fórmula expiró, ya no puede ser entregada debio ser reclamada hasta 30 dias despues de su fecha de prescripción ${fechaFormateada}`,
+            text: `La fórmula expiró, ya no puede ser entregada debio ser reclamada hasta 30 dias despues de su fecha de prescripción ${fechaActualSinHora}`,
 
           });
         }
@@ -198,7 +206,7 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
         Swal.fire({
           icon: 'error',
           title: `Verificar!`,
-          text: `La fórmula aún no está habilitada para la entrega, estará disponible a partir del ${fechaFormateada}`,
+          text: `La fórmula aún no está habilitada para la entrega, estará disponible a partir del ${fechaActualSinHora}`,
         });
       }
     }

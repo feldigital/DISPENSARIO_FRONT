@@ -58,7 +58,7 @@ export class VerordendespachoComponent implements OnInit {
 
   procesarOrdenDespachoIngreso(): void {
     let funcionario = sessionStorage.getItem("nombre");
-    const tieneErrores = this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
+    const tieneErrores =     this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
       if (itemBodega.cantidadDespacho != itemBodega.cantidad) {
         Swal.fire({
           icon: 'error',
@@ -69,6 +69,8 @@ export class VerordendespachoComponent implements OnInit {
       }
       return false;
     });
+    
+
     if (!tieneErrores) {
 
       Swal.fire({

@@ -17,63 +17,78 @@ export class MedicamentobodegaComponent implements OnInit, OnChanges {
   listaItemBodegaFiltro: any = [];
   parametro: any;
   @Input() datoRecibido: number= NaN;
+  listaregistros: any;
 
-/*
-  
-  _listFilter!: string;
-  get listFilter(): string {
-    return this._listFilter;
-  }
-  set listFilter(value: string) {
-    this._listFilter = value;
-    this.listaItemBodegaFiltro = this.listFilter ? this.performFilter(this.listFilter) : this.listaItemBodega;
-  }
-*/
 
   constructor(
     private servicio: BodegaService,
     private fb: FormBuilder,
     private activatedRoute: ActivatedRoute,
     private router: Router) { }
-/*
-    performFilter(filterBy: string): any[] {
-      if (filterBy === '' || filterBy.length < 3) return this.listaItemBodega
-      filterBy = filterBy.toLocaleLowerCase();
-      return this.listaItemBodega.filter((filro: any) => filro.medicamento.nombre.toLocaleLowerCase().indexOf(filterBy) !== -1
-        );
+
+
+    ngOnInit(): void {
+      this.parametro = this.datoRecibido;
+      this.activatedRoute.paramMap.subscribe((params) => {
+        this.parametro = params.get('id');   
+        if (this.parametro) {
+          this.buscarRegistro(this.parametro);
+        } else {
+          this.parametro = parseInt(sessionStorage.getItem('bodega') || '0', 10);
+          this.buscarRegistro(this.parametro);
+        }
+      });
     
+      if (this.datoRecibido!=this.parametro) {
+        this.buscarRegistro(this.datoRecibido);
+      }
+    
+      // Inicialización del formulario
+      this.generalForm = this.fb.group({
+        idBodega: [this.parametro], // Select de bodegas
+        listFilter: [''], // Input de filtro
+      });
+    
+      this.servicio.getRegistrosActivos().subscribe(
+        (resp: any) => {
+          this.listaregistros = resp;
+          this.listaregistros.sort((a: any, b: any) => {
+            const comparacionPorNombre = a.nombre.localeCompare(b.nombre);
+            if (comparacionPorNombre === 0) {
+              return a.puntoEntrega.localeCompare(b.puntoEntrega);
+            }
+            return comparacionPorNombre;
+          });
+      
+          // Establecer el valor del select después de que se cargan los registros
+          if (this.parametro) {
+            this.generalForm.patchValue({ idBodega: +this.parametro });
+          }
+        },
+        (err: any) => {
+          console.error(err);
+        }
+      );
+    
+      // Escuchar cambios en el input de filtro
+      this.generalForm
+        .get('listFilter')!
+        .valueChanges.pipe(
+          debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+          switchMap((query) => this.buscarMedicamentos(query))
+        )
+        .subscribe((results) => {
+          this.listaItemBodegaFiltro = results;
+        });
+    
+      // Escuchar cambios en el select de bodegas
+      this.generalForm.get('idBodega')!.valueChanges.subscribe((nuevoIdBodega: number) => {
+        if (nuevoIdBodega) {
+          this.parametro = nuevoIdBodega;
+          this.buscarRegistro(nuevoIdBodega);
+        }
+      });
     }
-  */
-
-  ngOnInit(): void {
-// Configurar un intervalo que verifique la condición cada minuto (60000 milisegundos)
-    this.parametro=this.datoRecibido
-    this.activatedRoute.paramMap.subscribe(params => {
-      this.parametro = params.get('id');   
-      if (this.parametro) {
-      this.buscarRegistro(this.parametro);
-    }
-    });
-    if (this.datoRecibido) {
-      this.buscarRegistro(this.datoRecibido);
-    } 
-    this.generalForm = this.fb.group
-    ({
-      listFilter:[''],
-     });
-
-    this.generalForm.get('listFilter')!.valueChanges
-    .pipe(
-      debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
-      switchMap(query => this.buscarMedicamentos(query))
-    )
-    .subscribe(results => {       
-      this.listaItemBodegaFiltro = results        
-    });
-
-
-  }
-
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['datoRecibido'] && !changes['datoRecibido'].isFirstChange()) {
@@ -93,7 +108,7 @@ export class MedicamentobodegaComponent implements OnInit, OnChanges {
      
       this.listaItemBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
       this.listaItemBodegaFiltro=this.listaItemBodega
-      console.log(this.listaItemBodega);
+     
     });
 
   }
@@ -120,14 +135,17 @@ export class MedicamentobodegaComponent implements OnInit, OnChanges {
     // Aquí puedes añadir lógica para guardar los cambios en el servidor si es necesario   
   }
 
-  
+  public cancelEdicion(itemt: any) {
+    itemt.editing = false;   
+  }
 
   public eliminarMedicamentoBodega(itemt: any)
   {
+   
    if(itemt.cantidad<=0){
     Swal.fire({
       title: 'Desea eliminar?',
-      text: `El medicamento ${itemt.medicamento.nombre} de la bodega  ${itemt.bodega.nombre} - ${itemt.bodega.puntoEntrega}   en la base de datos.`,
+      text: `El medicamento ${itemt.nombre} de la bodega  ${itemt.nombreBodega} en la base de datos.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -135,12 +153,18 @@ export class MedicamentobodegaComponent implements OnInit, OnChanges {
       confirmButtonText: 'Si, eliminar!'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.servicio.deleteMedicamentoBodegaId(itemt.idMedicamentoBodega).subscribe(resp => {
+        
+        Swal.fire({
+          icon: 'info',
+          title: `Falta de permisos`,
+          text: `No tienes permisos para eliminar un medicamento de la bodega  ${itemt.nombreBodega} comunicate con el área de sistemas para el proceso.`,
+        });
+        /*this.servicio.deleteMedicamentoBodegaId(itemt.idMedicamentoBodega).subscribe(resp => {
           this.listaItemBodega = this.listaItemBodega.filter((cli: FormulaI) => cli !== itemt);
           Swal.fire({
             icon: 'success',
             title: `Ok`,
-            text: `El medicamento ${itemt.medicamento.nombre} de la bodega  ${itemt.bodega.nombre} - ${itemt.bodega.puntoEntrega} ha sido eliminado correctamente.`,
+            text: `El medicamento ${itemt.nombre} de la bodega  ${itemt.nombreBodega} ha sido eliminado correctamente.`,
           });
         },
           err => {
@@ -150,33 +174,26 @@ export class MedicamentobodegaComponent implements OnInit, OnChanges {
               text: err.mensaje,
             });
           });
+          */
       }
     });
 
   }
   else{
     Swal.fire({
+      icon: 'info',
+      title: `Falta de permisos`,
+      text: `No tienes permisos para eliminar un medicamento de la bodega  ${itemt.nombreBodega} comunicate con el área de sistemas para el proceso.`,
+    });
+    /*
+    Swal.fire({
       icon: 'warning',
       title: `Verificar!`,
-      text: `El medicamento ${itemt.medicamento.nombre} de la bodega  ${itemt.bodega.nombre} - ${itemt.bodega.puntoEntrega} tiene existencia actual por lo tanto no puede ser eliminado.`,
+      text: `El medicamento ${itemt.nombre} de la bodega  ${itemt.nombreBodega} tiene existencia actual por lo tanto no puede ser eliminado.`,
     });
+    */
   }
-  }  
-
- 
-   public crearMEdicamentoBodega(itemt: any) {   
-    console.log(itemt);
-    this.servicio.createMedicamentoBodega(itemt)
-    .subscribe({
-      next: (data: any) => {
-        this.router.navigate(['/entrega', itemt.idFormula]); 
-      },
-      error: (err) => {
-        console.error('Error al adicionar el medicamento a la bodega', err);
-      }
-    });
-      
-   }
+  }   
 
 
   public primerasmayusculas(str: string): string {

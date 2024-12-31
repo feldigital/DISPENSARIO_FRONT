@@ -1,135 +1,214 @@
 <div class="container mt-4">
     <form [formGroup]="generalForm" class="w-100">
         <div class="form-row">
+            <!-- Radio buttons para seleccionar tipo justify-content-between -->
+            <div class="form-group col-md-12 d-flex">
+                <div style="margin-right: 30px;">
+                    <label>
+                        <input type="radio" formControlName="tipo" value="ORDEN DE DESPACHO" (change)="onTipoChange()"> Orden de despacho
+                    </label>
+                </div>
+                <div >
+                    <label>
+                        <input type="radio" formControlName="tipo" value="ORDEN DE COMPRA" (change)="onTipoChange()"> Orden de compra
+                    </label>
+                </div>              
+            </div>
+    
+            <hr>
+    
+            <div class="row">
+               
+    
+                <!-- Columna para los demás campos -->
+                <div class="col-md-6">
+                    <!-- Fecha de despacho -->
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Fecha</label>
+                        <div class="col-sm-8">
+                            <input type="date" formControlName="fechaDespacho" class="form-control" [max]="hoy">
+                        </div>
+                    </div>
+    
+                    <!-- Bodega Origen -->
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Bodega de Origen</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" formControlName="idBodegaOrigen" required (change)="onBodegaChange()">
+                                <option selected value="0">Seleccione la bodega de origen</option>
+                                <option *ngFor="let item of listaregistrosOrigen" [ngValue]="item.idBodega">
+                                    {{item.nombre}} - {{item.puntoEntrega}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+    
+                    <!-- Bodega Destino -->
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Bodega de Destino</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" formControlName="idBodegaDestino" required (change)="onBodegaChange()">
+                                <option selected value="0">Seleccione la bodega de destino</option>
+                                <option *ngFor="let item of listaregistrosDestino" [ngValue]="item.idBodega">
+                                    {{item.nombre}} - {{item.puntoEntrega}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+    
+                    <!-- Observaciones -->
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Registrar anotaciones</label>
+                        <div class="col-sm-8">
+                            <textarea formControlName="observacion" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Fecha de Despacho -->
-            <div class="form-group col-md-6">
-                <label for="fechaDespacho">Fecha de despacho</label>
-                <input type="date" formControlName="fechaDespacho" class="form-control" [max]="hoy">
-                <div class="alert alert-danger"
-                     *ngIf="generalForm.get('fechaDespacho')?.invalid && (generalForm.get('fechaDespacho')?.touched)">
-                    La fecha de la orden de despacho es requerida.
+                 <!-- Columna para los campos de la Orden de Compra -->
+                 <div class="col-md-6">
+                    <!-- Inputs para compra, ocultos si es despacho -->
+                    <div *ngIf="isCompra" class="w-100">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Nit</label>
+                            <div class="col-sm-8">
+                                <input type="text" formControlName="nitProvedor" class="form-control" placeholder="Digite el nit" />
+                            </div>
+                        </div>
+    
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Nombre del proveedor</label>
+                            <div class="col-sm-8">
+                                <input type="text" formControlName="nomProvedor" class="form-control" placeholder="Digite el nombre del proveedor" />
+                            </div>
+                        </div>
+    
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Número de la factura</label>
+                            <div class="col-sm-8">
+                                <input type="text" formControlName="numFactura" class="form-control" placeholder="Digite la factura" />
+                            </div>
+                        </div>
+    
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Valor de la factura</label>
+                            <div class="col-sm-8">
+                                <input type="text" formControlName="valor" class="form-control" placeholder="Digite el valor" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Bodega Origen -->
-            <div class="form-group col-md-6">
-                <label for="idBodegaOrigen">Bodega de Origen</label>
-                <select class="form-select" formControlName="idBodegaOrigen" required (change)="onBodegaChange()">
-                    <option selected value="0">Seleccione la bodega de origen</option>
-                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega"
-                            [selected]="parametro == item.idBodega">{{item.nombre}} - {{item.puntoEntrega}}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Bodega Destino -->
-            <div class="form-group col-md-6">
-                <label for="idBodegaDestino">Bodega Destino</label>
-                <select class="form-select" formControlName="idBodegaDestino" required (change)="onBodegaChange()">
-                    <option selected value="0">Seleccione la bodega destino</option>
-                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega"
-                            [selected]="parametro == item.idBodega">{{item.nombre}} - {{item.puntoEntrega}}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Observaciones -->
-            <div class="form-group col-md-12">
-                <label for="observacion">Registrar anotaciones</label>
-                <textarea formControlName="observacion" class="form-control"></textarea>
-            </div>
-        </div>
-
-        
-
-        <!-- Botones -->
-        <div class="form-row mt-3">
-           
-            <div class="col-md-4">
-                <button class="btn btn-outline-primary w-100" (click)="create()">
-                    <i class="far fa-save"></i> {{this.nombrebtn}}
-                </button>
-            </div>
-            <div class="col-md-4" *ngIf="parametro">
-                <button class="btn btn-outline-primary w-100" (click)="procesarOrdenDespacho()">
-                    Procesar orden despacho
-                </button>
-            </div>
-            <div class="col-md-4" *ngIf="parametro">
-                <button class="btn btn-outline-primary w-100" (click)="nuevaOrdenDespacho()">
-                    Nueva orden de despacho
-                </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-outline-primary w-100" [routerLink]="['/historialordendespacho']">
-                    Ver orden despacho
-                </button>
-            </div>
-            
-            <div class="file-upload" *ngIf="importar">
-                <input type="file" (change)="onFileChange($event)" accept=".xlsx, .xls" />
-            </div>
-        </div>
-    </form>
-
-    <!-- Mensaje sin registros -->
-    <div class="alert alert-info my-4" *ngIf="listaregistros?.length <= 0">
-        No hay registros para mostrar!
-    </div>
-
-    <!-- Tabla de Ítems -->
-    <div *ngIf="listaregistros?.length > 0">
-        <table class="table table-striped table-hover table-sm">
-            <thead class="thead-colored">
-                <tr>
-                    <th>Item</th>
-                    <th>CUM</th>
-                    <th>Nombre</th>
-                    <th>Forma Farmacéutica</th>
-                    <th>Existencias Origen</th>
-                    <th>Existencias Destino</th>
-                    <th>Pendientes Destino</th>
-                    <th>Máxima Entrega</th>
-                    <th>Cantidad a despachar</th>
-                    <th>Gestión</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let itemt of listaItems; let i = index">
-                    <td>{{i + 1}}</td>
-                    <td>{{primerasmayusculas(itemt.codigoCum)}}</td>
-                    <td>{{primerasmayusculas(itemt.nombre)}}</td>
-                    <td>{{primerasmayusculas(itemt.forma)}}</td>
-                    <td>{{itemt.cantidad}}</td>
-                    <td>{{itemt.stopMinimo}}</td>
-                    <td>{{itemt.pendiente}}</td>
-                    <td>{{itemt.cantidadEntregada}}</td>
-                    <td>
-                        <div *ngIf="itemt.editing">
-                            <input type="number" [(ngModel)]="itemt.cantidadDespacho" placeholder="Cantidad" class="form-control mb-1" />
-                            <input type="text" [(ngModel)]="itemt.laboratorio" placeholder="Laboratorio" class="form-control mb-1" />
-                            <input type="text" [(ngModel)]="itemt.invima" placeholder="Invima" class="form-control mb-1" />
-                            <input type="text" [(ngModel)]="itemt.lote" placeholder="Lote" class="form-control mb-1" />
-                            <input type="date" [(ngModel)]="itemt.fechaVencimiento" placeholder="Vencimiento" class="form-control mb-1" [min]="hoy"/>
-                        </div>
-                        <div *ngIf="!itemt.editing">
-                            {{itemt.cantidadDespacho}}
-                        </div>
-                    </td>
-                    <td>
-                        <mat-icon *ngIf="!itemt.estado && !itemt.editing && itemt.cantidad > 0" title="Editar cantidad" class="pointer-cursor" title="Editar cantidad" 
-                            [ngStyle]="{'color':'#009A94'}" (click)="editarMedicamentoOrdenDespacho(itemt)">edit</mat-icon>
-
-                        <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Cancelar" class="pointer-cursor" title="Cancelar edición" 
-                        [ngStyle]="{'color':'orange'}" (click)="cancelEdicion(itemt)">clear</mat-icon>
     
-                        <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Guardar cantidad" class="pointer-cursor" title="Fijar cantidad" 
-                        [ngStyle]="{'color':'#009A94'}" (click)="guardarMedicamentoOrdenDespacho(itemt)">check</mat-icon>
+            <!-- Botones -->
+            <div class="form-row mt-3">
+                <div class="col-md-4">
+                    <button class="btn btn-outline-primary w-50" (click)="create()">
+                        <i class="far fa-save"></i> {{this.nombrebtn}}
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-outline-primary w-50 mt-2" (click)="procesarOrdenDespacho()">Procesar orden</button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-outline-primary w-50 mt-2" [routerLink]="['/menu/historialordendespacho']">Ver orden</button>
+                </div>
+                <div class="file-upload mt-2" *ngIf="importar">
+                    <input type="file" (change)="onFileChange($event)" accept=".xlsx, .xls" />
+                </div>
+            </div>
+        </div>
+       
+    <hr>
 
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="text-container">
+        <div class="input-group mb-2 align-center">
+            <span class="bodega-nombre">
+                
+            </span>
+            <span class="input-group-text bg-transparent">
+                <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
+            </span>
+            <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
+                placeholder="Buscar por nombre del medicamento">
+        </div>
     </div>
+</form>
+
+ <!-- Mensaje sin registros -->
+ <div class="alert alert-info my-4" *ngIf="listaregistrosOrigen?.length <= 0">
+    No hay registros para mostrar!
+</div>
+
+<!-- Tabla de Ítems -->
+<div *ngIf="listaregistrosOrigen?.length > 0">
+
+   
+
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>
+                <th>Item</th>
+                <th>CUM</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Forma Farmacéutica</th>
+                <th>Existencias Origen</th>
+                <th>Existencias Destino</th>
+                <th>Pendientes Destino</th>
+                <th>Máxima Entrega</th>
+                <th>Cantidad a despachar</th>
+                <th>Gestión</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let itemt of listaItemsFiltro; let i = index">
+                <td>{{i + 1}}</td>             
+                <td>{{primerasmayusculas(itemt.cum)}}</td>
+                <td>{{itemt.idMedicamento}}</td>
+                <td>{{primerasmayusculas(itemt.nombre)}}</td>
+                <td>{{primerasmayusculas(itemt.forma)}}</td>
+                <td>{{itemt.cantidad}}</td>
+                <td>{{itemt.stopMinimo}}</td>
+                <td>{{itemt.pendiente}}</td>
+                <td>{{itemt.cantidadEntregada}}</td>
+                <td>
+                    <div *ngIf="itemt.editing">
+                        <input type="number" [(ngModel)]="itemt.cantidadDespacho" placeholder="Cantidad"
+                            class="form-control mb-1" />
+                        <input type="text" [(ngModel)]="itemt.laboratorio" placeholder="Laboratorio"
+                            class="form-control mb-1" />
+                        <input type="text" [(ngModel)]="itemt.invima" placeholder="Invima"
+                            class="form-control mb-1" />
+                        <input type="text" [(ngModel)]="itemt.lote" placeholder="Lote" class="form-control mb-1" />
+                        <input type="date" [(ngModel)]="itemt.fechaVencimiento" placeholder="Vencimiento"
+                            class="form-control mb-1" [min]="hoy" />
+                    </div>
+                    <div *ngIf="!itemt.editing">
+                        {{itemt.cantidadDespacho}}
+                    </div>
+                </td>
+                <td>
+                    <mat-icon *ngIf="!itemt.estado && !itemt.editing && itemt.cantidad > 0" title="Editar cantidad"
+                        class="pointer-cursor" title="Editar cantidad" [ngStyle]="{'color':'#009A94'}"
+                        (click)="editarMedicamentoOrdenDespacho(itemt)">edit</mat-icon>
+                    
+                        <mat-icon *ngIf="!itemt.estado  && itemt.cantidad == 0 && itemt.cantidadDespacho > 0" title="Editar cantidad"
+                            class="pointer-cursor" title="Eliminar cantidad a despachar" [ngStyle]="{'color':'red'}"  
+                        (click)="quitarMedicamentoDespacho(itemt.idMedicamento)">delete_sweep</mat-icon>
+
+                    <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Cancelar" class="pointer-cursor"
+                        title="Cancelar edición" [ngStyle]="{'color':'orange'}"
+                        (click)="cancelEdicion(itemt)">clear</mat-icon>
+
+                    <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Guardar cantidad" class="pointer-cursor"
+                        title="Fijar cantidad" [ngStyle]="{'color':'#009A94'}"
+                        (click)="guardarMedicamentoOrdenDespacho(itemt)">check</mat-icon>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 </div>

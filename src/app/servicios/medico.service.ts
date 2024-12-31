@@ -86,14 +86,23 @@ export class MedicoService {
 
 
 
-  filtrarMedicos(term: string): Observable<MedicoI[]> {
-    const encodedTerm = encodeURIComponent(term);
+  filtrarMedicos(term: string): Observable<MedicoI[]> {  
     const params = new HttpParams()
-    .set('term', encodedTerm);
+    .set('term', term);
     return this.http.get<MedicoI[]>(`${this.urlEndPoint}/filtrar`, {params}).pipe(
       catchError(this.handleError<MedicoI[]>('filtrarMedicos', []))
     );
   }
+
+
+  buscarMedicosRegistro(term: string): Observable <MedicoI[]> {   
+    const params = new HttpParams()
+    .set('term', term);
+    return this.http.get<MedicoI[]>(`${this.urlEndPoint}/registro`, {params}).pipe(
+      catchError(this.handleError<MedicoI[]>('RegistrosMedicos', []))
+    );
+  }
+
   
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {

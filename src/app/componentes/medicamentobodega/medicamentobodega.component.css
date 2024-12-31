@@ -16,9 +16,10 @@
     gap: 10px;
   }
   
-  mat-icon {
+  .puntero {
     cursor: pointer;
   }
+
   
   :host ::ng-deep .mat-tooltip {
     background-color: #f44336;
@@ -65,4 +66,24 @@
     border-bottom-left-radius: 0;
   }
   
-  
+  .align-center {
+    display: flex;
+    align-items: center;
+}
+
+.bodega-nombre {
+    margin-right: 10px; /* Espacio entre el nombre de la bodega y el input */
+    font-weight: bold;  /* Opcional: resalta el nombre de la bodega */
+}
+
+.search-input {
+  width: 300px; /* Ajusta el ancho del input según tus necesidades */
+  margin-left: auto; /* Empuja el input hacia la derecha */
+  border-top-left-radius: 30px; /* Hace el borde superior izquierdo redondeado */
+    border-bottom-left-radius: 30px; /* Hace el borde inferior izquierdo redondeado */
+    border-right: none; /* Elimina el borde derecho */
+    padding: 0.375rem 1rem; /* Espaciado interno para que el ícono esté centrado */
+    display: flex;
+    align-items: center;
+}
+

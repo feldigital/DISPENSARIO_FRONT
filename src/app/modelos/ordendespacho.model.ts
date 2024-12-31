@@ -10,6 +10,11 @@ export class OrdenDespachoI {
     bodegaOrigen: number;
     bodegaDestino: number;
     observacion: string;
+    tipo: string;
+    nitProvedor: string;
+    nomProvedor: string;
+    numFactura: string;
+    valor: number;
     itemsDespacho: Array<ItemOrdenDespachoI> = [];
 
     constructor() {
@@ -21,7 +26,12 @@ export class OrdenDespachoI {
         this.observacion = "";
         this.funcionarioDespacho = "";
         this.funcionarioEntradaDestino = "";
-        this.estado = "Creación";      
+        this.estado = "Creación";   
+        this.tipo= "";
+        this.nitProvedor= "";
+        this.nomProvedor= "";
+        this.numFactura= "";
+        this.valor= NaN;   
     }
 
 }

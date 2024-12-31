@@ -14,6 +14,8 @@ export class MedicamentoI {
     desabastecido: Boolean;
     via: number;
     forma: number;
+    agotado: Boolean;
+    controlado: Boolean;
 
 
 
@@ -33,6 +35,8 @@ export class MedicamentoI {
         this.via= NaN;
         this.forma= NaN;
         this.estado = true;
+        this.agotado=false;
+        this.controlado=false;
 
     }
 

@@ -22,6 +22,7 @@ export class BuscarpacienteComponent {
 
     this.generalForm = this.fb.group
       ({
+        documento: [''],
         pNombre: [''],
         sNombre: [''],
         pApellido: [''],
@@ -83,6 +84,19 @@ export class BuscarpacienteComponent {
             const pApellido = this.generalForm.get('pApellido')?.value || '';
             const sApellido = this.generalForm.get('sApellido')?.value || '';          
             return this.servicio.filtrarPacientes(pNombre, sNombre, pApellido, sApellido);
+          })  
+        )
+        .subscribe(results => {       
+          this.listaregistros = results;    
+        });
+
+        this.generalForm.get('documento')!.valueChanges
+        .pipe(
+          debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir         
+          switchMap(query => {
+            const documento = this.generalForm.get('documento')?.value || '';
+                
+            return this.servicio.getRegistroDocumento(documento);
           })  
         )
         .subscribe(results => {       

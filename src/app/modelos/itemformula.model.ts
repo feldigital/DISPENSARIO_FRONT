@@ -6,7 +6,7 @@ export class ItemFormulaI {
   cantidad: number = 1;
   importe: number=0.0;
   frecuencia:string="1 Cada 24 Horas";
-	duracion:string="1";
+	duracion:string="0";
   habilitarCantidad:boolean=false;
 
   items: Array<ItemFormulaEntregaI> = [];

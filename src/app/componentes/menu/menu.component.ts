@@ -19,19 +19,28 @@ export class MenuComponent implements OnInit {
 
   fillerNav=[
   //  {name:"Inicio",route:"login",icon:"home"},
-    {name:"Paciente",route:"paciente",icon:"perm_identity"},
+    {name:"Paciente",route:"paciente",icon:"perm_identity",nivel:2},
     { name:"Medicamentos",
       route:"medicamento",
-      icon:"hdr_weak", 
+      icon:"hdr_weak", nivel:3,
       menu:"medicamentosMenu", 
        subNav: [
         { name: 'Consulta', route: '/menu/medicamento', icon: 'search' },
         { name: 'Registro', route: '/menu/medicamento/register', icon: 'add' }
       ]},
-    {name:"Dispensar Formula",route:"formula",icon:"playlist_add"},
-    {name:"Bodegas",route:"bodega",icon:"domain"},   
-    {name:"Despacho",route:"despacho",icon:"input"},
-  //  {name:"Estadistica",route:"estadistica",icon:"card_giftcard"},
+
+    
+    {name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:1},
+    {name:"Bodegas",route:"bodega",icon:"domain",nivel:1},   
+    {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:1},   
+    {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:1},   
+    {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:1}, 
+    {name:"Medicamentos no rotan",route:"norotan",icon:"query_builder",nivel:3}, 
+    {name:"Ordenes",route:"despacho",icon:"input",nivel:1},    
+  //  {name:"Estadistica",route:"estadistica",icon:"card_giftcard"}, settings_backup_restore query_builder
+
+
+  
   
   ]
 
@@ -74,6 +83,15 @@ export class MenuComponent implements OnInit {
     },
       (err: any) => { console.error(err) }
     );
+  }
+
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));    
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }  
+    return nivelUsuario >= nivelRequerido;
   }
 
 }

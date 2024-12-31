@@ -29,6 +29,7 @@ export class FormulaI {
   idBodega: number;
   fecIngreso: Date;
   estadoanulada: boolean;
+  funcionariocreaformula: string;
   
   constructor() {
     this.idFormula = NaN;
@@ -54,6 +55,7 @@ export class FormulaI {
     this.programa="";
     this.idBodega = NaN;
     this.estadoanulada = false;
+    this.funcionariocreaformula="";
 }
 
   calcularGranTotal(): number {

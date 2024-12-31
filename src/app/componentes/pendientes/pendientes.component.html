@@ -1,49 +1,67 @@
-<div class="card-header mb-2" [formGroup]="busquedaForm">
-    <div class="text-container">
-        Relación de pendientes en la bodega
+<div class="container mt-2">
+    <div class="alert alert-info my-2" *ngIf="listaPendienteBodega?.length == 0">
+        No hay medicamentos penidientes, asociados a esta bodega en la fecha seleccionada!
     </div>
-    <div class="date-inputs">
-        <input type="text" formControlName="listFilter" 
-        class="form-control border-end-0 date-input" placeholder="Buscar por nombre medicamento">
+    <div class="mb-2">
+        <div class="text-container">
+            <div class="input-group mb-2 align-center" [formGroup]="generalForm">
+                <span class="bodega-nombre">
+                    Pendientes en la bodega
+                </span>
+                <select class="form-select" formControlName="idBodega">
+                    <option selected value="null">Seleccione la bodega</option>
+                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega"> {{item.nombre }}</option>
+                </select>
+                <span class="input-group-text bg-transparent">
+                    <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
+                </span>
+                <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
+                    placeholder="Buscar por nombre medicamento">
+
+                <input type="date" formControlName="fechainicial"
+                    class="form-control border-end-0 input-anch">
+                al
+                <input type="date" formControlName="fechafinal" class="form-control border-end-0 input-ancho">
+
+                <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button"
+                    (click)="buscarRegistro(parametro)">
+                    Buscar</button>
+
+            </div>
+        </div>
     </div>
-    <div class="date-inputs">
-        <input type="date" formControlName="fechainicial" class="form-control border-end-0 date-input">
-        <div class="date-label">al</div>
-        <input type="date" formControlName="fechafinal" class="form-control border-end-0 date-input">
+
+        <div *ngIf="listaPendienteBodega?.length > 0">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="thead-colored">
+                    <tr>
+                        <th>Item</th>
+                        <th>Cum</th>
+                        <th>ID</th>
+                        <th>Nombre </th>
+                        <th>Presentación</th>
+                        <th>Existencia</th>
+                        <th>Ult. Fecha Dotación</th>
+                        <th>Pendiente</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let itemt of listaPendienteBodegaFiltro let i= index">
+                        <td>{{i+1}}</td>
+                        <td>{{itemt.cum}}</td>
+                        <td>{{itemt.idMedicamento}}</td>
+                        <td>{{itemt.nombre}}</td>
+                        <td>{{itemt.forma}}</td>
+                        <td>{{itemt.cantidad}}</td>
+                        <td>{{itemt.ultFecIngreso | date: 'dd/MM/YYYY'}}</td>
+                        <td>{{itemt.pendiente}}</td>
+                        <td>                      
+
+                            <mat-icon class="puntero" title="Ver detalle de pacientes" [ngStyle]="{'color':'orange'}" 
+                            [routerLink]="['/menu/pacientependiente', itemt.idBodega, itemt.idMedicamento, generalForm.value.fechainicial, generalForm.value.fechafinal]">art_track</mat-icon></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button" (click)="buscarRegistro(parametro)">
-        Buscar</button>
-</div>
-
-
-
-
-<div class="alert alert-info my-2" *ngIf="listaPendienteBodega?.length == 0">
-    No hay medicamentos penidientes, asociados a esta bodega en la fecha seleccionada!
-</div>
-
-
-<div *ngIf="listaPendienteBodega?.length > 0">
-    <table class="table table-striped table-hover table-sm">
-        <thead class="thead-colored">
-            <tr>
-                <th>Item</th>
-                <th>Cum</th>
-                <th>Nombre </th>
-                <th>Presentación</th>
-                <th>Existencia</th>
-                <th>Pendiente</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let itemt of listaPendienteBodegaFiltro let i= index">
-                <td>{{i+1}}</td>
-                <td>{{itemt.cum}}</td>
-                <td>{{itemt.nombre}}</td>
-                <td>{{itemt.forma}}</td>
-                <td>{{itemt.cantidad}}</td>
-                <td>{{itemt.pendiente}}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>

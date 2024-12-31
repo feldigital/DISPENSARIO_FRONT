@@ -1,8 +1,10 @@
-import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms'; 
 import { FormsModule } from '@angular/forms';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { PermisosService } from './servicios/permisos.service';
+
 
 
 import { AppRoutingModule } from './app-routing.module';
@@ -42,9 +44,15 @@ import { ImportarafiliadosComponent } from './componentes/importarafiliados/impo
 import { HistorialordendespachoComponent } from './componentes/historialordendespacho/historialordendespacho.component';
 import { VerordendespachoComponent } from './componentes/verordendespacho/verordendespacho.component';
 import { HistorialformulaComponent } from './componentes/historialformula/historialformula.component';
+import { PacientependienteComponent } from './componentes/pacientependiente/pacientependiente.component';
+import { ExistenciasComponent } from './componentes/existencias/existencias.component';
+import { NorotanComponent } from './componentes/norotan/norotan.component';
+import { EditformulaComponent } from './componentes/editformula/editformula.component';
 
 
-
+export function initPermisos(permisosService: PermisosService) {
+  return () => permisosService.cargarPermisos();
+}
 
 @NgModule({
   declarations: [
@@ -70,6 +78,10 @@ import { HistorialformulaComponent } from './componentes/historialformula/histor
     ImportarafiliadosComponent,
     HistorialordendespachoComponent,
     VerordendespachoComponent,
+    PacientependienteComponent,
+    ExistenciasComponent,
+    NorotanComponent,
+    EditformulaComponent,
 
   ],
   imports: [
@@ -93,7 +105,15 @@ import { HistorialformulaComponent } from './componentes/historialformula/histor
     MatDialogModule,
 
   ],
-  providers: [],
+
+  providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initPermisos,
+      deps: [PermisosService],
+      multi: true
+    }
+  ] ,
   bootstrap: [AppComponent]
 })
 export class AppModule { }

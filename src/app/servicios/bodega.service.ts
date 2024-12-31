@@ -170,6 +170,7 @@ export class BodegaService {
     .set('idBodega', id)
     .set('fInicial', fInicial)
     .set('fFinal', fFinal);
+
     return this.http.get<any>(`${this.urlEndPoint}/medicamento/pendiente`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
@@ -215,20 +216,30 @@ export class BodegaService {
     .set('idBodega', id)
     .set('fInicial', fInicial)
     .set('fFinal', fFinal);
-
-    console.log(id);
-    console.log(fInicial);
-    console.log(fFinal);
-
     return this.http.get<any>(`${this.urlEndPoint}/entrega/detallada`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
           console.error(e.error.mensaje);
         }
+        return throwError(e);
+      }));
+  }
 
+  getMedicamentosPendienteDetallada(id: number,fInicial: string, fFinal: string): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', id)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);
+    return this.http.get<any>(`${this.urlEndPoint}/entrega/pendiente`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
         return throwError(e);
       }));
   } 
+
+  
 
   getMedicamentosBodegaEntregadosMeses(id: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
@@ -243,7 +254,40 @@ export class BodegaService {
 
         return throwError(e);
       }));
+  }
+
+  getPacientePendiente(id: number,fInicial: string, fFinal: string,idMedicamento: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', id)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal)
+    .set('idMedicamento', idMedicamento);
+
+    return this.http.get<any>(`${this.urlEndPoint}/paciente/pendiente`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+
+        return throwError(e);
+      }));
   } 
+
+  getExistenciasMedicamentos(term: string): Observable<any> {
+    const params = new HttpParams()
+    .set('term', term);
+
+    return this.http.get<any>(`${this.urlEndPoint}/existencias`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+
+        return throwError(e);
+      }));
+  } 
+
+
 
 
 }

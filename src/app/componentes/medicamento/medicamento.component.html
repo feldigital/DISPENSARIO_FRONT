@@ -80,6 +80,10 @@
                     <input class="form-check-input" style="margin-right: 5px" type="checkbox" formControlName="estado"> Vigente 
 
                     <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="desabastecido"> Desabastecido
+
+                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="agotado"> Agotado
+
+                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="controlado"> Controlado
                 </div>
 
                 <hr>
@@ -102,10 +106,11 @@
         No hay registros para mostrar!
     </div>
     <div *ngIf="listaregistros?.length > 0">
-        <table class="table table-striped table-hover table-sm">
+        <table class="table table-striped table-hover table-sm mt-2">
             <thead class="thead-colored">
                 <tr>
                     <th>Item</th>
+                    <th>ID</th>
                     <th>CUM</th>
                     <th>Nombre</th>
                     <th>Forma Farmaceutica</th>
@@ -120,12 +125,15 @@
                     [ngStyle]="{'color': itemt.estado ? 'black' : 'red' }">
 
                     <td>{{i+1}}</td>
+                    <td>{{itemt.idMedicamento}}</td>
                     <td>{{itemt.codigoCum}}</td>
                     <td>{{primerasmayusculas(itemt.nombre)}}</td>
                     <td>{{itemt.forma.nombre}}</td>
                     <td>{{itemt.via.nombre}}</td>
                     <td>{{ '$ ' + (itemt.valor | number:'1.0-0') }}</td>          
                     <td>
+                        <mat-icon title="Gestionar el medicamento en la bodega" class="pointer-cursor" [matMenuTriggerFor]="menu"
+                        [ngStyle]="{'color':'#009A94'}"  >domain</mat-icon> 
 
                         <mat-icon title="Asociar el medicamento al contrato" class="pointer-cursor" 
                         [ngStyle]="{'color':'#009A94'}"  (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon> 
@@ -140,6 +148,25 @@
 
                         <mat-icon title="Eliminar el medicamento" class="pointer-cursor" 
                         [ngStyle]="{'color':'red'}"  (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+
+                        <mat-menu #menu="matMenu">
+                            
+                            <button (click)='agregarMedicamentotodasBodega(itemt)' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
+                                <span>Agregar en todas las bodega</span>
+                            </button>
+                            <button (click)='modificarMedicamentoBodega(itemt,0)' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add</mat-icon>
+                                <span>Agregar en una bodega</span>
+                            </button>
+
+                            <button (click)='reporteEnConstruccion()' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'red'}">highlight_off</mat-icon>
+                                <span>Quitar de una bodega</span>
+                            </button>
+
+                           
+                        </mat-menu>
                      </td>
 
                 </tr>

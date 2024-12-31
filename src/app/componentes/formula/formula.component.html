@@ -2,7 +2,7 @@
   <div class="card-body">
     <form [formGroup]="facturaForm">
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-5">
           <div class="form-group row">
             <label for="cliente" class="col-sm-4 col-form-label">Documento *</label>
             <div class="col-sm-8">
@@ -187,7 +187,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-7">
             <div class="row">
             <div *ngIf="mostrarComponente" class="card" class="col-md-7">
                 <p><strong>Nombre:</strong> {{pacienteActual.pNombre}} {{pacienteActual.sNombre}}
@@ -270,7 +270,7 @@
                   </td>
                   <td>
                     <input type="number" [value]="item.duracion" class="form-control col-sm-4"
-                      (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)"  [min]="1"/>
+                      (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)"  [min]="1" />
                   </td>
                   <td>
                     <input type="number" [value]="item.cantidad" class="form-control col-sm-4"

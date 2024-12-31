@@ -87,9 +87,9 @@ export class IpsService {
 
 
   filtrarIpss(term: string): Observable<IpsI[]> {
-    const encodedTerm = encodeURIComponent(term);
+    //const encodedTerm = encodeURIComponent(term);
     const params = new HttpParams()
-    .set('term', encodedTerm);
+    .set('term', term);
     return this.http.get<IpsI[]>(`${this.urlEndPoint}/filtrar`, {params}).pipe(
       catchError(this.handleError<IpsI[]>('filtrarIpss', []))
     );

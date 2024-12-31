@@ -53,9 +53,9 @@ export class PacienteService {
   } 
 
 
-  getRegistroDocumento(id: any): Observable<PacienteI> {
+  getRegistroDocumento(id: any): Observable<any> {
     const params = new HttpParams().set('documento', id);
-    return this.http.get<PacienteI>(`${this.urlEndPoint}/documento`,{params}).pipe(
+    return this.http.get<any>(`${this.urlEndPoint}/documento`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
           console.error(e.error.mensaje);

@@ -6,6 +6,8 @@ import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-historialordendespacho',
@@ -20,14 +22,29 @@ export class HistorialordendespachoComponent {
   consultaSeleccionada: string = '';
   generalForm!: FormGroup;
   idBodegaSeleccionada: string = '';
+  idBodegausuario: boolean = false;
   contador: number=0;
+  lista: any = [];
 
   constructor(  
     private fb: FormBuilder,
     private ordendespachoservicio: OrdendespachoService,
     private bodegaservicio: BodegaService,
   ) { 
-    this.crearFormulario();
+    // Calcula la fecha actual
+    const currentDate = new Date();      
+    // Calcula la fecha 30 días antes de la fecha actual
+    const date30DaysAgo = new Date(currentDate);
+    date30DaysAgo.setDate(currentDate.getDate() - 30);
+
+    this.generalForm = this.fb.group
+    ({        
+      idBodega: [''],
+      tipoConsulta: ['todas'],    
+      fInicial: [date30DaysAgo.toISOString().split('T')[0]],
+      fFinal: [currentDate.toISOString().split('T')[0]],    
+    });
+
     this. cargarRegistros();
 
   }
@@ -35,13 +52,7 @@ export class HistorialordendespachoComponent {
   ngOnInit(): void {   
   }
 
-  crearFormulario() {
-    this.generalForm = this.fb.group
-      ({        
-        idBodega: [''],
-        tipoConsulta: ['todas'],        
-      });
-  }
+  
 
   cargarRegistros() {
     this.bodegaservicio.getRegistrosActivos()
@@ -55,8 +66,23 @@ export class HistorialordendespachoComponent {
   
 
   onBodegaChange(event: any) {
+ 
+   this.buscarOrdenDespacho();
+  }
+
+  buscarOrdenDespacho(){
+  /*
     const bodegaId = this.generalForm.get('idBodega')?.value;
     this.idBodegaSeleccionada= bodegaId;
+    let bodegaString = sessionStorage.getItem("bodega");
+    if (bodegaString==bodegaId) this.idBodegausuario=true: this.idBodegausuario=false;
+*/
+    const bodegaId = this.generalForm.get('idBodega')?.value;
+    this.idBodegaSeleccionada = bodegaId;
+    const bodegaString = sessionStorage.getItem("bodega");
+    this.idBodegausuario = bodegaString == bodegaId ? true : false;
+    console.log(this.idBodegausuario);
+
     const tipoConsulta = this.generalForm.get('tipoConsulta')?.value;  
     if (bodegaId && tipoConsulta) {     
       if (tipoConsulta === 'origen') {
@@ -70,26 +96,35 @@ export class HistorialordendespachoComponent {
   }
 
   consultarOrdenesPorBodegaOrigen(bodegaId: number) {
-    this.ordendespachoservicio.getOrdenDespachoBodegaOrigen(bodegaId)
+    this.ordendespachoservicio.getOrdenDespachoBodegaOrigen(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaOrdendespacho = resp;
-        console.log('Ordenes de despacho de salida:', this.listaOrdendespacho);
+        this.listaOrdendespacho.sort((a: any, b: any) => {
+          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+        });
+       
       });
   }
   
   consultarOrdenesPorBodegaDestino(bodegaId: number) {
-    this.ordendespachoservicio.getOrdenDespachoBodegaDestino(bodegaId)
+    this.ordendespachoservicio.getOrdenDespachoBodegaDestino(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaOrdendespacho = resp;
-        console.log('Ordenes de despacho de entrada:', this.listaOrdendespacho);
+        this.listaOrdendespacho.sort((a: any, b: any) => {
+          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+        });
+       
       });
   }
   
   consultarTodasOrdenesPorBodega(bodegaId: number) { 
-    this.ordendespachoservicio.getOrdenDespachoBodegaTodas(bodegaId)
+    this.ordendespachoservicio.getOrdenDespachoBodegaTodas(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaOrdendespacho = resp;
-        console.log('Todas las ordenes de despacho:', this.listaOrdendespacho);
+        this.listaOrdendespacho.sort((a: any, b: any) => {
+          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+        });
+        
       });
   }
 
@@ -97,7 +132,7 @@ export class HistorialordendespachoComponent {
   public eliminarOrdenDespacho(itemt: any) {
     Swal.fire({
       title: 'Desea eliminar?',
-      text: `La orden de despacho Nro. ` + itemt.idDespacho  + ` dirijida a la bodega ` + itemt.bodegaDestino.nombre+ ` de la base de datos.`,
+      text: `La orden de despacho Nro. ` + itemt.idDespacho  + ` dirigida a la bodega ` + itemt.bodegaDestino.nombre+ ` de la base de datos.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -165,8 +200,8 @@ export class HistorialordendespachoComponent {
         doc.setDrawColor(0);
         //doc.setFillColor(255, 255, 255);
         //doc.roundedRect(15, 8, 250, 31, 3, 3, "FD");
-        let titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth('ORDEN DE DESPACHO Nro. ' + + orden.idDespacho.toString()) / 2);
-        let titleYPos = doc.getTextWidth('ORDEN DE DESPACHO Nro. ' + orden.idDespacho.toString());
+        let titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth('ORDEN DE DESPACHO / RECEPCION TECNICA  Nro. ' + + orden.idDespacho.toString()) / 2);
+        let titleYPos = doc.getTextWidth('ORDEN DE DESPACHO / RECEPCION TECNICA Nro. ' + orden.idDespacho.toString());
         doc.setDrawColor('#D3E3FD');
         doc.setFillColor('#D3E3FD');
         doc.roundedRect(titleXPos - 10, 9, titleYPos + 20, 7, 3, 3, "FD");
@@ -174,7 +209,7 @@ export class HistorialordendespachoComponent {
         doc.addImage('/assets/logo.png', 'JPEG', 238, 3, 25, 20);
         //doc.setTextColor('#FFFFFF'); // Color blanco
 
-        doc.text('ORDEN DE DESPACHO Nro. ' + orden.idDespacho.toString(), titleXPos, 14);
+        doc.text('ORDEN DE DESPACHO / RECEPCION TECNICA Nro. ' + orden.idDespacho.toString(), titleXPos, 14);
         // Establecer el color de la letra y el estilo de la fuente para el segundo texto
         doc.setTextColor('#000000'); // Color negro  #E5E5E5
 
@@ -232,23 +267,24 @@ export class HistorialordendespachoComponent {
     const data = [];
     this.contador = 1;
     this.listaItemOrden = orden.itemsDespacho
-    console.log(this.listaItemOrden);
+    
     this.listaItemOrden = this.listaItemOrden.sort((a: any, b: any) => a.medicamento.nombre.localeCompare(b.medicamento.nombre));
     for (let i = 0; i < this.listaItemOrden.length; i++) {
          const rowData = [
           this.contador.toString(),
-          this.primerasmayusculas(this.listaItemOrden[i].medicamento.nombre),
-          this.primerasmayusculas(this.listaItemOrden[i].medicamento.forma.nombre),
-          this.listaItemOrden[i].medicamento.codigoCum.toString(),
-          this.listaItemOrden[i].invima.toString(),
-          this.primerasmayusculas(this.listaItemOrden[i].laboratorio),
-          this.listaItemOrden[i].lote.toString(),
-          this.listaItemOrden[i].fechaVencimiento,
+          this.primerasmayusculas(this.listaItemOrden[i].medicamento.nombre || ''),
+          this.primerasmayusculas(this.listaItemOrden[i].medicamento.forma.nombre || ''),
+          (this.listaItemOrden[i].medicamento.codigoCum || '').toString(),
+          (this.listaItemOrden[i].invima || '').toString(),
+          this.primerasmayusculas(this.listaItemOrden[i].laboratorio || ''),
+          (this.listaItemOrden[i].lote || '').toString(),
+          this.listaItemOrden[i].fechaVencimiento || '',
           //this.listaItemOrden[i].cantidad.toString(),
         ];
          // Si se incluye la cantidad, se agrega al final
     if (incluirCantidad) {
       rowData.push(this.listaItemOrden[i].cantidad.toString());
+    
     }
         data.push(rowData);
         this.contador++;
@@ -257,6 +293,142 @@ export class HistorialordendespachoComponent {
    // data.push(this.calcularTotalesRow());
     return data;
   }
+
+
+  async salidasExcelDetalleOrden(tipoReporte: number): Promise<void> {
+    const fInicial = this.generalForm.get('fInicial')?.value;
+    const fFinal = this.generalForm.get('fFinal')?.value;
+    const idBodega = this.generalForm.get('idBodega')?.value;
+    // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
+    if (!fInicial || !fFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Orden Despacho!`,
+        text: `Falta la informacion de las fechas del periodo que desea generar!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+
+    if (!idBodega) {
+      Swal.fire({
+        icon: 'error',
+        title: `Orden Despacho!`,
+        text: `No ha seleccionado la bodega de la que desea generar el reporte!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+    const fechaInicial = new Date(fInicial);
+    const fechaFinal = new Date(fFinal);
+
+    if (fechaInicial > fechaFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Invertidas!`,
+        text: `La fecha inicial del periodo no puede ser mayor que la fecha final!`,
+      });
+      return;  // Detener la ejecución si las fechas no son válidas
+    }
+    try {
+      // Esperar la promesa con await 
+    
+      const parametrobodega=Number(idBodega);
+    
+      let resp: any;     
+      
+      
+      let fileName: string = tipoReporte === 0 ? "Entradas" : "Salidas";
+      resp =  await this.ordendespachoservicio.getDetalleOrdenDespacho(parametrobodega, fInicial, fFinal,tipoReporte).toPromise();
+
+      // Asegurarse de que resp sea un array antes de asignarlo
+      console.log(resp);
+      // Asegurarse de que resp sea un array antes de asignarlo
+      if (Array.isArray(resp)) {
+        this.lista = resp;        
+        this.excelDetalleOrdenDespacho(fileName); // Exportar solo si la lista es válida
+      } else {
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+    } catch (error) {
+      console.error("Error al obtener los datos de detallados de las ordenes de despacho:", error);
+    }
+  }
+
+  excelDetalleOrdenDespacho(fileName: string) {  // Crea un array con los datos de la orden de despacho que deseas exportar
+    // Crea un array con los datos de la orden de despacho que deseas exportar
+    const datos: any[] = [];
+
+    // Encabezados de la tabla
+    const encabezado = [
+      'ID MEDICAMENTO',
+      'CUM',
+      'NOMBRE MEDICAMENTO',
+      'PRESENTACION',
+      'CONTROLADO',
+      'CANTIDAD',
+      'ID ORDEN',
+      'FECHA DESPACHO',
+      'ESTADO',
+      'BODEGA ORIGEN',      
+      'FUNCIONARIO DESPACHO',
+      'BODEGA DESTINO',      
+      'FUNCIONARIO INGRESO',
+      'TIPO DE ORDEN',
+    ];
+
+    datos.push(encabezado);
+   
+    let controladoCadena = "";
+    // Agrega los items de despacho al array
+    this.lista.forEach((item: any) => {      
+
+     controladoCadena = item.controlado ? "SI" : "NO";
+      datos.push([
+        item.idMedicamento || '',  // Validación si es null o undefined
+        item.codigoCum || '',
+        item.nombreMedicamento || '',
+        item.presentacion || '',
+        controladoCadena,
+        item.cantidad || '',
+        item.idDespacho || '',
+        item.fechaDespacho || '',       
+        item.estado || '',
+        item.bodegaOrigen || '',
+        item.funcionarioDespacho || '',
+        item.bodegaDestino || '',
+        item.funcionarioEntradaDestino || '',
+        item.tipo || ''
+      ]);
+    });
+
+    // Crea la hoja de trabajo de Excel (worksheet)
+    const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+
+    // Aplicar formato al encabezado
+    const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+    for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+      const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+      if (celda) {
+        celda.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+          alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+          fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+        };
+      }
+    }
+
+    // Crea el libro de trabajo (workbook)
+    const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
+    // Genera y descarga el archivo Excel
+    XLSX.writeFile(libroDeTrabajo, 'Relacion_Despachos_' + fileName + new Date().getTime()+'.xlsx');
+    Swal.fire({
+      icon: 'success',
+      title: `Ok`,
+      text: `Su reporte fue exportado en su carpeta de descargas en formato xslx`,
+
+    });
+  }
+
 
   private calcularTotal(columna: string): string {
     const total = this.listaItemOrden.reduce((accum: number, current: any) => {
@@ -280,7 +452,23 @@ export class HistorialordendespachoComponent {
     } else {
       return "";
     }
+  }
 
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }  
+    return nivelUsuario >= nivelRequerido;
+  }
+
+  reporteEnConstruccion() {
+    Swal.fire({
+      icon: 'info',
+      title: `En construcción!`,
+      text: `El reporte esta en proceso de construcción, te estaremos informando cuando esté disponible!`,
+    });
   }
 
 }

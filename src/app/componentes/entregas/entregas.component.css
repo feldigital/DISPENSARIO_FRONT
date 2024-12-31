@@ -19,7 +19,7 @@
 }
 
 .card-header {
-  background-color: #007bff;
+  background: linear-gradient(to right, #5D8FA5, #6CC5D4);
   color: white;
   font-weight: bold;
   padding: 8px;

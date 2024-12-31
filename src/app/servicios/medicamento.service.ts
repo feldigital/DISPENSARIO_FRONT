@@ -102,8 +102,7 @@ export class MedicamentoService {
 
 
   public adicionarMedicamento(registro: EpsMedicamentoI) {
-    const headers = { 'Content-Type': 'application/json' };  
-    console.log(registro);
+    const headers = { 'Content-Type': 'application/json' };    
     return this.http.post<EpsMedicamentoI>(`${this.urlEndPoint}/eps`, JSON.stringify(registro), { headers }).pipe(
       catchError(e => {
         return throwError(e);
@@ -124,6 +123,30 @@ export class MedicamentoService {
       }));
   }
 
+  agregarMedicamentoBodegatodas(idMedicamento: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idMedicamento', idMedicamento);     
+    return this.http.get<any>(`${this.urlEndPoint}/agregartbodega`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  agregarMedicamentoUnaBodega(idMedicamento: number, idBodega: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idMedicamento', idMedicamento)
+    .set('idBodega', idBodega);     
+    return this.http.get<Boolean>(`${this.urlEndPoint}/agregarubodega`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
 
 
 }

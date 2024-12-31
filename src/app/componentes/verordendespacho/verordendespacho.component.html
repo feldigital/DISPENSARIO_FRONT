@@ -7,14 +7,10 @@
             <div class="card-body">
                 <p><strong>Nombre:</strong> {{listaregistros?.bodegaOrigen?.nombre}} </p>
                 <p><strong>Dirección:</strong> {{listaregistros?.bodegaOrigen?.direccion}}</p>
-                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}}</p>
-                <p><strong>Funcionario despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>
-                <p><strong>Departamento:</strong> {{listaregistros?.bodegaOrigen?.departamento}}</p>
-                <p><strong>Municipio:</strong> {{listaregistros?.bodegaOrigen?.municipio}}</p>
-                <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>
-                
-               
-                <!-- Agrega aquí más datos del paciente según sea necesario -->
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}} <strong>Funcionario despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>
+                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaOrigen?.departamento}} - {{listaregistros?.bodegaOrigen?.municipio}}</p>
+                <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>      
+              
             </div>
         </div>
 
@@ -26,18 +22,14 @@
             <div class="card-body">
                 <p><strong>Nombre:</strong> {{listaregistros?.bodegaDestino?.nombre}} </p>
                 <p><strong>Dirección:</strong> {{listaregistros?.bodegaDestino?.direccion}}</p>
-                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}}</p>
-                <p><strong>Funcionario ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>
-                <p><strong>Departamento:</strong> {{listaregistros?.bodegaDestino?.departamento}}</p>
-                <p><strong>Municipio:</strong> {{listaregistros?.bodegaDestino?.municipio}}</p>
-            </div>           
-
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}} <strong>Funcionario ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>
+                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaDestino?.departamento}} - {{listaregistros?.bodegaDestino?.municipio}}</p>
+            
+            </div>     
         </div>
     </div>
 
-
-
-<div class="alert alert-info my-4" >
+<div class="alert alert-info my-2" >
     Lista de medicamentos asociados a la orden de despacho número {{listaregistros?.idDespacho}}  del {{listaregistros?.fechaDespacho}} 
 </div>
 <div *ngIf="listaItemsFormula?.length > 0">
@@ -45,6 +37,7 @@
         <thead class="thead-colored">
             <tr>
                 <th>Item</th>
+                <th>ID</th>
                 <th>Medicamento</th>
                 <th>Presentación</th>
                 <th>CUM</th>
@@ -59,6 +52,7 @@
         <tbody>       
                 <tr *ngFor="let item of listaItemsFormula; let i = index">     
                     <td>{{ i+1 }}</td>               
+                    <td>{{ item.medicamento.idMedicamento }}</td>
                     <td>{{ item.medicamento.nombre }}</td>
                     <td>{{ item.medicamento.forma.nombre }}</td>
                     <td>{{ item.medicamento.codigoCum }}</td>   
@@ -86,7 +80,7 @@
 <hr>
 <div class="row">
     <div class="col-6">
-        <button class="btn btn-outline-primary w-50" [routerLink]="['/historialordendespacho']" >
+        <button class="btn btn-outline-primary w-50" [routerLink]="['/menu/historialordendespacho']" >
            Regresar</button>
     </div>        
     <div class="col-6" *ngIf="listaregistros?.estado==='Envío'">
