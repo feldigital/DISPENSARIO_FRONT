@@ -1643,12 +1643,13 @@ export class BodegaComponent implements OnInit {
       'Fecha de entrega estimada del medicamento',
       'Medio de entrega del pendiente',
       'Tipo recibe', 'Docuemnto recibe', 'Eps', '¿Es PGP?', 'Id Formula', 'CIE-R1', 'CIE-R2', 'CIE-R3',
-      'Observación', 'Estado', 'Funcionario que entrega','PACIENTE PAVE','MEDICAMENTO CONTROLADO'];
+      'Observación', 'Estado', 'Funcionario que entrega','PACIENTE PAVE','MEDICAMENTO CONTROLADO','PENDIENTE DEL MEDICAMENTO','PENDIENTE DE LA FORMULA'];
 
     datos.push(encabezado);
     let fecReal = "";
     let medicamentoPendiente = "";
     // Agrega los items de despacho al array
+    console.log(this.lista);
     this.lista.forEach((item: any) => {
       fecReal = "";
       medicamentoPendiente = "";
@@ -1720,7 +1721,9 @@ export class BodegaComponent implements OnInit {
         item.estado || '',
         item.funcionario || '',  // Validación para campos que podrían ser nulos
         item.pave || '',  // Validación para campos que podrían ser nulos
-        item.controlado || ''  // Validación para campos que podrían ser nulos
+        item.controlado || '',  // Validación para campos que podrían ser nulos
+        item.controlado || '',  // PENDIENTE DEL MEDICAMENTO
+        item.controlado || ''  // PENDIENTE DE LA FORMULA
 
       ]);
     });

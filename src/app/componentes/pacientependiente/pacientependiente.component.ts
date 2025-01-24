@@ -17,7 +17,7 @@ export class PacientependienteComponent {
   idBodega:number =NaN;
 
   constructor(  
-    private servicio: BodegaService,
+    private servicio: BodegaService,    
     private activatedRoute: ActivatedRoute,
     private fb: FormBuilder
   ) {    

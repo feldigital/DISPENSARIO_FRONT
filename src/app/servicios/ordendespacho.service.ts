@@ -185,5 +185,21 @@ getDetalleOrdenDespacho( idBodega: number,fInicial: string, fFinal: string, tipo
 } 
 
 
+getMedicamentoOrdenDespacho( idMedicamento: number,idBodega: number,fInicial: string, fFinal: string): Observable<any> {
+  const params = new HttpParams()
+  .set('idMedicamento', idMedicamento)
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);     
+  return this.http.get<any>(`${this.urlEndPoint}/medicamento`,{params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+} 
+
 
 }

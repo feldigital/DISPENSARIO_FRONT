@@ -66,6 +66,8 @@
                     <th>Dispensario</th>
                     <th>Quien entrega</th>
                     <th>Quien recibe</th>
+                    <th><mat-icon title="Proceso con permisos" 
+                        [ngStyle]="{'color':'green'}" >account_circle</mat-icon></th> 
                 </tr>
             </thead>
             <tbody>
@@ -99,7 +101,7 @@
                                     <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
                                     <span>Entregar pendiente</span>
                                 </button>
-                                <button *ngIf ="tieneAcceso(3)" (click)="subsanarPendiente(item)" mat-menu-item>
+                                <button *ngIf ="tieneAcceso(2)" (click)="subsanarPendiente(item)" mat-menu-item>
                                     <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
                                     <span>Cancelacion Administrativa</span>
                                 </button>
@@ -118,6 +120,9 @@
                         <td>{{ primerasmayusculas(entrega.bodega.puntoEntrega) || '' }}</td>
                         <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>
                         <td>{{ entrega.tipoRecibe | uppercase }} {{ entrega.documentoRecibe }}</td>
+                        <td> <mat-icon title="Eliminar la entrega" class="pointer-cursor" 
+                            [ngStyle]="{'color':'red'}"  (click)="eliminarRegistroEntrega(entrega,item.medicamento.idMedicamento)">clear</mat-icon>
+    </td>
                     </tr>
                 </ng-container>
             </tbody>
@@ -125,19 +130,24 @@
     </div>
 
     <hr>
-    <div class="row">
-        <div class="col-6">
-            <button class="btn btn-outline-primary w-50"
-                [routerLink]="['/menu/formula']"> <!--[routerLink]="['/menu/formula', listaregistros.paciente.idPaciente]"-->
-                Regresar</button>
+    <div class="row justify-content-between">
+        <div class="col-auto">
+            <button class="btn btn-outline-primary"
+                [routerLink]="['/menu/formula']">
+                Regresar
+            </button>
         </div>
-
-      
-    <div class="col-6">
-        <button class="btn btn-outline-primary w-50"  (click) ='imprimir()'>
-            Imprimr</button>
-    </div>
-   
+        <div class="col-auto" *ngIf="tieneAcceso(4)">
+            <button class="btn btn-outline-primary"
+                [routerLink]="['/menu/editformula', listaregistros.idFormula]">
+                Editar la fórmula
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary" (click)="imprimir()">
+                Imprimir recibo de pendiente
+            </button>
+        </div>
     </div>
 
 </div>

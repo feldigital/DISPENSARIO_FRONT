@@ -2,6 +2,7 @@ import { MedicamentoI } from './medicamento.model';
 import { ItemFormulaEntregaI } from './itemformulaentrega.model';
 
 export class ItemFormulaI {
+  idItem: number=NaN;
   medicamento!: MedicamentoI;
   cantidad: number = 1;
   importe: number=0.0;

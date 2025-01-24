@@ -23,6 +23,9 @@ import { PacientependienteComponent } from './componentes/pacientependiente/paci
 import { ExistenciasComponent } from './componentes/existencias/existencias.component';
 import { NorotanComponent } from './componentes/norotan/norotan.component';
 import { EditformulaComponent } from './componentes/editformula/editformula.component';
+import { TrazamedicamentoComponent } from './componentes/trazamedicamento/trazamedicamento.component';
+import { HistorialentregaComponent } from './componentes/historialentrega/historialentrega.component';
+import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -50,8 +53,12 @@ const routes: Routes = [
       { path: 'historialordendespacho', component: HistorialordendespachoComponent },
       { path: 'verordendespacho/:id', component: VerordendespachoComponent },  
       { path: 'existencias', component: ExistenciasComponent },  
-      { path: 'norotan', component: NorotanComponent },  
+      { path: 'norotan', component: NorotanComponent }, 
+      { path: 'entregados', component: MedicamentosentregadosComponent }, 
+      { path: 'trazamedicamento', component: TrazamedicamentoComponent }, 
+      { path: 'historialentrega', component: HistorialentregaComponent },  
       { path: 'editformula/:id', component: EditformulaComponent },
+      { path: 'editformula', component: EditformulaComponent },
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
       { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto
     ]

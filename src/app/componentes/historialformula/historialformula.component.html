@@ -85,8 +85,8 @@
                         <mat-icon *ngIf="!itemt.estado && !itemt.estadoanulada" title="Anular la formula"
                             class="pointer-cursor" [ngStyle]="{'color':'orange'}"
                             (click)="anularFormula(itemt)">block</mat-icon>
-
-                        <mat-icon *ngIf="!itemt.estado && !itemt.estadoanulada" title="Editar la formula"
+                                     <!--!itemt.estado &&-->
+                        <mat-icon *ngIf="!itemt.estadoanulada && tieneAcceso(4)" title="Editar la formula"
                             class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
                             [routerLink]="['/menu/editformula', itemt.idFormula]">edit</mat-icon>
                         <!--

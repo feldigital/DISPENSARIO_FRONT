@@ -19,7 +19,7 @@ export class MenuComponent implements OnInit {
 
   fillerNav=[
   //  {name:"Inicio",route:"login",icon:"home"},
-    {name:"Paciente",route:"paciente",icon:"perm_identity",nivel:2},
+    {name:"Paciente",route:"paciente",icon:"perm_identity",nivel:3},
     { name:"Medicamentos",
       route:"medicamento",
       icon:"hdr_weak", nivel:3,
@@ -30,13 +30,17 @@ export class MenuComponent implements OnInit {
       ]},
 
     
-    {name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:1},
-    {name:"Bodegas",route:"bodega",icon:"domain",nivel:1},   
-    {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:1},   
-    {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:1},   
-    {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:1}, 
-    {name:"Medicamentos no rotan",route:"norotan",icon:"query_builder",nivel:3}, 
-    {name:"Ordenes",route:"despacho",icon:"input",nivel:1},    
+    {name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:2},
+    {name:"Editar Formula",route:"editformula",icon:"edit",nivel:4},   
+    {name:"Bodegas",route:"bodega",icon:"domain",nivel:2},   
+    {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:2},   
+    {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:2},   
+    {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:2}, 
+    //{name:"Medicamentos no rotan",route:"norotan",icon:"query_builder",nivel:3}, 
+    {name:"Medicamento entregados",route:"entregados",icon:"check_circle_outline",nivel:2}, 
+    {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
+    {name:"Trazabilidad de Medicamentos",route:"trazamedicamento",icon:"shuffle",nivel:2},
+    {name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1},    
   //  {name:"Estadistica",route:"estadistica",icon:"card_giftcard"}, settings_backup_restore query_builder
 
 

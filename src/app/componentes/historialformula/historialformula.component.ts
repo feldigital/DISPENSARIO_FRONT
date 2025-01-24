@@ -61,8 +61,7 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
   public buscarRegistro(id: number) {
     this.servicio.getRegistroId(id)
       .subscribe((resp: any) => {
-        this.pacienteActual = resp;
-        console.log(resp);
+        this.pacienteActual = resp;       
         this.listaFormula = resp.formulas;
         this.listaFormula = this.listaFormula.map((item: any) => ({
           ...item,
@@ -219,16 +218,6 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
     }
   }
 
-  public editarFormula(itemt: any) {
-    Swal.fire({
-      icon: 'info',
-      title: `en construcción`,
-      text: "En contsrucción",
-    });
-  }
-
-
-  //placeholder="Ingrese la observación de la anulación"
 
 
   public anularFormula(itemt: any) {
@@ -345,6 +334,16 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
     }
     str = str.toLowerCase();
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
+  }
+
+  
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }  
+    return nivelUsuario >= nivelRequerido;
   }
 
 }

@@ -48,6 +48,9 @@ import { PacientependienteComponent } from './componentes/pacientependiente/paci
 import { ExistenciasComponent } from './componentes/existencias/existencias.component';
 import { NorotanComponent } from './componentes/norotan/norotan.component';
 import { EditformulaComponent } from './componentes/editformula/editformula.component';
+import { TrazamedicamentoComponent } from './componentes/trazamedicamento/trazamedicamento.component';
+import { HistorialentregaComponent } from './componentes/historialentrega/historialentrega.component';
+import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
 
 
 export function initPermisos(permisosService: PermisosService) {
@@ -82,6 +85,9 @@ export function initPermisos(permisosService: PermisosService) {
     ExistenciasComponent,
     NorotanComponent,
     EditformulaComponent,
+    TrazamedicamentoComponent,
+    HistorialentregaComponent,
+    MedicamentosentregadosComponent,
 
   ],
   imports: [

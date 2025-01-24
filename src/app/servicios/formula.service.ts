@@ -17,7 +17,6 @@ export class FormulaService {
   
 
   getFormulaId(id: number): Observable<any> {
-    console.log("Estoy buscando en el servicio la formula  #: " + id)
     const params = new HttpParams()
     .set('id', id);
     return this.http.get<any>(`${this.urlEndPoint}/unica`, {params});
@@ -54,9 +53,9 @@ update(registro: FormulaI): Observable<FormulaI> {
 
 
 filtrarMedicamentos(term: string): Observable<MedicamentoI[]> {
-  const encodedTerm = encodeURIComponent(term);
+  //const encodedTerm = encodeURIComponent(term);
   const params = new HttpParams()
-  .set('term', encodedTerm);
+  .set('term', term);
   return this.http.get<MedicamentoI[]>(`${this.urlEndPoint}/filtrar-medicamento`, {params}).pipe(
     catchError(this.handleError<MedicamentoI[]>('filtrarMedicamentos', []))
   );
@@ -72,6 +71,9 @@ filtrarMedicamentosEps(term: string,codEps: string): Observable<MedicamentoI[]> 
     catchError(this.handleError<MedicamentoI[]>('filtrarMedicamentos', []))
   );
 }
+
+
+
 
 private handleError<T>(operation = 'operation', result?: T) {
   return (error: any): Observable<T> => {
@@ -91,7 +93,8 @@ saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , med
   .set('medioEntrega', medioEntrega)
   .set('fechaEntrega', fechaEntregaISO)
   .set('tipoRecibe', tipoRecibe)
-  .set('documentoRecibe', documentoRecibe) ;
+  .set('documentoRecibe', documentoRecibe);
+  
   return this.http.get<any>(`${this.urlEndPoint}/entrega`, {params}).pipe(
   catchError(e => {
     return throwError(e);
@@ -100,19 +103,23 @@ saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , med
 }
 
 
-saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number,tipoRecibe: string, documentoRecibe: string,fEntrega: string ) {
- // const headers = { 'Content-Type': 'application/json' };  
-  const   fechaEntrega=new Date();
-  const fechaEntregaISO = fechaEntrega.toISOString();
+saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number,tipoRecibe: string, documentoRecibe: string,fechaEntrega: string, idBodegaFormula: number ) {
+ // const headers = { 'Content-Type': 'application/json' };   
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0'); // Hora en formato 2 dígitos
+  const minutes = String(now.getMinutes()).padStart(2, '0'); // Minutos en formato 2 dígitos
+  fechaEntrega=fechaEntrega +' '+ hours +':'+ minutes
+
    const params = new HttpParams()
    .set('idItem', idItem)
    .set('idBodega', idBodega)
    .set('funcionario', funcionario)
    .set('medioEntrega', medioEntrega)
    .set('cantidadAentregar', cantidadAentregar)
-   .set('fechaEntrega', fechaEntregaISO) 
+   .set('fechaEntrega', fechaEntrega) 
    .set('tipoRecibe', tipoRecibe)
-   .set('documentoRecibe', documentoRecibe) ;  
+   .set('documentoRecibe', documentoRecibe) 
+   .set('idBodegaFormula', idBodegaFormula);  
    return this.http.get<any>(`${this.urlEndPoint}/entrega/pendiente`, {params}).pipe(
    catchError(e => {
      return throwError(e);
@@ -250,6 +257,39 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
     }));
  }
 
+  
+ getMedicamentoentregadoPaciente(idMedicamento: number,idBodega: number,fInicial: string, fFinal: string): Observable<any> {
+
+  const params = new HttpParams()
+  .set('idMedicamento', idMedicamento)
+  .set('idBodega', idBodega)
+  .set('fInicial', fInicial)
+  .set('fFinal', fFinal);
+   return this.http.get<any>(`${this.urlEndPoint}/entrega/paciente`, {params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+ }
+
+
+  deleteItemFormula(idBodegaFormula: number,idItem: number, estadoFormula:boolean): Observable<void> {
+    const params = new HttpParams()
+    .set('idBodegaFormula', idBodegaFormula)
+    .set('idItem', idItem)
+    .set('estadoFormula', estadoFormula);
+    return this.http.delete<void>(`${this.urlEndPoint}/item`, {params});
+  }
+
+  deleteItemFormulaEntrega(idItemEntrega: number,idMedicamento: number): Observable<void> {
+    const params = new HttpParams()
+    .set('idItemEntrega', idItemEntrega)
+    .set('idMedicamento', idMedicamento);
+    return this.http.delete<void>(`${this.urlEndPoint}/itementrega`, {params});
+  }
 
 
 }

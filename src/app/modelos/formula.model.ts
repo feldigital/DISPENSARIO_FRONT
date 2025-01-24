@@ -61,7 +61,8 @@ export class FormulaI {
   calcularGranTotal(): number {
     this.total = 0;
     this.items.forEach((item: ItemFormulaI) => {
-      this.total += item.calcularImporte();
+      //this.total += item.calcularImporte();
+      this.total += item.cantidad * item.medicamento.valor;
     });
     return this.total;
   }

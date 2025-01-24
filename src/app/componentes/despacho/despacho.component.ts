@@ -346,19 +346,7 @@ export class DespachoComponent implements OnInit {
     // Llamar al servicio para eliminar el ítem en la base de datos
     this.ordenDespachoservicio.deleteItem(idItemBd).subscribe(
       (response) => {  
-     /*  
-        // Validar listaItemsFiltro antes de usarla
-       if (this.listaItemsFiltro && Array.isArray(this.listaItemsFiltro.itemsDespacho)) {
-        this.listaItemsFiltro.itemsDespacho.forEach((item: any) => {
-          const medicamentoId = typeof item.medicamento === 'object' ? item.medicamento.idMedicamento : item.medicamento;
-          if (id === medicamentoId) {
-            item.cantidadDespacho = 0;
-          }
-        });
-      } else {
-        console.error('listaItemsFiltro o itemsDespacho no están definidos correctamente');
-      }
-       */ 
+    
         Swal.fire({
           icon: 'success',
           title: `Item eliminado!`,

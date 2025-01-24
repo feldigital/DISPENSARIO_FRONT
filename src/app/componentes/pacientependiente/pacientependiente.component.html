@@ -41,25 +41,12 @@
                         <td> 
                             <button title="Gestionar Pendiente"
                             *ngIf=" itemt.cantidadEntrega===0" type="button"
-                            class="btn btn-sm" [matMenuTriggerFor]="menu"> <mat-icon
+                            class="btn btn-sm" [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
                                 [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
                         <button title="Gestionar Pendiente"
                             *ngIf="itemt.cantidadEntrega>0" type="button"
-                            class="btn btn-sm" [matMenuTriggerFor]="menu"> <mat-icon
-                                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
-
-                        <mat-menu #menu="matMenu">
-                            <button  mat-menu-item>
-                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
-                                <span>Entregar pendiente</span>
-                            </button>
-                            <button  mat-menu-item>
-                                <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
-                                <span>Cancelacion Administrativa</span>
-                            </button>
-
-
-                        </mat-menu>
+                            class="btn btn-sm" [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
+                                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>                       
 </td>                    
                     </tr>
                 </tbody>

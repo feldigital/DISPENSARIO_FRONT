@@ -2,8 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { FormulaI } from 'src/app/modelos/formula.model';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { from, of } from 'rxjs';
-import { map, debounceTime, switchMap, concatMap, finalize } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, debounceTime, switchMap } from 'rxjs/operators';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoI } from 'src/app/modelos/medicamento.model';
 import { ItemFormulaI } from 'src/app/modelos/itemformula.model';
@@ -90,7 +90,7 @@ export class EditformulaComponent implements OnInit {
       ips: ['', Validators.required],
       medico: ['', Validators.required],
       fecPrescribe: ['', Validators.required],
-      fecSolicitud: [new Date().toISOString().split('T')[0], Validators.required],
+      fecSolicitud: [''],
       total: [''],
       paciente: ['', Validators.required],
       items: this.formBuilder.array([]),
@@ -112,14 +112,25 @@ export class EditformulaComponent implements OnInit {
   ngOnInit() {
    // this.deshabilitarControles();
     this.activatedRoute.paramMap.subscribe(params => {
-       let formulaId = +params.get('id')!;
-       console.log("Esta es la formula que vamos a buscar" +  formulaId);
+       let formulaId = +params.get('id')!;      
       if (formulaId) {
-        // Procesar la formula formulaService
-        console.log("Esta es la formula que vamos a buscar" +  formulaId);
+        // Procesar la formula formulaService 
         this.formulaService.getFormulaId(formulaId).subscribe(reg => {
           this.formula = reg;
-          console.log(this.formula);
+      
+          if (reg) {             
+            this.formula.items = this.formula.items.map((item: any) => ({
+              ...item,
+              habilitarCantidad:this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
+            }));
+
+           // Llenar existencias
+       this.formula.items.forEach((item: any) => {
+        const idMedicamento = item.medicamento.idMedicamento;       
+        this.existenciaAcutal(idMedicamento, bodega);
+      });
+    }
+    
           this.mostrarComponente = true;
           this.pacienteActual = reg.paciente;
           this.mostrarRegistro(reg);
@@ -212,8 +223,9 @@ export class EditformulaComponent implements OnInit {
       valorCM: itemt.valorCM,
       continuidad: itemt.continuidad,
       pgp: itemt.pgp,
+      origenurgencia: itemt.origenurgencia,
       programa: itemt.programa.codigo,
-      frecuencia: itemt.frecuencia,
+      //frecuencia: itemt.frecuencia,
     })
   }
 
@@ -285,17 +297,26 @@ export class EditformulaComponent implements OnInit {
   }
 
   public buscarFormula() {
+    let bodega = parseInt(sessionStorage.getItem("bodega") || "0", 10);
     this.formula = new FormulaI();  
     this.pacienteActual = {};
     this.mostrarComponente = false;
     this.formulaService.getFormulaId(this.facturaForm.get('idFormula')!.value).subscribe(reg => {
-      console.log('Datos devueltos por el servicio:', reg);
+     
       if (reg) {
       this.formula = reg;    
+      //this.formula = Object.assign(new FormulaI(), reg);
       this.formula.items = this.formula.items.map((item: any) => ({
         ...item,
         habilitarCantidad:this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
       }));
+
+       // Llenar existencias
+       this.formula.items.forEach((item: any) => {
+        const idMedicamento = item.medicamento.idMedicamento;       
+        this.existenciaAcutal(idMedicamento, bodega);
+      });
+
       this.mostrarComponente = true;
       this.pacienteActual = reg.paciente;
       this.mostrarRegistro(reg);
@@ -428,7 +449,7 @@ export class EditformulaComponent implements OnInit {
   existenciaAcutal(idMedicamento: number, idBodega: number) {
     this.medicamentoService.getMedicamentoBodega(idMedicamento, idBodega).subscribe(
       (existencia: any) => {
-        this.existencias[idMedicamento] = existencia.cantidad;
+        this.existencias[idMedicamento] = existencia.cantidad;        
       },
       (error: any) => {
         console.error('Error fetching existencia:', error);
@@ -444,7 +465,10 @@ export class EditformulaComponent implements OnInit {
     this.formula.items = this.formula.items.map((item: ItemFormulaI) => {
       if (id === item.medicamento.idMedicamento) {
         item.cantidad = cantidad;
-        item.importe = item.calcularImporte();
+        item.importe = item.cantidad * item.medicamento.valor;
+        this.formula.total= 0//this.formula.calcularGranTotal();
+        
+ 
       }
       return item;
     });
@@ -456,33 +480,30 @@ export class EditformulaComponent implements OnInit {
     this.formula.items = this.formula.items.map((item: ItemFormulaI) => {
       if (id === item.medicamento.idMedicamento) {
         item.duracion = duracion.toString();
-        if (item.habilitarCantidad)
-          this.calcularCantidad(item); // Recalcular la cant
-          //item.importe = item.calcularImporte();
+        if (item.habilitarCantidad){
+          this.calcularCantidad(item);} // Recalcular la cant   
+          item.importe = item.cantidad * item.medicamento.valor;
+          this.formula.total= 0;//this.formula.calcularGranTotal();         
       }
       return item;
     });
   }
 
-
-
   calcularCantidad(item: any): void {
     const frecuenciaSeleccionada = this.frecuencias.find(f => f.valor === item.frecuencia);
     const factorMultiplicador = frecuenciaSeleccionada ? frecuenciaSeleccionada.multiplicador : 1;
     item.cantidad = factorMultiplicador * item.duracion;
-   
-
   }
-
 
   seleccionFrecuencia(id: number, event: any): void {
     let frecuencia: string = event.target.value;   
     this.formula.items = this.formula.items.map((item: ItemFormulaI) => {      
       if (id === item.medicamento.idMedicamento) {
         item.frecuencia = frecuencia;      
-        if (item.habilitarCantidad)
-          this.calcularCantidad(item); // Recalcular la cant
-          item.importe = item.calcularImporte();
+        if (item.habilitarCantidad){
+          this.calcularCantidad(item);} // Recalcular la cant
+          item.importe = item.cantidad * item.medicamento.valor;
+          this.formula.total= 0;//this.formula.calcularGranTotal();
       }
       return item;
     });
@@ -503,15 +524,41 @@ export class EditformulaComponent implements OnInit {
     this.formula.items = this.formula.items.map((item: ItemFormulaI) => {
       if (id === item.medicamento.idMedicamento) {
         ++item.cantidad;
-        item.importe = item.calcularImporte();
+        item.importe = item.cantidad * item.medicamento.valor;
+        this.formula.total= 0;//this.formula.calcularGranTotal();
       }
       return item;
     });
   }
 
-  eliminarItemFormula(id: number): void {
-    this.formula.items = this.formula.items.filter((item: ItemFormulaI) => id !== item.medicamento.idMedicamento);
-   
+  eliminarItemFormula(idItem: number): void {
+    Swal.fire({
+      title: 'Desea eliminar?',
+      text: `Esta seguro de quitar el medicamento de la formula, ya no hara parte de la formulacion del paciente en esta formula!`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, eliminar!'
+    }).then((result) => {
+      if (result.isConfirmed) {        
+        this.formulaService.deleteItemFormula(this.formula.idBodega,idItem ,this.formula.estado).subscribe(resp => {
+          this.formula.items = this.formula.items.filter((item: ItemFormulaI) => idItem !== item.idItem);
+          Swal.fire({
+            icon: 'success',
+            title: `Ok`,
+            text: `El medicamento se ha quitado de la lista de la formula y de la tabla en la base de datos correctamente!.`,
+          });
+        },
+          err => {
+            Swal.fire({
+              icon: 'error',
+              title: `Error`,
+              text: err.mensaje,
+            });
+          });          
+      }
+    });   
   }
 
 
@@ -540,7 +587,7 @@ export class EditformulaComponent implements OnInit {
   } 
 
   actualizarFormula(): void {
-
+/*
     Swal.fire({
       icon: 'warning',
       title: 'Permisos',
@@ -549,6 +596,7 @@ export class EditformulaComponent implements OnInit {
     return;
 
 
+console.log("Este es la validez del DX principal ", this.dxValido)
     if (this.facturaForm.get('cieP')?.invalid || this.dxValido) {
       Swal.fire({
         icon: 'error',
@@ -557,9 +605,9 @@ export class EditformulaComponent implements OnInit {
       });
       return;
     }
+      */
   
     if (this.facturaForm.valid) {
-      
         if (this.formula.items.length == 0) {
           this.facturaForm.get('medicamento')?.setErrors({ invalid: true });
         } else if (this.formula.items.length > 0) {
@@ -575,7 +623,7 @@ export class EditformulaComponent implements OnInit {
           }
   
           Swal.fire({
-            title: 'Confirma agregar la formula?',
+            title: 'Confirma editar la formula?',
             icon: 'question',
             html: mensaje,
             showCancelButton: true,
@@ -586,8 +634,7 @@ export class EditformulaComponent implements OnInit {
             if (result.isConfirmed) {
               this.editFormula();
              
-              this.facturaForm.reset();
-              this.facturaForm.get('paciente')?.setValue(this.pacienteActual.numDocumento);
+        
             }
           });
         } else {
@@ -613,13 +660,7 @@ export class EditformulaComponent implements OnInit {
     this.formula.medico = this.facturaForm.get('medico')?.value;
     this.formula.nroFormula = this.facturaForm.get('nroFormula')?.value;
     this.formula.fecPrescribe = this.facturaForm.get('fecPrescribe')?.value;
-    const fechaSolicitud = this.facturaForm.get('fecSolicitud')?.value;
-    const ahora = new Date().toISOString().split('T')[0];
-    // Si existe la fecha, entonces agregamos la hora y los minutos actuales
-    if (fechaSolicitud === ahora) {
-      this.formula.fecSolicitud = new Date();
-    }
-    else this.formula.fecSolicitud = fechaSolicitud;
+   
     this.formula.observacion = this.facturaForm.get('observacion')?.value;
     this.formula.cobroCM = this.facturaForm.get('cobroCM')?.value;
     this.formula.valorCM = (this.formula.cobroCM ? this.pacienteActual.categoria.valor : 0); //this.facturaForm.get('valorCM')?.value;
@@ -629,13 +670,17 @@ export class EditformulaComponent implements OnInit {
     this.formula.origenurgencia = this.facturaForm.get('origenurgencia')?.value;
     this.formula.pgp = this.facturaForm.get('pgp')?.value;
     this.formula.programa = this.facturaForm.get('programa')?.value;
-    this.formula.total = this.formula.calcularGranTotal();
+    this.formula.total = 0//this.formula.calcularGranTotal();
 
-    
+   
     //this.formula.funcionarioeditaformula = funcionario!;
-
-     this.formulaService.update(this.formula).subscribe(resp => {  
-      
+    const formulaEditada = this.formula; // Crear una copia para no modificar el original
+    formulaEditada.items = formulaEditada.items.map((item: any) => ({
+      ...item,
+      itemsEntrega: [], // Anular entregas
+    }));
+    
+     this.formulaService.update(formulaEditada).subscribe(resp => {        
       Swal.fire({
         icon: 'success',
         title: `Ok`,
@@ -671,6 +716,7 @@ export class EditformulaComponent implements OnInit {
         reg => {
           if (reg) {
             this.dxValido = false;
+            console.log(reg);
             this.mensajeComentario = reg.nombre;
             if (reg.sexo != 'A' && reg.sexo != this.pacienteActual.sexo) {
               this.mensajeErrorDx = "Error de diagnóstico diligenciado, no corresponde con el sexo del paciente por favor verificar!"
@@ -678,7 +724,7 @@ export class EditformulaComponent implements OnInit {
             }
 
           } else {
-            this.mensajeComentario = 'El diagnóstico no se encontró.';
+            this.mensajeComentario = 'El diagnóstico no se encontró en la tabla CIE10.';
             this.dxValido = true;
           }
         },
@@ -769,5 +815,8 @@ if (!this.bodegaActual.dispensa) {
 }
 
 }
+
+
+
 
 }

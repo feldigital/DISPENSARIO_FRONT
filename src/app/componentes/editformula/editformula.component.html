@@ -222,7 +222,13 @@
                         </div>
                     </div>
 
-
+                    <div class="blink" *ngIf="formula.estado">
+                        <p> <strong>FORMULA YA PROCESADA</strong></p>
+                    </div>
+                    <div class="porta" *ngIf="!formula.estado">
+                        <p> <strong>FORMULA PENDIENTE PROCESAR</strong></p>
+                    </div>
+                   
 
                 </div>
 
@@ -259,12 +265,12 @@
                     <table class="table table-striped table-hover table-sm" *ngIf="formula.items.length > 0">
                         <thead class="thead-colored">
                             <tr>
-
+                                <th>ID</th>
                                 <th>Medicamento</th>
                                 <th style="width: 180px;">Frecuencia</th>
                                 <th style="width: 80px;">Duración</th>
                                 <th style="width: 80px;">Cantidad</th>
-                                <th style="width: 80px;">Precio</th>
+                                <th style="width: 80px;">Precio Unitario</th>
                                 <th style="width: 80px;">Total</th>
                                 <th style="width: 80px;">Eliminar</th>
                                 <th>Inventario</th>
@@ -274,12 +280,14 @@
                             <tr *ngFor="let item of formula.items; let i = index"
                                 [ngStyle]="{'color': !item.medicamento.desabastecido  ? 'black' : 'red' }">
 
+                                <td>{{ item.medicamento.idMedicamento }}</td>
                                 <td>{{ item.medicamento.nombre }}</td>
                                 <td>
                                     <select class="form-select" [value]="item.frecuencia"
                                         (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
                                         <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
-                                            [attr.data-multiplicador]="frecuencia.multiplicador">
+                                            [attr.data-multiplicador]="frecuencia.multiplicador" 
+                                            [selected]="frecuencia.valor === item.frecuencia">
                                             {{frecuencia.nombre}}
                                         </option>
                                     </select>
@@ -304,7 +312,7 @@
                                 </td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" type="button"
-                                        (click)="eliminarItemFormula(item.medicamento.idMedicamento)">x</button>
+                                        (click)="eliminarItemFormula(item.idItem)">x</button>
                                 </td>
                                 <td>{{ existencias[item.medicamento.idMedicamento] || '0' }}</td>
                             </tr>

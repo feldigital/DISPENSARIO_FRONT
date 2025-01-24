@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { ItemFormulaEntregaI } from 'src/app/modelos/itemformulaentrega.model';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { PacienteService } from 'src/app/servicios/paciente.service';
@@ -52,8 +53,7 @@ export class EntregasComponent implements OnInit, OnChanges {
   public buscarRegistro(id: number) {
     this.servicioformula.getFormulaId(id)
       .subscribe((resp: any) => {
-        this.listaregistros = resp;
-        console.log(this.listaregistros);
+        this.listaregistros = resp;        
         this.listaItemsFormula = resp.items;
         //this.listaItemsFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
       });
@@ -117,7 +117,9 @@ export class EntregasComponent implements OnInit, OnChanges {
                     const selectedValuedocumento = selectElementdocumento.value;
 
                  if (selectedValuetipo !== '' && selectedValuedocumento !== '') {
-                    this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar, selectedValuetipo, selectedValuedocumento,selectedValueDate)
+                    console.log("esta es la fecha para agregar el pendiente", selectedValueDate );
+
+                    this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar, selectedValuetipo, selectedValuedocumento,selectedValueDate, this.listaregistros.idBodega)
                       .subscribe({
                         next: (data: any) => {
                           console.log(data);
@@ -467,5 +469,46 @@ export class EntregasComponent implements OnInit, OnChanges {
     return nivelUsuario >= nivelRequerido;
   }
 
+
+  eliminarRegistroEntrega(idItemEntrega: any,idMedicamento:number){
+
+    if(this.tieneAcceso(4)){
+    Swal.fire({
+      title: 'Desea eliminar?',
+      text: `Esta seguro de quitar el item de la entrega de este medicamento, se devolvera a su inventario la cantidad si habia sido entregado efectiva y quedara como pendiente por entregar!`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, eliminar!'
+    }).then((result) => {
+      if (result.isConfirmed) {           
+ 
+        this.servicioformula.deleteItemFormulaEntrega(idItemEntrega.idItemEntrega ,idMedicamento).subscribe(resp => {
+           Swal.fire({
+            icon: 'success',
+            title: `Ok`,
+            text: `El registro de la entrega se ha quitado en la base de datos correctamente!.`,
+          });
+          this.buscarRegistro(this.parametro);             
+        },
+          err => {
+            Swal.fire({
+              icon: 'error',
+              title: `Error`,
+              text: err.mensaje,
+            });
+          });         
+      }
+    });
+  }
+  else{
+    Swal.fire({
+    icon: 'warning',
+    title: `Falta de permisos`,
+    text: "No tienes permisos para realizar la modificación en la entrega de medicamentos, comunicate con el funcionario encargado!",
+  });
+}   
+  }
 
 }

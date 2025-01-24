@@ -636,13 +636,29 @@ export class FormulaComponent implements OnInit {
       return;
     }
 
+
+
     if (this.facturaForm.valid) {
+
+      const fechaPrescribe = new Date(this.facturaForm.get('fecPrescribe')?.value); // Fecha del formulario
+      const fechaLimite = new Date(); // Calculamos 30 días atrás
+      fechaLimite.setDate(fechaLimite.getDate() - 31);
+      
+      // Verificamos si la fecha está fuera del rango permitido
+      if (fechaPrescribe >= this.fechaActual || fechaPrescribe <= fechaLimite) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'La fecha digitada en la prescripción de la fórmula está fuera del rango definido para procesarla. Corregirla y continuar.',
+        });
+        return;
+      }
+
       if (this.bodegaActual.dispensa) {
         if (this.formula.items.length == 0) {
           this.facturaForm.get('medicamento')?.setErrors({ 'invalid': true });
         }
-        if (this.formula.items.length > 0) {
-          
+        if (this.formula.items.length > 0) {          
           if (!this.validateItems()) {
             // Detener el flujo de ejecución si hay un error
             return;

@@ -1,0 +1,91 @@
+<div class="container mt-2">
+   
+    <div class="mb-2">
+        <div class="text-container">
+            <div class="input-group mb-2 align-center" [formGroup]="generalForm">
+             <!--   <span class="bodega-nombre">
+                    Bodega
+                </span>
+                -->
+                <select class="form-select" formControlName="idBodega" class="w-40">
+                    <option selected value="0">TODAS LAS BODEGAS</option>
+                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega"> {{item.nombre }}</option>
+                </select>
+                <span class="input-group-text bg-transparent">
+                    <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
+                </span>
+
+                <input type="date" formControlName="fechainicial"
+                class="form-control border-end-0 input-anch w-20">
+            al
+            <input type="date" formControlName="fechafinal" class="form-control border-end-0 input-ancho">
+
+            <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button"
+                (click)="buscarRegistro(medicamentoActual,parametro)">
+                Buscar</button>
+
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>Digite el medicamento a buscar
+                       </mat-label>
+                    <input type="text" matInput formControlName="medicamento" [matAutocomplete]="automedicamento" />
+                    <mat-autocomplete #automedicamento="matAutocomplete" (optionSelected)="seleccionarMedicamento($event)">
+                      <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option">
+                        {{ option.nombre }}
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
+                
+
+              
+
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info my-2" *ngIf="listaMedicamento?.length == 0">
+        No hay trazabilidad para el medicamentos en la fecha seleccionada!
+    </div>
+
+        <div *ngIf="listaMedicamento?.length > 0">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="thead-colored">
+                    <tr>
+                        <th>Item</th>
+                        <th>Fecha</th>
+                        <th>ID Orden</th>
+                        <th>Bodega Origen</th>
+                        <th>Bodega Destino</th>
+                        <th>ID Med</th>
+                        <th>Nombre </th>
+                        <th>Presentación</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                     
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let itemt of listaMedicamento let i= index">
+                        <td>
+                          <mat-icon *ngIf="itemt.bodegaOrigen===bodegaSeleccionada" title="Ingreso"  [ngStyle]="{'color':'red', 'font-size': '17px'}">remove_circle_outline </mat-icon> 
+                          <mat-icon *ngIf="itemt.bodegaDestino===bodegaSeleccionada" title="Salio" [ngStyle]="{'color':'green', 'font-size': '17px'}">control_point </mat-icon> 
+                           
+                        {{i+1}}</td>
+                        <td>{{itemt.fechaDespacho}}</td>
+                        <td>{{itemt.idDespacho}}</td>
+                        <td>{{itemt.bodegaOrigen}}</td>
+                        <td>{{itemt.bodegaDestino}}</td>
+                        <td>{{itemt.idMedicamento}}</td>
+                        <td>{{itemt.nombreMedicamento}}</td>
+                        <td>{{itemt.presentacion}}</td>
+                        <td>{{itemt.cantidad}}</td>
+                        <td>
+                            <mat-icon  *ngIf="itemt.estado==='Envío'" title="En envío" [ngStyle]="{'color':'orange', 'font-size': '17px'}">input </mat-icon> 
+                            <mat-icon  *ngIf="itemt.estado==='Recepción'" title="Recibido" [ngStyle]="{'color':'green', 'font-size': '17px'}" >check_circle_outline </mat-icon>
+                        </td>
+                       
+                       
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
