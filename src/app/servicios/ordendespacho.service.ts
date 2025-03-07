@@ -79,7 +79,7 @@ export class OrdendespachoService {
   create(registro: OrdenDespachoI): Observable<OrdenDespachoI> {
     const headers = { 'Content-Type': 'application/json' };   
     //console.log(JSON.stringify(registro));
-    console.log(registro);
+    //console.log(registro);
     return this.http.post<OrdenDespachoI>(this.urlEndPoint, JSON.stringify(registro), { headers }).pipe(
       catchError(e => {
         return throwError(e);

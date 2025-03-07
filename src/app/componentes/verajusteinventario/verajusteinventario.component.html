@@ -1,0 +1,131 @@
+<div class="container mt-3" [formGroup]="generalForm">
+
+    <div class="row">
+      <div class="col-md-6">
+  
+  
+  <div class="input-group mt-2">
+      <select class="form-select" formControlName="idBodega" >
+          <option selected value="0">Seleccione la bodega a consultar</option>
+          <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">{{item.nombre }} - {{item.puntoEntrega }}</option>     </select>
+  </div>
+  </div>
+  <div class="col-md-6">
+    <div class="mt-2" > <!--card-header-->
+       <div class="date-inputs">
+          <input type="date" formControlName="fInicial" class="form-control border-end-0 ">
+          <div class="date-label">al</div>
+          <input type="date" formControlName="fFinal" class="form-control border-end-0 ">
+      </div>
+      <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button"
+          (click)="buscarAjusteInventario()">
+          Buscar</button>
+          <button *ngIf ="tieneAcceso(3) || idBodegausuario" type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button" 
+          (click)="reporteEnConstruccion()" > 
+          Exportar Detalles</button>      
+  </div>
+  
+  
+  </div>
+  </div>
+  <div class="alert alert-info my-2 mb-2"  *ngIf="listaAjusteInventario?.length == 0">
+      No hay ordenes de ajuste por inventario a esta bodega para mostrar!
+  </div>
+  <div *ngIf="listaAjusteInventario?.length > 0">
+      <table class="table table-striped table-hover table-sm mt-2">
+          <thead class="thead-colored">
+              <tr>
+                  <th>ID Ajuste</th>
+                  <th>Fecha ajuste</th>
+                  <th>Funcionario que realiza ajuste </th>
+                  <th>Fecha inventario</th>
+                  <th>Funcionario Inventario</th>                  
+                  <th>Items</th>
+                  <th>Estado</th>
+                  <th>Gestión</th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr *ngFor="let itemt of listaAjusteInventario let i= index"  (click)="mostrarItemAjuste(itemt)" 
+              [ngClass]="{'selected-row': ajusteActual?.idAjuste === itemt.idAjuste}">              
+                  <td>    
+                    {{itemt.idAjuste}}</td>
+                  <td>{{itemt.fechaAjuste | date: 'dd/MM/YYYY'}}</td>
+                  <td>{{itemt.funcionarioAjuste}}</td>   
+                  <td>{{itemt.fechaInventario | date: 'dd/MM/YYYY'}}</td>          
+                  <td>{{itemt.funcionarioInventario}}</td>                               
+                  <td>{{itemt.itemsAjuste.length}}                   
+                  </td>
+                  <td  [ngStyle]="{
+                    'color': itemt.estado === 'Ajustado' ? 'green' : 'red',
+                    'background-color': itemt.estado === 'Ajustado' ? '#d4edda' : '#f8d7da'
+                  }">{{itemt.estado}}</td>
+                  <td> 
+                   <div>                
+                     <mat-icon class="puntero" *ngIf="itemt.estado==='Ajustado'" title="Imprimir acta de ajuste" [ngStyle]="{'color':'#009A94'}" [matMenuTriggerFor]="menu">print</mat-icon>
+                     <mat-icon class="puntero" *ngIf="itemt.estado==='Pendiente' && tieneAcceso(4)" title="Editar la orden de ajuste por inventario" [ngStyle]="{'color':'#009A94'}" [routerLink]="['/menu/ajusteinventario', itemt.idAjuste]">edit</mat-icon>
+                     <mat-icon class="puntero" *ngIf="itemt.estado==='Pendiente' && tieneAcceso(4)" title="Eliminar la orden de ajuste por inventario" [ngStyle]="{'color':'red'}" (click)="eliminarAjusteInventario(itemt)" >delete_sweep</mat-icon>
+                    <!-- <mat-icon class="puntero" *ngIf="itemt.estado==='Ajustado'" title="Ver la orden de ajuste por inventario"[ngStyle]="{'color':'green'}"  >check_circle_outline </mat-icon> -->
+                  </div>
+                  
+                  <mat-menu #menu="matMenu">
+                    <button (click)='actaAjustePDF(itemt)' mat-menu-item>
+                        <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
+                        <span>Acta de ajuste</span>
+                    </button> 
+                    <button *ngIf ="tieneAcceso(2) || itemt.estado==='Ajustado'" (click)='reporteEnConstruccion()' mat-menu-item>
+                        <mat-icon [ngStyle]="{'color':'#009A94'}">print</mat-icon>
+                        <span>Relación de ajuste</span>
+                    </button>
+  
+                    
+                </mat-menu>
+  
+                  </td>
+             </tr>
+          </tbody>
+      </table>
+  </div>
+  
+  <div  *ngIf="ajusteActual!=null" class="col-12 text-center">  
+    <span class="fw-bold">OBSERVACIÓN DEL AJUSTE </span>
+    <br>
+    {{ajusteActual.observacionAjuste}}
+    
+</div>
+
+  <div *ngIf="listaItemAjuste?.length > 0">
+
+    <div class="col-12 text-center"> LISTA DE MEDICAMENTOS DE LA ORDEN DE AJUSTE POR INVENTARIO Nro.  
+        <span class="fw-bold">{{ajusteActual.idAjuste}}</span>
+    </div>
+
+    <table class="table table-striped table-hover table-sm">
+        <thead class="thead-colored">
+            <tr>  
+                <th>Item</th>
+                <th>ID</th>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>Existencia en el sistema durante el inventario</th>
+                <th>Existencia física en el inventario</th>
+                <th>Cantidad a ajustar +/-</th>                             
+               
+            </tr>
+        </thead>
+        <tbody>           
+                <tr *ngFor="let item of listaItemAjuste; let i = index"> 
+                    <td>  {{i+1}}</td>
+                    <td>  {{item.medicamento.idMedicamento}}</td>
+                    <td>  {{item.medicamento.nombre}}</td>
+                    <td>  {{item.medicamento.forma.nombre}}</td>
+                    <td class="text-center">  {{item.cantidadSistema}}</td>  
+                    <td class="text-center">  {{item.cantidadFisica}}</td>  
+                    <td class="text-center" [ngClass]="{'text-danger': item.cantidadAjuste < 0, 'text-success': item.cantidadAjuste > 0}">  {{item.cantidadAjuste}}</td>        
+                     
+                 </tr>
+        </tbody>
+    </table>
+</div>
+  
+  </div>

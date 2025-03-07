@@ -19,6 +19,7 @@ export class HistorialentregaComponent {
   tablavisible: boolean = false;
   listaItemsFormula: any;
   formulaActual: any;
+  ajusteActual: any = null;
 
   constructor(
     private servicio: PacienteService,
@@ -72,9 +73,10 @@ export class HistorialentregaComponent {
   mostrarItemformula(item: any): void {
     this.listaItemsFormula=item.items;
     this.formulaActual=item.idFormula;
+    this.ajusteActual=item;
   }
   
-  mostrarformula(item: any): void {
+  mostrarformula(item: any): void {    
     if(item.formulas.length>0)
     {this.listaformulas=item.formulas;}
     else{

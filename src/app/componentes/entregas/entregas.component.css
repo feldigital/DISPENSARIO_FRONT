@@ -25,3 +25,23 @@
   padding: 8px;
   border-radius: 8px 8px 0 0;
 }
+
+@media print {
+  body {
+    font-size: 20px;  /* Aumenta el tamaño de la fuente */
+    margin: 1mm;  /* Ajusta los márgenes */
+    padding: 10px;
+  }
+  pre {
+    font-size: 20px; /* Asegura que el contenido sea legible */
+    line-height: 1.5;
+    margin: 1mm;
+  }
+}
+
+pre {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 20px; /* Aumentar tamaño */
+  font-weight: bold; /* Aplicar negrita */
+  line-height: 1.5; /* Más espaciado */
+}

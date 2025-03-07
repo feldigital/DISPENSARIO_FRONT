@@ -58,7 +58,9 @@ export class VerordendespachoComponent implements OnInit {
 
   procesarOrdenDespachoIngreso(): void {
     let funcionario = sessionStorage.getItem("nombre");
-    const tieneErrores =     this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
+    const tieneErrores = false;
+if(!this.tieneAcceso(5)){
+    const tieneErrores =   this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
       if (itemBodega.cantidadDespacho != itemBodega.cantidad) {
         Swal.fire({
           icon: 'error',
@@ -69,7 +71,7 @@ export class VerordendespachoComponent implements OnInit {
       }
       return false;
     });
-    
+}
 
     if (!tieneErrores) {
 
@@ -113,6 +115,16 @@ export class VerordendespachoComponent implements OnInit {
     }
     str = str.toLowerCase();
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
+  }
+
+
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }  
+    return nivelUsuario >= nivelRequerido;
   }
 
 }

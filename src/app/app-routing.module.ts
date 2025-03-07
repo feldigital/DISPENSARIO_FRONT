@@ -26,6 +26,8 @@ import { EditformulaComponent } from './componentes/editformula/editformula.comp
 import { TrazamedicamentoComponent } from './componentes/trazamedicamento/trazamedicamento.component';
 import { HistorialentregaComponent } from './componentes/historialentrega/historialentrega.component';
 import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
+import { AjusteinventarioComponent } from './componentes/ajusteinventario/ajusteinventario.component';
+import { VerajusteinventarioComponent } from './componentes/verajusteinventario/verajusteinventario.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -59,6 +61,9 @@ const routes: Routes = [
       { path: 'historialentrega', component: HistorialentregaComponent },  
       { path: 'editformula/:id', component: EditformulaComponent },
       { path: 'editformula', component: EditformulaComponent },
+      { path: 'ajusteinventario/:id', component: AjusteinventarioComponent },
+      { path: 'ajusteinventario', component: AjusteinventarioComponent },
+      { path: 'verajusteinventario', component: VerajusteinventarioComponent },
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
       { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto
     ]

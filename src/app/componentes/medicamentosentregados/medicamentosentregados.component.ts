@@ -63,10 +63,7 @@ export class MedicamentosentregadosComponent {
 
         // Establecer el valor del select después de que se cargan los registros
         if (this.parametro) {
-          this.generalForm.patchValue({ idBodega: +this.parametro });
-
-        
-          
+          this.generalForm.patchValue({ idBodega: +this.parametro });          
         }
       },
       (err: any) => {

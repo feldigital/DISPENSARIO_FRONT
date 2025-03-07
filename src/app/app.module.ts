@@ -51,6 +51,8 @@ import { EditformulaComponent } from './componentes/editformula/editformula.comp
 import { TrazamedicamentoComponent } from './componentes/trazamedicamento/trazamedicamento.component';
 import { HistorialentregaComponent } from './componentes/historialentrega/historialentrega.component';
 import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
+import { AjusteinventarioComponent } from './componentes/ajusteinventario/ajusteinventario.component';
+import { VerajusteinventarioComponent } from './componentes/verajusteinventario/verajusteinventario.component';
 
 
 export function initPermisos(permisosService: PermisosService) {
@@ -88,6 +90,8 @@ export function initPermisos(permisosService: PermisosService) {
     TrazamedicamentoComponent,
     HistorialentregaComponent,
     MedicamentosentregadosComponent,
+    AjusteinventarioComponent,
+    VerajusteinventarioComponent,
 
   ],
   imports: [

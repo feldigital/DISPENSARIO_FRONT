@@ -17,6 +17,18 @@
 
 h1.example-app-name {
   margin-left: 8px;
+  color: #003366 !important;
+  font-weight: bold !important;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center; /* Centra verticalmente */
+}
+
+.logo {
+  height: 40px; /* Ajusta el tamaño de la imagen según necesites */
+  margin-right: 10px; /* Espacio entre la imagen y el texto */
 }
 
 .example-sidenav-container {
@@ -67,4 +79,12 @@ mat-toolbar {
 
 .icon-center mat-icon {
   font-size: 1.5rem; /* Tamaño del icono */
+}
+
+:host ::ng-deep .mat-toolbar {
+ /* background: linear-gradient(90deg, #67ACD6, #71E0D2) !important; 
+background: radial-gradient(to right, #5D8FA5, #6CC5D4);
+  background: radial-gradient(circle, #5D8FA5, #6CC5D4);  
+  color: white !important;*/
+  background: linear-gradient(90deg, #67ACD6, #5D8FA5) !important;
 }

@@ -1,0 +1,4 @@
+.selected-row {
+    background-color: #d1ecf1 !important; /* Color celeste claro */
+    font-weight: bold; /* Opcional: para resaltar el texto */
+  }

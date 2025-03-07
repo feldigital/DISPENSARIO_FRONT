@@ -98,7 +98,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let itemt of listaformulas let i= index">
+                    <tr *ngFor="let itemt of listaformulas let i= index"  (click)="mostrarItemformula(itemt)" 
+                    [ngClass]="{'selected-row': ajusteActual?.idFormula === itemt.idFormula}">
                         <td>{{i+1}}</td>
                         <td>{{itemt.fecPrescribe | date: 'dd/MM/YYYY'}}</td>
                         <td>{{itemt.idFormula}}</td>

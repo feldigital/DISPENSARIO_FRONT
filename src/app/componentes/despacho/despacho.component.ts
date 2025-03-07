@@ -205,7 +205,8 @@ export class DespachoComponent implements OnInit {
        // this.listaregistros = resp
         this.listaregistrosOrigen = resp.filter((registro: any) => registro.salida === true);
         this.listaregistrosDestino = resp.filter((registro: any) => registro.entrada === true);
-        this.listaregistrosOrigen.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));//sort((a: any, b: any) => b.nombre - a.nombre);
+        this.listaregistrosOrigen.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+        this.listaregistrosDestino.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
       },
         (err: any) => { console.error(err) }
       );
@@ -549,7 +550,7 @@ export class DespachoComponent implements OnInit {
   actualizarOrdenDespacho(funcionario: string) {
     this.ordenDespacho.fechaDespacho = this.generalForm.get('fechaDespacho')?.value;
     this.ordenDespacho.observacion = this.generalForm.get('observacion')?.value;
-    this.ordenDespacho.funcionarioDespacho = funcionario!;
+    //this.ordenDespacho.funcionarioDespacho = funcionario!;
     this.ordenDespachoservicio.update(this.ordenDespacho).subscribe(resp => {
       Swal.fire({
         icon: 'success',

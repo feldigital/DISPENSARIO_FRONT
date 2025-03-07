@@ -193,7 +193,7 @@
                         class="pointer-cursor" title="Editar cantidad" [ngStyle]="{'color':'#009A94'}"
                         (click)="editarMedicamentoOrdenDespacho(itemt)">edit</mat-icon>
                     
-                        <mat-icon *ngIf="!itemt.estado  && itemt.cantidad == 0 && itemt.cantidadDespacho > 0" title="Editar cantidad"
+                        <mat-icon *ngIf="!itemt.estado  && itemt.cantidad == 0 && itemt.cantidadDespacho > 0" 
                             class="pointer-cursor" title="Eliminar cantidad a despachar" [ngStyle]="{'color':'red'}"  
                         (click)="quitarMedicamentoDespacho(itemt.idMedicamento)">delete_sweep</mat-icon>
 

@@ -125,6 +125,11 @@
                             <mat-icon [ngStyle]="{'color':'green'}">filter_9_plus</mat-icon>
                             <span>Consolidado de formulas</span>
                         </button>
+                        <button (click)='reporteEnConstruccion()' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
+                            <span>Formulas por meses</span>
+                        </button>
+
                         <button *ngIf ="tieneAcceso(3)" (click)='reporteFormulasDetalldas(0,0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">low_priority</mat-icon>
                             <span>Detalle de formulas</span>
@@ -147,7 +152,12 @@
 
                         <button (click)='reporteEnConstruccion()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
-                            <span>Ent. consolidadas por meses</span>
+                            <span>Prescritos por meses</span>
+                        </button>
+
+                        <button (click)='reporteEnConstruccion()' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
+                            <span>Entregados por meses</span>
                         </button>
 
 
@@ -272,6 +282,16 @@
                             <button (click)='reporteEnConstruccion()' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'red'}">gps_off</mat-icon>
                                 <span>Medicamentos que no rotan</span>
+                            </button>
+
+                            <button (click)='reporteEnConstruccion()' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
+                                <span>Prescritos por meses</span>
+                            </button>
+    
+                            <button (click)='reporteEnConstruccion()' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
+                                <span>Entregados por meses</span>
                             </button>
                         </mat-menu>
                     </td>

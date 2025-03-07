@@ -324,141 +324,142 @@ export class EntregasComponent implements OnInit, OnChanges {
     return '-';
   }
 
-  imprimir(): void {
-    
-      const ventana = window.open('', '_blank');
-      if (ventana) {
-        ventana.document.write(this.generarContenidoPOS( this.listaregistros));
-        ventana.print();
-        ventana.close();
-      }
-   
+
+imprimir(): void {
+  const contenido = this.generarContenidoPOS(this.listaregistros);
+  // Crear un iframe oculto
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(`
+      <html>
+      <head>
+        <style>
+          @media print {
+            body {
+              font-family: 'Courier New', Courier, monospace;
+              font-size: 20px;
+              font-weight: bold;
+              margin: 2mm;
+              padding: 0;
+            }
+            pre {
+              font-size: 20px;
+              line-height: 1.5;
+              margin: 2mm;
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body onload="window.print(); window.onafterprint = function() { window.close(); }">
+        ${contenido}
+      </body>
+      </html>
+    `);
+    doc.close();
   }
 
-  generarContenidoPOS(formula: any): string {
-    console.log(formula);
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 3000); // Se elimina el iframe después de imprimir
+}
 
-    // Configurar los anchos de columna
-    const anchoCodigo = 4; // Ancho fijo para el código
-    const anchoDescripcion = 20; // Ancho máximo para la descripción
-    const anchoUnidad = 4; // Ancho fijo para la unidad
-    const anchoCantidad = 4; // Ancho fijo para la cantidad
-  
-    // Helper para centrar texto en una columna
-    const centrarTexto = (texto: string, ancho: number): string => {
-      const padding = Math.max(0, (ancho - texto.length) / 2);
-      return ' '.repeat(Math.floor(padding)) + texto + ' '.repeat(Math.ceil(padding));
-    };
-  
-    // Helper para dividir el texto en líneas si excede el ancho
-    const dividirTexto = (texto: string, ancho: number): string[] => {
-      const lineas = [];
-      while (texto.length > ancho) {
-        lineas.push(texto.substring(0, ancho));
-        texto = texto.substring(ancho);
-      }
-      if (texto.length > 0) {
-        lineas.push(texto);
-      }
-      return lineas;
-    };
-  
-    // Formatear cada ítem
-    const detallesMedicamentos = formula.items.map((med: any) => {
-      const codigo = centrarTexto(med.medicamento.idMedicamento || '', anchoCodigo);
-      const descripcionLineas = dividirTexto(med.medicamento.nombre, anchoDescripcion);
-      const unidad = centrarTexto(med.medicamento.forma.nombre || '', anchoUnidad);
-      const cantidad = centrarTexto(med.cantidad.toString(), anchoCantidad);
-  
-      // Combinar líneas, ajustando el formato
-      return descripcionLineas
-        .map((linea, index) =>
-          index === 0
-            ? `${codigo}${linea.padEnd(anchoDescripcion)}${unidad}${cantidad}`
-            : `      ${linea.padEnd(anchoDescripcion)}      ` // Dejar columnas vacías para líneas adicionales
-        )
-        .join('\n');
-    });
-  
-    // Generar el contenido final
-    return `
-      <pre style="font-family: Courier, monospace; font-size: 14px;">
-      
-          DOCUMENTO SUMINISTRO 
-           DE PRODUCTOS SISM
-            NIT: 900018045
-      ==========================
-      Nro. Solicitud:${formula.idFormula}
-      Documento:${formula.paciente.numDocumento}  
-      Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
-                ${formula.paciente.pApellido} ${formula.paciente.sApellido}
-      Num de entrega:${formula.continuidad}
-      Médico: ${formula.medico.nombre}
-  
-      --------------------------
-      Local: Dispensario Santa Catalina
-      Funcionario: ${formula.funcionariocreaformula}
-      Fecha: ${formula.fecSolicitud}
-      Convenio: ${formula.paciente.eps.nombre}
-  
-      Detalle de la dispensación
-      ---------------------------------
-      ID.  Descripción      Unid. Cant.
-      ---------------------------------
-      ${detallesMedicamentos.join('\n')}
-      --------------------------
-  
-      Cuota moderadora:  ${formula.paciente.categoria.valor}
-      Recibi a conformidad los productos
-  
-      _________________________________
-      Firma
-      Documento
-      </pre>
-    `;
 
-/*
-    return `
-      <pre style="font-size: 14px;">
-      
-          DOCUMENTO SUMINISTRO 
-           DE PRODUCTOS SISM
-            NIT: 900018045
-      ==========================
-      Nro. Solicitud:${formula.idFormula}
-      Documento:${formula.paciente.numDocumento}  
-      Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
-                ${formula.paciente.pApellido} ${formula.paciente.sApellido}
-      Num de entrega:${formula.continuidad}
-      Médico: ${formula.medico.nombre}
+generarContenidoPOS(formula: any): string {
+  console.log(formula);
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', { 
+    day: '2-digit', month: '2-digit', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', 
+    hour12: true 
+  }).format(fechaSolicitud);
 
-      --------------------------
-      Local: Dispensario Santa Catalina
-      Funcionario: ${formula.funcionariocreaformula}
-      Fecha: ${formula.fecSolicitud}
-      Convenio: ${formula.paciente.eps.nombre}
+  const fechaimpresion = new Date();
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', { 
+    day: '2-digit', month: '2-digit', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', 
+    hour12: true 
+  }).format(fechaimpresion);
 
-      Detalle de la dispensación
-      --------------------------
-      Cod.   Descripción  Unid.  Cant.
-      --------------------------
-      ${formula.items.map((med: any) =>
-        `- ${med.medicamento.nombre}:
-          Unid.: ${med.medicamento.forma.nombre}
-          Cant.: ${med.cantidad}       
-        `).join('\n')}
-      --------------------------
+  return `
+    <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
+     FORMATO DE PENDIENTES  
+      SISM - SUPLYMEDICAL
+       Calle 24 #18a-101
+        Nro: ${formula.idFormula}
+Impresión: ${fechaimpresionFormateada}
 
-      Cuota moderadora:  ${formula.paciente.categoria.valor}
-      Recibi a conformidad los productos
+-------------------------------------
+Documento: ${formula.paciente.numDocumento}  
+Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
+          ${formula.paciente.pApellido} ${formula.paciente.sApellido}
+-------------------------------------
+Dispensario: Santa Marta
+Funcionario: ${formula.funcionariocreaformula}
+Pendiente: ${fechaFormateada}
+Convenio: ${formula.paciente.eps.nombre}
+-------------------------------------
 
-      _________________________________
-      Firma
-      Documento
-      </pre>
-    `;
-    */
+  Detalle de los medicamentos
+-------------------------------------
+${formula.items
+  .filter((med: any) => med.pendiente > 0) // Filtra solo los medicamentos con pendiente > 0
+  .map((med: any, index: number) => {
+    const numero = index + 1; // Enumerar medicamentos
+    const nombreDividido = this.dividirEnLineas(`${numero}. ${med.medicamento.nombre}`, 35); // Divide en líneas de 40 caracteres
+    return `${nombreDividido.join('\n')}
+    Presentación:  ${med.medicamento.forma.nombre}
+    Pendiente.  :  ${med.pendiente}`;
+  })
+  .join('\n')}
+-------------------------------------
+
+
+       
+Firma    :___________________________
+Documento:___________________________
+
+
+Este documento es válido hasta 
+90 días, para hacer su reclamo.
+
+Si quieres saber si tu pendiente 
+ya esta disponible, contactanos
+através de WhatsApp 3227694532 
+
+</pre>
+  `;
+}
+
+dividirEnLineas(texto: string, maxCaracteres: number): string[] {
+  const palabras = texto.split(' '); // Divide el texto en palabras
+  let lineaActual = '';
+  const lineas: string[] = [];
+
+  palabras.forEach((palabra) => {
+    if ((lineaActual + palabra).length > maxCaracteres) {
+      lineas.push(lineaActual.trim()); // Agrega la línea actual al array
+      lineaActual = palabra + ' '; // Comienza una nueva línea con la palabra actual
+    } else {
+      lineaActual += palabra + ' '; // Agrega la palabra a la línea actual
+    }
+  });
+
+  if (lineaActual.trim().length > 0) {
+    lineas.push(lineaActual.trim()); // Agrega la última línea
   }
+
+  return lineas;
+}
+
 
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
