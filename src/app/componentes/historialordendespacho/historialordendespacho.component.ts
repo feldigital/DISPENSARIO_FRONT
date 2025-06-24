@@ -16,75 +16,77 @@ import { Observable } from 'rxjs';
 })
 export class HistorialordendespachoComponent {
 
-  listaOrdendespacho: any; 
-  listaregistros: any; 
+  listaOrdendespacho: any;
+  listaOrdendespachofiltrada: any;
+  listaregistros: any;
   listaItemOrden: any;
   consultaSeleccionada: string = '';
   generalForm!: FormGroup;
   idBodegaSeleccionada: string = '';
   idBodegausuario: boolean = false;
-  contador: number=0;
+  contador: number = 0;
   lista: any = [];
+  parametro: any;
 
-  constructor(  
+
+  constructor(
     private fb: FormBuilder,
     private ordendespachoservicio: OrdendespachoService,
     private bodegaservicio: BodegaService,
-  ) { 
+  ) {
     // Calcula la fecha actual
-    const currentDate = new Date();      
+    const currentDate = new Date();
     // Calcula la fecha 30 días antes de la fecha actual
     const date30DaysAgo = new Date(currentDate);
     date30DaysAgo.setDate(currentDate.getDate() - 30);
 
     this.generalForm = this.fb.group
-    ({        
-      idBodega: [''],
-      tipoConsulta: ['todas'],    
-      fInicial: [date30DaysAgo.toISOString().split('T')[0]],
-      fFinal: [currentDate.toISOString().split('T')[0]],    
-    });
-
-    this. cargarRegistros();
-
+      ({
+        idBodega: [''],
+        tipoConsulta: ['todas'],
+        fInicial: [date30DaysAgo.toISOString().split('T')[0]],
+        fFinal: [currentDate.toISOString().split('T')[0]],
+        soloajuste: [''],
+      });
+    //this. cargarRegistros();
   }
 
-  ngOnInit(): void {   
-  }
+  ngOnInit(): void {
+    this.parametro = parseInt(sessionStorage.getItem('bodega') || '0', 10);
 
-  
-
-  cargarRegistros() {
-    this.bodegaservicio.getRegistrosActivos()
-      .subscribe((resp: any) => {
-        this.listaregistros = resp
-        this.listaregistros.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+    this.bodegaservicio.getRegistrosActivos().subscribe(
+      (resp: any) => {
+        this.listaregistros = resp;
+        this.listaregistros.sort((a: any, b: any) => {
+          const comparacionPorNombre = a.nombre.localeCompare(b.nombre);
+          if (comparacionPorNombre === 0) {
+            return a.puntoEntrega.localeCompare(b.puntoEntrega);
+          }
+          return comparacionPorNombre;
+        });
+        // this.generalForm.patchValue({ idBodega: +this.parametro });            
       },
-        (err: any) => { console.error(err) }
-      );
+      (err: any) => {
+        console.error(err);
       }
-  
+    );
+
+    this.generalForm.patchValue({ idBodega: + this.parametro });
+    this.buscarOrdenDespacho();
+
+  }
 
   onBodegaChange(event: any) {
- 
-   this.buscarOrdenDespacho();
+    this.buscarOrdenDespacho();
   }
 
-  buscarOrdenDespacho(){
-  /*
-    const bodegaId = this.generalForm.get('idBodega')?.value;
-    this.idBodegaSeleccionada= bodegaId;
-    let bodegaString = sessionStorage.getItem("bodega");
-    if (bodegaString==bodegaId) this.idBodegausuario=true: this.idBodegausuario=false;
-*/
+  buscarOrdenDespacho() {
     const bodegaId = this.generalForm.get('idBodega')?.value;
     this.idBodegaSeleccionada = bodegaId;
     const bodegaString = sessionStorage.getItem("bodega");
     this.idBodegausuario = bodegaString == bodegaId ? true : false;
-    console.log(this.idBodegausuario);
-
-    const tipoConsulta = this.generalForm.get('tipoConsulta')?.value;  
-    if (bodegaId && tipoConsulta) {     
+    const tipoConsulta = this.generalForm.get('tipoConsulta')?.value;
+    if (bodegaId && tipoConsulta) {
       if (tipoConsulta === 'origen') {
         this.consultarOrdenesPorBodegaOrigen(bodegaId);
       } else if (tipoConsulta === 'destino') {
@@ -96,43 +98,122 @@ export class HistorialordendespachoComponent {
   }
 
   consultarOrdenesPorBodegaOrigen(bodegaId: number) {
-    this.ordendespachoservicio.getOrdenDespachoBodegaOrigen(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
+    // Limpiar listas antes de cargar nueva data
+    this.listaOrdendespacho = [];
+    this.listaOrdendespachofiltrada = [];
+    Swal.fire({
+      title: 'Cargando registros...',
+      html: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    this.ordendespachoservicio.getOrdenDespachoBodegaOrigen(bodegaId, this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaOrdendespacho = resp;
         this.listaOrdendespacho.sort((a: any, b: any) => {
-          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+          // Primero ordena por fecha de despacho (descendente)
+          const fechaComparacion = new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+          // Si las fechas son iguales, ordena por idOrden (ascendente)
+          if (fechaComparacion === 0) {
+            return b.idDespacho - a.idDespacho;
+          }
+          return fechaComparacion;
         });
-       
-      });
+        this.listaOrdendespachofiltrada = this.listaOrdendespacho;
+        this.generalForm.patchValue({ soloajuste: + false });
+        Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+      },
+        (error) => {
+          console.error('❌ Error cargando registros', error);
+          Swal.close(); // 🚨 Primero cerramos el spinner
+          Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+        }
+      );
   }
-  
+
   consultarOrdenesPorBodegaDestino(bodegaId: number) {
-    this.ordendespachoservicio.getOrdenDespachoBodegaDestino(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
+    // Limpiar listas antes de cargar nueva data
+    this.listaOrdendespacho = [];
+    this.listaOrdendespachofiltrada = [];
+    Swal.fire({
+      title: 'Cargando registros...',
+      html: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    this.ordendespachoservicio.getOrdenDespachoBodegaDestino(bodegaId, this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaOrdendespacho = resp;
         this.listaOrdendespacho.sort((a: any, b: any) => {
-          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+          // Primero ordena por fecha de despacho (descendente)
+          const fechaComparacion = new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+
+          // Si las fechas son iguales, ordena por idOrden (ascendente)
+          if (fechaComparacion === 0) {
+            return b.idDespacho - a.idDespacho;
+          }
+          return fechaComparacion;
         });
-       
-      });
+        this.listaOrdendespachofiltrada = this.listaOrdendespacho;
+        this.generalForm.patchValue({ soloajuste: + false });
+        Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+      },
+        (error) => {
+          console.error('❌ Error cargando registros', error);
+          Swal.close(); // 🚨 Primero cerramos el spinner
+          Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+        }
+      );
   }
-  
-  consultarTodasOrdenesPorBodega(bodegaId: number) { 
-    this.ordendespachoservicio.getOrdenDespachoBodegaTodas(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
-      .subscribe(resp => {
-        this.listaOrdendespacho = resp;
-        this.listaOrdendespacho.sort((a: any, b: any) => {
-          return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
-        });
-        
+
+  consultarTodasOrdenesPorBodega(bodegaId: number) {
+    // Limpiar listas antes de cargar nueva data
+    this.listaOrdendespacho = [];
+    this.listaOrdendespachofiltrada = [];
+    Swal.fire({
+      title: 'Cargando registros...',
+      html: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    this.ordendespachoservicio.getOrdenDespachoBodegaTodas(
+      bodegaId,
+      this.generalForm.get('fInicial')?.value,
+      this.generalForm.get('fFinal')?.value
+    ).subscribe(resp => {
+      this.listaOrdendespacho = resp;
+      this.listaOrdendespacho.sort((a: any, b: any) => {
+        // Primero ordena por fecha de despacho (descendente)
+        const fechaComparacion = new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
+        // Si las fechas son iguales, ordena por idOrden (ascendente)
+        if (fechaComparacion === 0) {
+          return b.idDespacho - a.idDespacho;
+        }
+        return fechaComparacion;
       });
+      this.listaOrdendespachofiltrada = this.listaOrdendespacho;
+      this.generalForm.patchValue({ soloajuste: + false });
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+    },
+      (error) => {
+        console.error('❌ Error cargando registros', error);
+        Swal.close(); // 🚨 Primero cerramos el spinner
+        Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+      }
+    );
   }
 
 
   public eliminarOrdenDespacho(itemt: any) {
     Swal.fire({
       title: 'Desea eliminar?',
-      text: `La orden de despacho Nro. ` + itemt.idDespacho  + ` dirigida a la bodega ` + itemt.bodegaDestino.nombre+ ` de la base de datos.`,
+      text: `La orden de despacho Nro. ` + itemt.idDespacho + ` dirigida a la bodega ` + itemt.bodegaDestino.nombre + ` de la base de datos.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -145,7 +226,7 @@ export class HistorialordendespachoComponent {
           Swal.fire({
             icon: 'success',
             title: `Ok`,
-            text: `La orden de despacho número `+ itemt.idDespacho + ` dirigida a la bodega ` + itemt.bodegaDestino.nombre + ` ha sido eliminado correctamente.`,
+            text: `La orden de despacho número ` + itemt.idDespacho + ` dirigida a la bodega ` + itemt.bodegaDestino.nombre + ` ha sido eliminado correctamente.`,
           });
         },
           err => {
@@ -159,8 +240,7 @@ export class HistorialordendespachoComponent {
     });
   }
 
-  reporteOrdenDespacho(orden: any, incluirCantidad: boolean): void { 
-    console.log(orden); 
+  reporteOrdenDespacho(orden: any, incluirCantidad: boolean): void {
     const doc = new jsPDF({
       orientation: 'l',
       unit: 'mm',
@@ -170,27 +250,27 @@ export class HistorialordendespachoComponent {
     let totalPagesExp = '{total_pages_count_string}';
     let paginaActual = 1;
 
-  // Captura el contexto actual de la clase
-  const self = this;
+    // Captura el contexto actual de la clase
+    const self = this;
 
-   // Cabecera dinámica, dependiendo si se incluye la cantidad o no
-   const head = incluirCantidad
-   ? [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio', 'Lote', 'Vencimiento', 'Cantidad']]
-   : [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio', 'Lote', 'Vencimiento']];
+    // Cabecera dinámica, dependiendo si se incluye la cantidad o no
+    const head = incluirCantidad
+      ? [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio', 'Lote', 'Vencimiento', 'Cantidad']]
+      : [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio', 'Lote', 'Vencimiento']];
 
- 
-  autoTable(doc, {
-     // head: [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio','Lote','Vencimiento','Cantidad']],
+
+    autoTable(doc, {
+      // head: [['Nro', 'Nombre del medicamento', 'Presentación', 'CUM', 'Invima', 'Laboratorio','Lote','Vencimiento','Cantidad']],
       head,
-      body: this.datosOrden(orden,incluirCantidad),
+      body: this.datosOrden(orden, incluirCantidad),
       startY: 37,
       theme: 'striped',
       //theme: 'grid',
-    /*  headStyles: {
-        fillColor: [211, 211, 211], // Color gris claro
-        textColor: [0, 0, 0], // Color del texto negro
-        fontSize: 10, // Tamaño de la fuente
-      },*/
+      /*  headStyles: {
+          fillColor: [211, 211, 211], // Color gris claro
+          textColor: [0, 0, 0], // Color del texto negro
+          fontSize: 10, // Tamaño de la fuente
+        },*/
       willDrawPage: function (data) {
 
         //doc.addImage('/assets/vertical.jpg', 'JPEG', 0, 5, 15, 60);
@@ -215,30 +295,30 @@ export class HistorialordendespachoComponent {
 
         doc.text('Numero y fecha orden:', 17, 20);
         //doc.setTextColor('#E5E5E5'); // Color gris
-        doc.text(orden.idDespacho.toString() + " - " +orden.fechaDespacho, 60, 20);
+        doc.text(orden.idDespacho.toString() + " - " + orden.fechaDespacho, 60, 20);
 
         doc.text('Bodega de origen:', 17, 25);
-     
+
         doc.text(self.primerasmayusculas(orden.bodegaOrigen.nombre), 60, 25);
         doc.text('Funcionario despacho:', 17, 30);
         doc.text(orden.funcionarioDespacho, 60, 30);
         doc.text('Dirección:', 17, 35);
         doc.text(orden.bodegaOrigen.direccion, 60, 35);
-        doc.text('Fecha recibe:', 137, 20);
-        doc.text(self.controlRespuesta(orden.fechaEntradaDestino), 175, 20);
-        doc.text('Bodega de destino:', 137, 25);
-        doc.text(self.primerasmayusculas(orden.bodegaDestino.nombre), 175, 25);
-        doc.text('Funcionario recibe:', 137, 30);
-        doc.text(self.controlRespuesta(orden.funcionarioEntradaDestino), 175, 30);
-        doc.text('Estado de la orden:', 137, 35);
-        doc.text(orden.estado, 175, 35);
+        doc.text('Fecha recibe:', 150, 20);
+        doc.text(self.controlRespuesta(orden.fechaEntradaDestino), 185, 20);
+        doc.text('Bodega de destino:', 150, 25);
+        doc.text(self.primerasmayusculas(orden.bodegaDestino.nombre), 185, 25);
+        doc.text('Funcionario recibe:', 150, 30);
+        doc.text(self.controlRespuesta(orden.funcionarioEntradaDestino), 185, 30);
+        doc.text('Estado de la orden:', 150, 35);
+        doc.text(orden.estado, 185, 35);
       },
       didDrawPage: function (data) {
         // Agrega el número de página en la parte superior derecha de cada página
         doc.setFontSize(10);
-        doc.text('Página ' + paginaActual + ' de '+ totalPagesExp, 220, doc.internal.pageSize.height - 10);
+        doc.text('Página ' + paginaActual + ' de ' + totalPagesExp, 220, doc.internal.pageSize.height - 10);
         doc.text(orden.bodegaOrigen.direccion.toString(), 12, doc.internal.pageSize.height - 12);
-        doc.text('Cel: '+ orden.bodegaOrigen.telefono.toString() +', Email: '+ orden.bodegaOrigen.email.toString(), 12, doc.internal.pageSize.height - 7);
+        doc.text('Cel: ' + orden.bodegaOrigen.telefono.toString() + ', Email: ' + orden.bodegaOrigen.email.toString(), 12, doc.internal.pageSize.height - 7);
         doc.setLineWidth(1.3);
         doc.setDrawColor(236, 255, 83); // draw red lines 
         doc.line(10, doc.internal.pageSize.height - 20, 10, doc.internal.pageSize.height - 5);
@@ -249,7 +329,7 @@ export class HistorialordendespachoComponent {
     // Para calcular el total de páginas
     if (typeof doc.putTotalPages === 'function') {
       doc.putTotalPages(totalPagesExp);
-  }
+    }
 
     var pdfDataUri = doc.output('datauri');
     var newWindow = window.open();
@@ -259,7 +339,7 @@ export class HistorialordendespachoComponent {
       // Manejar el caso en el que window.open() devuelve nulo
       console.error('No se pudo abrir una nueva ventana.');
     }
-    
+
   }
 
 
@@ -267,30 +347,27 @@ export class HistorialordendespachoComponent {
     const data = [];
     this.contador = 1;
     this.listaItemOrden = orden.itemsDespacho
-    
     this.listaItemOrden = this.listaItemOrden.sort((a: any, b: any) => a.medicamento.nombre.localeCompare(b.medicamento.nombre));
     for (let i = 0; i < this.listaItemOrden.length; i++) {
-         const rowData = [
-          this.contador.toString(),
-          this.primerasmayusculas(this.listaItemOrden[i].medicamento.nombre || ''),
-          this.primerasmayusculas(this.listaItemOrden[i].medicamento.forma.nombre || ''),
-          (this.listaItemOrden[i].medicamento.codigoCum || '').toString(),
-          (this.listaItemOrden[i].invima || '').toString(),
-          this.primerasmayusculas(this.listaItemOrden[i].laboratorio || ''),
-          (this.listaItemOrden[i].lote || '').toString(),
-          this.listaItemOrden[i].fechaVencimiento || '',
-          //this.listaItemOrden[i].cantidad.toString(),
-        ];
-         // Si se incluye la cantidad, se agrega al final
-    if (incluirCantidad) {
-      rowData.push(this.listaItemOrden[i].cantidad.toString());
-    
+      const rowData = [
+        this.contador.toString(),
+        this.primerasmayusculas(this.listaItemOrden[i].medicamento.nombre || ''),
+        this.primerasmayusculas(this.listaItemOrden[i].medicamento.forma.nombre || ''),
+        (this.listaItemOrden[i].medicamento.codigoCum || '').toString(),
+        (this.listaItemOrden[i].invima || '').toString(),
+        this.primerasmayusculas(this.listaItemOrden[i].laboratorio || ''),
+        (this.listaItemOrden[i].lote || '').toString(),
+        this.listaItemOrden[i].fechaVencimiento || '',
+        //this.listaItemOrden[i].cantidad.toString(),
+      ];
+      // Si se incluye la cantidad, se agrega al final
+      if (incluirCantidad) {
+        rowData.push(this.listaItemOrden[i].cantidad.toString());
+      }
+      data.push(rowData);
+      this.contador++;
     }
-        data.push(rowData);
-        this.contador++;
-    
-    }
-   // data.push(this.calcularTotalesRow());
+    // data.push(this.calcularTotalesRow());
     return data;
   }
 
@@ -330,20 +407,15 @@ export class HistorialordendespachoComponent {
     }
     try {
       // Esperar la promesa con await 
-    
-      const parametrobodega=Number(idBodega);
-    
-      let resp: any;     
-      
-      
+
+      const parametrobodega = Number(idBodega);
+      let resp: any;
       let fileName: string = tipoReporte === 0 ? "Entradas" : "Salidas";
-      resp =  await this.ordendespachoservicio.getDetalleOrdenDespacho(parametrobodega, fInicial, fFinal,tipoReporte).toPromise();
+      resp = await this.ordendespachoservicio.getDetalleOrdenDespacho(parametrobodega, fInicial, fFinal, tipoReporte).toPromise();
 
       // Asegurarse de que resp sea un array antes de asignarlo
-      console.log(resp);
-      // Asegurarse de que resp sea un array antes de asignarlo
       if (Array.isArray(resp)) {
-        this.lista = resp;        
+        this.lista = resp;
         this.excelDetalleOrdenDespacho(fileName); // Exportar solo si la lista es válida
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
@@ -368,20 +440,19 @@ export class HistorialordendespachoComponent {
       'ID ORDEN',
       'FECHA DESPACHO',
       'ESTADO',
-      'BODEGA ORIGEN',      
+      'BODEGA ORIGEN',
       'FUNCIONARIO DESPACHO',
-      'BODEGA DESTINO',      
+      'BODEGA DESTINO',
       'FUNCIONARIO INGRESO',
       'TIPO DE ORDEN',
     ];
-
     datos.push(encabezado);
-   
+
     let controladoCadena = "";
     // Agrega los items de despacho al array
-    this.lista.forEach((item: any) => {      
+    this.lista.forEach((item: any) => {
 
-     controladoCadena = item.controlado ? "SI" : "NO";
+      controladoCadena = item.controlado ? "SI" : "NO";
       datos.push([
         item.idMedicamento || '',  // Validación si es null o undefined
         item.codigoCum || '',
@@ -390,7 +461,7 @@ export class HistorialordendespachoComponent {
         controladoCadena,
         item.cantidad || '',
         item.idDespacho || '',
-        item.fechaDespacho || '',       
+        item.fechaDespacho || '',
         item.estado || '',
         item.bodegaOrigen || '',
         item.funcionarioDespacho || '',
@@ -420,7 +491,7 @@ export class HistorialordendespachoComponent {
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Relacion_Despachos_' + fileName + new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Relacion_Despachos_' + fileName + new Date().getTime() + '.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -455,13 +526,66 @@ export class HistorialordendespachoComponent {
   }
 
   tieneAcceso(nivelRequerido: number): boolean {
-    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));
     if (isNaN(nivelUsuario)) {
-      //console.warn("El nivel del usuario no es válido o no está definido");
       return false;
-    }  
+    }
     return nivelUsuario >= nivelRequerido;
   }
+
+
+
+  onAjuste(event: any): void {
+    if (event.target.checked) {
+      this.listaOrdendespachofiltrada = this.listaOrdendespacho;
+      this.listaOrdendespacho = this.listaOrdendespacho.filter((registro: any) => registro.estado != 'Recepción');
+    }
+    else {
+      this.listaOrdendespacho = this.listaOrdendespachofiltrada;
+    }
+  }
+
+  devolverOrdenDespacho(orden: any) {
+    let funcionario = sessionStorage.getItem("nombre");
+    if (this.tieneAcceso(3)) {
+      Swal.fire({
+        title: 'Desea devolver?',
+        text: 'Esta seguro de devolver las catidades de los medicamentos de la orden de despacho Nro. ' + orden.idDespacho + ' , se regresara al inventario de la bodega de origen ' + orden.bodegaOrigen.nombre + ' y la orden quedará en modo creación para que la edite, la reprocese o la elimine.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, devolver!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.ordendespachoservicio.regresarinventariocangeBodegaorigen(orden.idDespacho, orden.bodegaOrigen.idBodega, funcionario!).subscribe(resp => {
+            this.buscarOrdenDespacho();
+            Swal.fire({
+              icon: 'success',
+              title: `Ok`,
+              text: 'De la orden de despacho Nr. ' + orden.idDespacho + ' fueron devuelto todas las cantidades de cada medicamento a la bodega de origen ' + orden.bodegaOrigen.nombre + ' correctamente, queda en modo creación!',
+            });
+
+          },
+            err => {
+              Swal.fire({
+                icon: 'error',
+                title: `Error`,
+                text: err.mensaje,
+              });
+            });
+        }
+      });
+    }
+    else {
+      Swal.fire({
+        icon: 'warning',
+        title: `Falta de permisos`,
+        text: "No tienes permisos para realizar la modificación en la devolución del medicamento en la orden de despacho, comunicate con el funcionario encargado!",
+      });
+    }
+  }
+
 
   reporteEnConstruccion() {
     Swal.fire({

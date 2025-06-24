@@ -1,56 +1,233 @@
+<div class="container mt-2" [formGroup]="generalForm">
 
-<div class="container mt-2"> 
-    <div class="input-group mb-2 d-flex justify-content-between align-items-center" [formGroup]="generalForm">
-        <span class="bodega-nombre">
-            <strong>{{listaPacienteFiltro[0]?.bodega || ''}}</strong> Pacientes con pendiente del medicamento: <strong>{{listaPacienteFiltro[0]?.nombreMedicamento || ''}}</strong>
-        </span>
-        <button type="button" class="btn btn-info btn-sm btn-custom-gradient buscar-button ml-auto"
-        [routerLink]="['/menu/pendiente', idBodega]">
-                    Regresar</button>
+  <style>
+    .btn-uniform {
+      min-width: 130px;
+      /* ajusta según prefieras */
+    }
+  </style>
 
-   </div>   
-    <div *ngIf="listaPacienteFiltro?.length > 0">
-            <table class="table table-striped table-hover table-sm">
-                <thead class="thead-colored">
-                    <tr>
-                        <th>Item</th>
-                        <th>Documento</th>
-                        <th>Nombres y apellidos paciente</th>
-                        <th>Celular</th>
-                        <th>EPS </th>
-                        <th>PAVE </th>
-                        <th>Formula </th>
-                        <th>Fecha del pendiente</th>
-                        <th>Cantidad</th>  
-                        <th>Gestión</th>                    
-                    </tr>
-                </thead>           
+  <div class="row mb-3">
+    <!-- Fecha y leyenda -->
+    <div class="col-md-6">
+      <div class="d-flex align-items-center mb-2">
+        <label for="fechainicial" class="form-label me-2 mb-0">Desde:</label>
+        <input id="fechainicial" type="date" formControlName="fechainicial" class="form-control me-3">
 
-
-                <tbody>
-                    <tr *ngFor="let itemt of listaPacienteFiltro let i= index">
-                        <td>{{i+1}}</td>
-                        <td>{{itemt.tipoDoc || ''}}-{{itemt.numDocumento || ''}}</td>
-                        <td>{{itemt.pNombre || ''}} {{itemt.sNombre || ''}} {{itemt.pApellido || ''}} {{itemt.sApellido || ''}}</td>
-                        <td>{{itemt.telefono}}</td>
-                        <td>{{itemt.codEps}}</td>
-                        <td>{{itemt.estado}}</td>
-                        <td>{{itemt.idFormula || ''}}</td>
-                        <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
-                        <td>{{itemt.pendiente}}</td>   
-                        <td> 
-                            <button title="Gestionar Pendiente"
-                            *ngIf=" itemt.cantidadEntrega===0" type="button"
-                            class="btn btn-sm" [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
-                                [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
-                        <button title="Gestionar Pendiente"
-                            *ngIf="itemt.cantidadEntrega>0" type="button"
-                            class="btn btn-sm" [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
-                                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>                       
-</td>                    
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
+        <label for="fechafinal" class="form-label me-2 mb-0">Hasta:</label>
+        <input id="fechafinal" type="date" formControlName="fechafinal" class="form-control">
+      </div>
     </div>
+
+
+    <!-- Botones -->
+    <div class="col-md-6 d-flex justify-content-end align-items-start">
+      <div class="d-flex flex-column flex-md-row flex-wrap gap-2 w-100 justify-content-md-end">
+
+        <button type="button" class="btn btn-info d-flex align-items-center justify-content-center"
+          (click)="buscarPendiente()">
+          <mat-icon class="me-1">search</mat-icon> Buscar
+        </button>
+
+        <button *ngIf="tieneAcceso(2)" type="button" class="btn btn-warning btn-sm btn-uniform"
+          [disabled]="enviandoMensajes" (click)="mensajesWSPave()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 448 512"
+            style="margin-right: 6px;">
+            <path d="M380.9 97.1C339 55.1 283.2 32 224.2 32c-115 0-208 93-208 208 
+                 0 36.7 9.7 72.4 28.1 103.9L2.5 470.1c-2.2 6.5-.4 13.7 4.5 
+                 18.5 3.6 3.6 8.4 5.5 13.1 5.5 2 0 4.1-.3 6-1l119.8-38.2c30.4 
+                 16.6 64.7 25.4 99.1 25.4h.1c115 0 208-93 208-208 
+                 0-55.6-21.6-107.9-60.2-146.2zM224.2 438.6c-30.5 0-60.6-8.2-86.7-23.7l-6.2-3.7-71.2 
+                 22.7 22.9-69.3-4.1-6.4c-17.7-27.6-27-59.5-27-92.2 
+                 0-95.1 77.4-172.4 172.5-172.4 46 0 89.2 17.9 121.7 
+                 50.4s50.3 75.8 50.3 121.6c.1 95.1-77.3 172.6-172.2 
+                 172.6zm101.4-138.1c-5.5-2.8-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.8-12.6 
+                 2.8s-14.5 17.9-17.8 21.6c-3.3 3.7-6.5 4.2-12 
+                 1.4s-23.4-8.6-44.6-27.4c-16.5-14.7-27.6-32.9-30.8-38.4-3.2-5.6-.3-8.6 
+                 2.4-11.4 2.5-2.6 5.6-6.6 8.4-9.9 2.8-3.3 3.7-5.6 
+                 5.6-9.3s.9-7-0.5-9.9c-1.4-2.8-12.6-30.3-17.3-41.4-4.5-10.8-9.1-9.3-12.6-9.5-3.3-.2-7.1-.2-10.9-.2s-10.1 
+                 1.4-15.4 7c-5.3 5.6-20.2 19.7-20.2 48.1s20.7 55.8 
+                 23.5 59.7c2.8 3.7 40.7 62.1 98.6 87.2 13.8 5.9 
+                 24.6 9.4 33 12 13.9 4.4 26.5 3.8 36.5 2.3 11.1-1.7 
+                 32.7-13.3 37.3-26.2 4.6-12.9 4.6-23.9 3.2-26.2-1.3-2.2-5-3.6-10.5-6.3z" />
+          </svg>
+          <span *ngIf="!enviandoMensajes">Enviar PAVE</span>
+          <div *ngIf="enviandoMensajes" class="spinner-border spinner-border-sm text-light me-1" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <span *ngIf="enviandoMensajes">Enviando...</span>
+        </button>
+
+        <button *ngIf="tieneAcceso(2)" type="button"
+          class="btn btn-success btn-sm btn-uniform d-flex align-items-center justify-content-center"
+          [disabled]="enviandoMensajes" (click)="enviarMensajesConRetraso()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 448 512"
+            style="margin-right: 6px;">
+            <path d="M380.9 97.1C339 55.1 283.2 32 224.2 32c-115 0-208 93-208 208 
+                       0 36.7 9.7 72.4 28.1 103.9L2.5 470.1c-2.2 6.5-.4 13.7 4.5 
+                       18.5 3.6 3.6 8.4 5.5 13.1 5.5 2 0 4.1-.3 6-1l119.8-38.2c30.4 
+                       16.6 64.7 25.4 99.1 25.4h.1c115 0 208-93 208-208 
+                       0-55.6-21.6-107.9-60.2-146.2zM224.2 438.6c-30.5 0-60.6-8.2-86.7-23.7l-6.2-3.7-71.2 
+                       22.7 22.9-69.3-4.1-6.4c-17.7-27.6-27-59.5-27-92.2 
+                       0-95.1 77.4-172.4 172.5-172.4 46 0 89.2 17.9 121.7 
+                       50.4s50.3 75.8 50.3 121.6c.1 95.1-77.3 172.6-172.2 
+                       172.6zm101.4-138.1c-5.5-2.8-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.8-12.6 
+                       2.8s-14.5 17.9-17.8 21.6c-3.3 3.7-6.5 4.2-12 
+                       1.4s-23.4-8.6-44.6-27.4c-16.5-14.7-27.6-32.9-30.8-38.4-3.2-5.6-.3-8.6 
+                       2.4-11.4 2.5-2.6 5.6-6.6 8.4-9.9 2.8-3.3 3.7-5.6 
+                       5.6-9.3s.9-7-0.5-9.9c-1.4-2.8-12.6-30.3-17.3-41.4-4.5-10.8-9.1-9.3-12.6-9.5-3.3-.2-7.1-.2-10.9-.2s-10.1 
+                       1.4-15.4 7c-5.3 5.6-20.2 19.7-20.2 48.1s20.7 55.8 
+                       23.5 59.7c2.8 3.7 40.7 62.1 98.6 87.2 13.8 5.9 
+                       24.6 9.4 33 12 13.9 4.4 26.5 3.8 36.5 2.3 11.1-1.7 
+                       32.7-13.3 37.3-26.2 4.6-12.9 4.6-23.9 3.2-26.2-1.3-2.2-5-3.6-10.5-6.3z" />
+          </svg>
+
+          <span *ngIf="!enviandoMensajes">Enviar a todos</span>
+          <div *ngIf="enviandoMensajes" class="spinner-border spinner-border-sm text-light me-1" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <span *ngIf="enviandoMensajes">Enviando...</span>
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm btn-uniform"
+          [routerLink]="['/menu/pendiente', idBodega]">
+          Regresar
+        </button>
+      </div>
+    </div>
+
+    <div class="text-muted small d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
+      <span>
+        <strong>{{ listaPaciente[0]?.bodega || '' }}</strong> - Pendiente:
+        <strong>{{ listaPaciente[0]?.nombreMedicamento || '' }}</strong>
+      </span>
+      <div *ngIf="listaPaciente?.length > 0" class="alert alert-info mb-0 py-1 px-2 d-inline-flex align-items-center">
+        <strong>Nro de formulas:&nbsp; </strong> {{ listaPaciente?.length }}
+      </div>
+      <div *ngIf="listaPaciente?.length > 0" class="alert alert-danger mb-0 py-1 px-2 d-inline-flex align-items-center">
+        <strong>Total pendientes:&nbsp; </strong> {{ totalCantidadPendiente || 0 }}
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info my-4" *ngIf="listaPaciente?.length == 0">
+    No hay registros para mostrar!
+  </div>
+
+  <div *ngIf="listaPaciente?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+      <thead class="thead-colored">
+        <tr>
+          <th>Item</th>
+          <th>Documento</th>
+          <th>Nombres y apellidos paciente</th>
+          <th>Celular</th>
+          <th>EPS </th>
+          <th>PAVE </th>
+          <th>Formula </th>
+          <th>Fecha del pendiente</th>
+          <th>Cantidad</th>
+          <th>Gestión</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of listaPaciente let i= index">
+          <td>{{i+1}}</td>
+          <td>{{itemt.tipoDoc || ''}}-{{itemt.numDocumento || ''}}</td>
+          <td>{{itemt.pNombre || ''}} {{itemt.sNombre || ''}} {{itemt.pApellido || ''}} {{itemt.sApellido
+            || ''}}</td>
+          <td>
+            <div>
+              <ng-container *ngIf="!itemt.editing; else modoEdicion">
+               
+                  <mat-icon class="pointer-cursor" [ngStyle]="{'color':'#009A94', 'font-size': '16px'}"
+                    (click)="enEdicion(itemt )"  title="Editar datos de contacto" >edit</mat-icon>
+                  {{itemt.telefono}}
+              
+              </ng-container>
+
+              <ng-template #modoEdicion>
+                <div class="contacto-edicion-container">
+                  <div>
+                    <mat-label>Datos de contacto</mat-label>
+                    <input class="form-control" type="number" formControlName="celularPrincipal"
+                      placeholder="Digite teléfono principal" />
+                    <input class="form-control" type="number" formControlName="celularSecundario"
+                      placeholder="Digite teléfono secundario" />
+                    <input class="form-control" type="text" formControlName="direccion"
+                      placeholder="Digite dirección" />
+                    <input class="form-control" type="text" formControlName="barrio" placeholder="Digite barrio" />
+                    <input class="form-control" type="text" formControlName="email"
+                      placeholder="Digite correo electrónico" />
+                  </div>
+
+                  <div class="acciones">
+                    <button mat-icon-button color="primary" (click)="guardarDatosContacto(itemt)" matTooltip="Guardar">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="cancelarEdicion(itemt)" matTooltip="Cancelar">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </ng-template>
+
+
+            </div>
+
+          </td>
+          <td>{{itemt.codEps}}</td>
+          <td>
+            <mat-icon *ngIf="itemt.pave === 'SI'" title="paciente PAVE"
+              [ngStyle]="{'color':'red', 'font-size': '16px'}">person_outline</mat-icon>
+          </td>
+          <td>{{itemt.idFormula || ''}}</td>
+          <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
+          <td>{{itemt.pendiente}}</td>
+          <td>
+            <button title="Gestionar Pendiente" *ngIf=" itemt.cantidadEntrega===0" type="button" class="btn btn-sm"
+              [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
+                [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon> </button>
+            <button title="Gestionar Pendiente" *ngIf="itemt.cantidadEntrega>0" type="button" class="btn btn-sm"
+              [routerLink]="['/menu/entrega', itemt.idFormula]"> <mat-icon
+                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> </button>
+
+            <mat-icon *ngIf="tieneAcceso(2)" class="pointer-cursor" [matMenuTriggerFor]="menu" title="Enviar mensaje"
+              style="font-size: 20px; color: #25D366;">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 448 512" fill="currentColor">
+                <path d="M380.9 97.1C339 55.1 283.2 32 224.2 32c-115 0-208 93-208 208 
+                                            0 36.7 9.7 72.4 28.1 103.9L2.5 470.1c-2.2 6.5-.4 13.7 4.5 
+                                            18.5 3.6 3.6 8.4 5.5 13.1 5.5 2 0 4.1-.3 6-1l119.8-38.2c30.4 
+                                            16.6 64.7 25.4 99.1 25.4h.1c115 0 208-93 208-208 
+                                            0-55.6-21.6-107.9-60.2-146.2zM224.2 438.6c-30.5 0-60.6-8.2-86.7-23.7l-6.2-3.7-71.2 
+                                            22.7 22.9-69.3-4.1-6.4c-17.7-27.6-27-59.5-27-92.2 
+                                            0-95.1 77.4-172.4 172.5-172.4 46 0 89.2 17.9 121.7 
+                                            50.4s50.3 75.8 50.3 121.6c.1 95.1-77.3 172.6-172.2 
+                                            172.6zm101.4-138.1c-5.5-2.8-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.8-12.6 
+                                            2.8s-14.5 17.9-17.8 21.6c-3.3 3.7-6.5 4.2-12 
+                                            1.4s-23.4-8.6-44.6-27.4c-16.5-14.7-27.6-32.9-30.8-38.4-3.2-5.6-.3-8.6 
+                                            2.4-11.4 2.5-2.6 5.6-6.6 8.4-9.9 2.8-3.3 3.7-5.6 
+                                            5.6-9.3s.9-7-0.5-9.9c-1.4-2.8-12.6-30.3-17.3-41.4-4.5-10.8-9.1-9.3-12.6-9.5-3.3-.2-7.1-.2-10.9-.2s-10.1 
+                                            1.4-15.4 7c-5.3 5.6-20.2 19.7-20.2 48.1s20.7 55.8 
+                                            23.5 59.7c2.8 3.7 40.7 62.1 98.6 87.2 13.8 5.9 
+                                            24.6 9.4 33 12 13.9 4.4 26.5 3.8 36.5 2.3 11.1-1.7 
+                                            32.7-13.3 37.3-26.2 4.6-12.9 4.6-23.9 3.2-26.2-1.3-2.2-5-3.6-10.5-6.3z" />
+              </svg>
+            </mat-icon>
+            <mat-menu #menu="matMenu">
+              <button (click)='vermensajeWhatsApp(itemt)' mat-menu-item>
+                <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
+                <span>Ver mensaje</span>
+              </button>
+              <button (click)='enviarWhatsApp(itemt)' mat-menu-item>
+                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add</mat-icon>
+                <span>Enviar mensaje</span>
+              </button>
+            </mat-menu>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

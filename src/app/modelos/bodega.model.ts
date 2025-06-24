@@ -11,6 +11,9 @@ export class BodegaI {
     estado: boolean;
     dispensa: boolean;
     email: String;
+    inventario: boolean; 
+	entrada: boolean; 	
+	salida: boolean; 
 
 
 
@@ -26,6 +29,9 @@ export class BodegaI {
         this.email = "";      
         this.estado = true;
         this.dispensa = false;
+        this.inventario = false;
+        this.entrada = false;
+        this.salida = false;
 
     }
 

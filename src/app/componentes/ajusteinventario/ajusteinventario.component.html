@@ -50,13 +50,13 @@
                 <div class="col-md-6">
                 <!-- Botones -->
             <div class="form-row mt-3">
-                <div class="col-md-6">
+                <div *ngIf ="tieneAcceso(4)" class="col-md-6">
                     <button class="btn btn-outline-primary w-50" (click)="create()">
                         <i class="far fa-save"></i> {{this.nombrebtn}}
                     </button>
                 </div>
-                <div class="col-md-6">
-                    <button class="btn btn-outline-primary w-50 mt-2" (click)="reporteEnConstruccion()">Procesar ajustes</button>
+                <div *ngIf ="tieneAcceso(4)" class="col-md-6">
+                    <button class="btn btn-outline-primary w-50 mt-2" (click)="procesarAjusteInventario()">Procesar ajustes</button>
                 </div>
                 <div class="col-md-6">
                     <button class="btn btn-outline-primary w-50 mt-2" [routerLink]="['/menu/verajusteinventario']">Ver ajustes</button>
@@ -88,11 +88,14 @@
             <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
                 placeholder="Buscar por nombre del medicamento">               
 
-                <div class="form-group d-flex align-items-center ">
-                    <input id="portabilidad" class="form-check-input" type="checkbox" formControlName="soloajuste"
-                     (change)="onAjuste($event)">
-                    <label class="form-check-label">Ver solo los medicamentos en ajuste</label>   
-                </div>                 
+                
+                <!-- Checkbox separado con margen -->
+    <div class="form-group d-flex align-items-center ms-3">
+        <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="soloajuste"
+            (change)="onAjuste($event)">
+        <label class="form-check-label" for="portabilidad">Ver solo los medicamentos en ajuste</label>
+    </div>
+               
 
         </div>
     </div>
@@ -128,7 +131,9 @@
                 <td>{{itemt.idMedicamento}}</td>
                 <td>{{primerasmayusculas(itemt.nombre)}}</td>
                 <td>{{primerasmayusculas(itemt.forma)}}</td>
-                <td class="text-center">{{itemt.cantidad}}</td>  
+                <td  [ngClass]="{'text-danger fw-bold': (itemt.cantidad + itemt.cantidadAjuste) < 0 }">
+                     {{ itemt.cantidad }}
+                     <mat-icon *ngIf="(itemt.cantidad + itemt.cantidadAjuste) < 0" class="ms-1">warning</mat-icon></td>  
                 <td class="text-center"> <div *ngIf="itemt.editing">
                     <input type="number" [(ngModel)]="itemt.cantidadSistema" placeholder="Cantidad en sistema inventario"
                         class="form-control mb-1" />                      

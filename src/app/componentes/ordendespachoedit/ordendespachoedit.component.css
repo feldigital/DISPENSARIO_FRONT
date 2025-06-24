@@ -1,0 +1,134 @@
+.card-body {
+    padding: 10px; /* Reduce el espacio interno */
+  }
+  
+  .card-body p {
+    margin: 4px 0; /* Reduce el margen entre párrafos */
+    font-size: 14px; /* Ajusta el tamaño de fuente */
+    line-height: 1.3; /* Ajusta el espacio entre líneas */
+  }
+  
+  .card-body p strong {
+    font-weight: 600; /* Asegura que los títulos sean visibles pero no demasiado grandes */
+  }
+  
+  .card {
+    margin: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-header {
+    /*background-color: #007bff;*/
+    background: linear-gradient(to right, #5D8FA5, #6CC5D4);
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  .form-group {
+    margin-bottom: 5px; /* Reduce el espacio entre los grupos de formularios */
+  }
+  
+  .form-group.row {
+    display: flex;
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+  }
+  
+  .form-group label {
+    font-weight: bold;
+    margin-bottom: 0; /* Elimina el margen inferior de las etiquetas */
+  }
+  
+  .form-control,
+  .btn {
+    border-radius: 4px; /* Ajusta el radio de los bordes */
+  }
+  
+  .btn-info {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+  
+  
+  
+  .alert {
+    border-radius: 4px;
+    margin-top: 5px; /* Reduce el espacio antes de las alertas */
+  }
+  
+  .float-right {
+    margin-top: 5px; /* Reduce el espacio antes del texto flotante */
+    font-weight: bold;
+  }
+  
+  .mat-form-field {
+    width: 100%;
+  }
+  
+  .mat-form-field .mat-form-field-infix {
+    padding: 0 2px; /* Ajusta el padding para reducir la altura */
+  }
+  
+  .mat-option {
+    font-size: 12px; /* Ajusta el tamaño de fuente */
+    line-height: 1.1; /* Reduce la altura de las opciones */
+    padding: 2px 8px; /* Reduce el padding para opciones más compactas */
+    transition: background-color 0.2s;
+  }
+  
+  .mat-option:hover {
+    background-color: #f1f1f1; /* Color de fondo al pasar el ratón */
+  }
+  
+  .mat-autocomplete-panel {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 250px; /* Limita la altura máxima del panel */
+    overflow-y: auto;
+  }
+  
+  .mat-input-element {
+    padding: 5px 8px; /* Ajusta el padding para reducir la altura */
+  }
+  
+  .input-container {
+    margin-bottom: 2px; /* Reduce el margen entre los contenedores de entrada */
+  }
+  
+  @media (max-width: 768px) {
+    .mat-input-element {
+      padding: 5px 8px; /* Ajusta el padding para pantallas más pequeñas */
+    }
+  
+    .mat-option {
+      font-size: 13px;
+      padding: 5px 10px;
+    }
+  }
+  
+  .input-group {
+    display: flex; /* Usa Flexbox para alinear los elementos en una fila */
+    align-items: center; /* Alinea verticalmente al centro */
+  }
+  
+  .input-group .form-control {
+    flex: 1; /* Hace que el input ocupe el espacio disponible */
+    margin-right: 8px; /* Añade un margen entre el input y el botón */
+  }
+  
+  .input-group .btn {
+    margin: 0; /* Elimina el margen por defecto del botón */
+  }

@@ -23,6 +23,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete'
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatTabsModule} from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule} from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +31,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+
 import { DetalleformulaComponent } from './componentes/detalleformula/detalleformula.component';
 import { EntregasComponent } from './componentes/entregas/entregas.component';
 import { IpsComponent } from './componentes/ips/ips.component';
@@ -53,6 +57,9 @@ import { HistorialentregaComponent } from './componentes/historialentrega/histor
 import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
 import { AjusteinventarioComponent } from './componentes/ajusteinventario/ajusteinventario.component';
 import { VerajusteinventarioComponent } from './componentes/verajusteinventario/verajusteinventario.component';
+import { OrdendespachoeditComponent } from './componentes/ordendespachoedit/ordendespachoedit.component';
+import { MedicamentoepsComponent } from './componentes/medicamentoeps/medicamentoeps.component';
+import { PrescritosComponent } from './componentes/prescritos/prescritos.component';
 
 
 export function initPermisos(permisosService: PermisosService) {
@@ -92,6 +99,9 @@ export function initPermisos(permisosService: PermisosService) {
     MedicamentosentregadosComponent,
     AjusteinventarioComponent,
     VerajusteinventarioComponent,
+    OrdendespachoeditComponent,
+    MedicamentoepsComponent,
+    PrescritosComponent,
 
   ],
   imports: [
@@ -113,6 +123,9 @@ export function initPermisos(permisosService: PermisosService) {
     MatInputModule,
     MatSlideToggleModule,
     MatDialogModule,
+    MatTabsModule,
+    MatProgressBarModule,
+    MatSnackBarModule
 
   ],
 

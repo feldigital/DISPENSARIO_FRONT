@@ -1,5 +1,5 @@
 <div class="container mt-4">
-    <form [formGroup]="generalForm" (ngSubmit)="create()" class="w-100 d-block">
+    <form [formGroup]="generalForm"  class="w-100 d-block">
         <div class="row">
 
             <div class="col-sm">
@@ -68,7 +68,7 @@
                   </div>
 
                 <div class="input-group mb-2">
-                    <input type="text" formControlName="valor" placeholder="Ingrese el precio"
+                    <input type="number" formControlName="valor" placeholder="Ingrese el precio"
                         class="form-control border-end-0" required>
                     <span class="input-group-text bg-transparent">
                         <i class="fa fa-user"></i>
@@ -89,9 +89,36 @@
                 <hr>
                 <div class="row">
                     <div class="col-6">
-                        <button class="btn btn-outline-primary w-100"><i class="far fa-save"></i>
+                        <button class="btn btn-outline-primary w-50" (click)="create()">
                             {{this.nombrebtn}}</button>
-                    </div>                  
+
+                            <button class="btn btn-outline-primary w-50" [matMenuTriggerFor]="menuMed">
+                                Imprimir</button>   
+                    </div>  
+                    
+                    <mat-menu #menuMed="matMenu">           
+                       
+                        <button (click)='reporteMedicamentosFiltrados(true,false,false,false,"AGOTADOS")' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'#orange'}">print</mat-icon>
+                            <span>Agotados</span>
+                        </button>
+                        <button (click)='reporteMedicamentosFiltrados(false,false,true,false,"CONTROLADOS")' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'green'}">print</mat-icon>
+                            <span>Controlados</span>
+                        </button>  
+                        <button (click)='reporteMedicamentosFiltrados(false,true,false,false,"DESABASTECIDOS")' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'2BB6D7'}">print</mat-icon>
+                            <span>Desabastecidos</span>
+                        </button>          
+                        <button (click)='reporteMedicamentosFiltrados(false,false,false,true,"NO VIGENTES")' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'red'}">print</mat-icon>
+                            <span>No vigentes</span>
+                        </button>       
+                    <!--    <button (click)='reporteEnConstruccion()' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
+                            <span>Exportar todos</span>
+                        </button>           -->
+                    </mat-menu>
                 </div>               
 
             </div>
@@ -132,23 +159,22 @@
                     <td>{{itemt.via.nombre}}</td>
                     <td>{{ '$ ' + (itemt.valor | number:'1.0-0') }}</td>          
                     <td>
+                        <div style="display: flex; align-items: center; ">
                         <mat-icon title="Gestionar el medicamento en la bodega" class="pointer-cursor" [matMenuTriggerFor]="menu"
-                        [ngStyle]="{'color':'#009A94'}"  >domain</mat-icon> 
+                        [ngStyle]="{'font-size': '20px', 'color':'#009A94'}"  >domain</mat-icon> 
 
                         <mat-icon title="Asociar el medicamento al contrato" class="pointer-cursor" 
-                        [ngStyle]="{'color':'#009A94'}"  (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon> 
-
+                        [ngStyle]="{'font-size': '20px','color':'#009A94'}"  (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon> 
 
                         <mat-icon title="Quitar el medicamento del contrato" class="pointer-cursor" 
-                        [ngStyle]="{'color':'orange'}"  (click)="modificarContrato(itemt,1)">clear</mat-icon> 
-
+                        [ngStyle]="{'font-size': '20px','color':'orange'}"  (click)="modificarContrato(itemt,1)">clear</mat-icon> 
 
                         <mat-icon title="Actualizar el medicamento" class="pointer-cursor" 
-                        [ngStyle]="{'color':'#009A94'}"  (click)="mostrarRegistro(itemt)">edit</mat-icon> 
+                        [ngStyle]="{'font-size': '20px','color':'#009A94'}"  (click)="mostrarRegistro(itemt)">edit</mat-icon> 
 
                         <mat-icon title="Eliminar el medicamento" class="pointer-cursor" 
-                        [ngStyle]="{'color':'red'}"  (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
-
+                        [ngStyle]="{'font-size': '20px','color':'red'}"  (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+</div>
                         <mat-menu #menu="matMenu">
                             
                             <button (click)='agregarMedicamentotodasBodega(itemt)' mat-menu-item>

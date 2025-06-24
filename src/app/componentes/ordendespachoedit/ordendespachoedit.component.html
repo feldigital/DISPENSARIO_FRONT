@@ -1,0 +1,137 @@
+<div class="card-body">
+    <div [formGroup]="generalForm">
+
+        <div   class="col-12 text-center">  
+            <span class="fw-bold">EDITANDO ORDEN DE DESPACHO Nro. {{listaregistros?.idDespacho}} DE FECHA {{listaregistros?.fechaDespacho}} </span>             
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-md-6">
+                <div class="card-header">
+                    Origen <strong>({{listaregistros?.bodegaOrigen?.nombre}})</strong>
+                </div>
+                <div class="card-body">
+                     <p><strong>Dirección:</strong> {{listaregistros?.bodegaOrigen?.direccion}}</p>
+                    <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}} <strong>Funcionario
+                            despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>                   
+                    <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>
+
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card-header">
+                    Destino <strong>({{listaregistros?.bodegaDestino?.nombre}})</strong>
+                </div>
+                <div class="card-body">                    
+                    <p><strong>Dirección:</strong> {{listaregistros?.bodegaDestino?.direccion}}</p>
+                    <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}} <strong>Funcionario
+                            ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>             
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-9">
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Buscar medicamento a agregar
+                </mat-label>
+                <input type="text" matInput formControlName="medicamento" [matAutocomplete]="automedicamento" />
+                <mat-autocomplete #automedicamento="matAutocomplete" (optionSelected)="seleccionarMedicamento($event)">
+                    <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option">
+                        {{ option.nombre }}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+        </div>
+        <div *ngIf="verItem">
+            <table class="table table-striped table-hover table-sm">
+                <thead class="thead-gradient-d">
+                    <tr>                       
+                        <th>ID</th>
+                        <th>Medicamento</th>
+                        <th>Presentación</th>    
+                        <th>Existencia</th>                      
+                        <th>Invima</th>
+                        <th>Laboratorio</th>
+                        <th>Lote</th>
+                        <th>Vencimiento</th>
+                        <th>Cantidad</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr >
+                        <td>{{ itemNuevo.id}}</td>
+                        <td>{{ itemNuevo.medicamento}}</td>
+                        <td>{{ itemNuevo.presentacion}}</td>
+                        <td><strong>{{ itemNuevo.existencia }}</strong></td>
+                        <td> <input type="text" formControlName="invima" class="form-control border-end-0 search-input"
+                            placeholder="Digite invima" >  
+                        <td><input type="text" formControlName="laboratorio" class="form-control border-end-0 search-input"
+                            placeholder="Digite laboratorio" >   </td>                       
+                        <td><input type="text" formControlName="lote" class="form-control border-end-0 search-input"
+                            placeholder="Digite lote" >   </td>
+                        <td><input type="date" formControlName="fechaVencimiento"
+                            class="form-control border-end-0 input-anch" ></td>
+                        <td><input type="number" formControlName="cantidad" class="form-control border-end-0 search-input"
+                            placeholder="Digite cantidad"> </td>                      
+                        <td>
+                            <button class="btn btn-outline-primary" title="Agregar item de la orden"  (click)="validarYGuardarMedicamento()">
+                               Agregar</button>
+                           
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    
+    </div>
+    <div *ngIf="listaItemsFormula?.length > 0">
+        <table class="table table-striped table-hover table-sm">
+            <thead class="thead-colored">
+                <tr>
+                    <th>Item</th>
+                    <th>ID</th>
+                    <th>Medicamento</th>
+                    <th>Presentación</th>
+                    <th>CUM</th>
+                    <th>Invima</th>
+                    <th>Laboratorio</th>
+                    <th>Lote</th>
+                    <th>Vencimiento</th>
+                    <th>Cantidad</th>
+                    <th>Gestión</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of listaItemsFormula; let i = index">
+                    <td>{{ i+1 }}</td>
+                    <td>{{ item.medicamento.idMedicamento }}</td>
+                    <td>{{ item.medicamento.nombre }}</td>
+                    <td>{{ item.medicamento.forma.nombre }}</td>
+                    <td>{{ item.medicamento.codigoCum }}</td>
+                    <td>{{ item.invima }}</td>
+                    <td>{{ item.laboratorio }}</td>
+                    <td>{{ item.lote }}</td>
+                    <td>{{ item.fechaVencimiento }}</td>                    
+                    <td style="color: green; text-align: right;"><strong>{{item.cantidad}}</strong></td>
+                    <td>
+                       
+                        <mat-icon  class="pointer-cursor" title="Eliminar item de la orden" [ngStyle]="{'color':'red'}"
+                            (click)="eliminarItemOrden(item)">
+                            delete_sweep</mat-icon>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-6">
+            <button class="btn btn-outline-primary w-50" [routerLink]="['/menu/historialordendespacho']">
+                Regresar</button>
+        </div>
+
+    </div>
+</div>

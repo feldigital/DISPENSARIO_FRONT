@@ -28,6 +28,9 @@ import { HistorialentregaComponent } from './componentes/historialentrega/histor
 import { MedicamentosentregadosComponent } from './componentes/medicamentosentregados/medicamentosentregados.component';
 import { AjusteinventarioComponent } from './componentes/ajusteinventario/ajusteinventario.component';
 import { VerajusteinventarioComponent } from './componentes/verajusteinventario/verajusteinventario.component';
+import { OrdendespachoeditComponent } from './componentes/ordendespachoedit/ordendespachoedit.component';
+import { MedicamentoepsComponent } from './componentes/medicamentoeps/medicamentoeps.component';
+import { PrescritosComponent } from './componentes/prescritos/prescritos.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -62,8 +65,11 @@ const routes: Routes = [
       { path: 'editformula/:id', component: EditformulaComponent },
       { path: 'editformula', component: EditformulaComponent },
       { path: 'ajusteinventario/:id', component: AjusteinventarioComponent },
+      { path: 'medicamentoeps', component: MedicamentoepsComponent },  
       { path: 'ajusteinventario', component: AjusteinventarioComponent },
+      { path: 'prescritos', component: PrescritosComponent },
       { path: 'verajusteinventario', component: VerajusteinventarioComponent },
+      { path: 'ordendespachoedit/:id', component: OrdendespachoeditComponent },  
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
       { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto
     ]

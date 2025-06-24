@@ -1,10 +1,11 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ItemFormulaEntregaI } from 'src/app/modelos/itemformulaentrega.model';
+import { BodegaService } from 'src/app/servicios/bodega.service';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import Swal from 'sweetalert2';
+//import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-entregas',
@@ -13,18 +14,19 @@ import Swal from 'sweetalert2';
 })
 export class EntregasComponent implements OnInit, OnChanges {
 
-  listaItemsFormula: any;
-  //listaregistros: any;
+  listaItemsFormula: any; 
   listaregistros: any = {};
   parametro: any;
   @Input() formulaRecibida: number = NaN;
   existencias: { [key: number]: number } = {};
   hoy!: string;
+  enProceso: boolean =false;
 
   constructor(
     private servicio: PacienteService,
     private medicamentoService: MedicamentoService,
     private servicioformula: FormulaService,
+    private serviciobodega: BodegaService,
     private activatedRoute: ActivatedRoute) { }
 
   ngOnInit(): void {
@@ -53,13 +55,17 @@ export class EntregasComponent implements OnInit, OnChanges {
   public buscarRegistro(id: number) {
     this.servicioformula.getFormulaId(id)
       .subscribe((resp: any) => {
-        this.listaregistros = resp;        
-        this.listaItemsFormula = resp.items;
-        //this.listaItemsFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
+        this.listaregistros = resp;               
+        this.listaItemsFormula = resp.items;     
+        console.log(resp.items);
       });
   }
 
   public async entregarPendiente(itemt: any) {
+    if (this.enProceso ){     
+      return; // ❌ Evita doble clic si ya está en proceso
+   }
+
     try {
       let bodegaString = sessionStorage.getItem("bodega");
       let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
@@ -109,29 +115,26 @@ export class EntregasComponent implements OnInit, OnChanges {
               if (cantidad >= cantidadAentregar) { 
                 if (cantidadAentregar > 0) {
                   if (funcionario && bodegaString) {
-
                     let selectElementtipo = document.getElementById('tipoRecibe') as HTMLSelectElement;
-                    const selectedValuetipo = selectElementtipo.value;
-                    
+                    const selectedValuetipo = selectElementtipo.value;                    
                     let selectElementdocumento = document.getElementById('documentoRecibe') as HTMLInputElement;         
                     const selectedValuedocumento = selectElementdocumento.value;
-
-                 if (selectedValuetipo !== '' && selectedValuedocumento !== '') {
-                    console.log("esta es la fecha para agregar el pendiente", selectedValueDate );
+                 if (selectedValuetipo !== '' && selectedValuedocumento !== '') {   
+                 
+                  this.enProceso = true;               
 
                     this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar, selectedValuetipo, selectedValuedocumento,selectedValueDate, this.listaregistros.idBodega)
                       .subscribe({
-                        next: (data: any) => {
-                          console.log(data);
+                        next: (data: any) => {                         
+                          this.enProceso = false; 
                           Swal.fire('Correcto!', `Ingresado y descargado correctamente el medicamento pendiente ${itemt.medicamento.nombre}`, 'success');
                           this.buscarRegistro(this.parametro);
                         },
                         error: (err) => {
+                          this.enProceso = false; 
                           console.error('Error al guardar la entrega', err);
                         }
-                      });
-                   
-                 
+                      });                
                     } 
                     else {
                       Swal.fire({
@@ -231,6 +234,7 @@ export class EntregasComponent implements OnInit, OnChanges {
           <option value="Ajuste por presentación">Ajuste por presentación</option>   
           <option value="Agotado">Agotado</option>   
           <option value="Desabastecido">Desabastecido</option> 
+          <option value="Usuario no adherente al tratamiento">Usuario no adherente al tratamiento</option>
           <option value="Usuario Fallecido">Usuario Fallecido</option>
           <option value="Usuario Inactivo">Usuario Inactivo</option>                          
         </select>   
@@ -325,9 +329,11 @@ export class EntregasComponent implements OnInit, OnChanges {
   }
 
 
-imprimir(): void {
-  const contenido = this.generarContenidoPOS(this.listaregistros);
-  // Crear un iframe oculto
+  async imprimir( tipo :number): Promise<void> {
+    const contenido = tipo === 1
+    ? await this.generarContenidoPOSPendiente(this.listaregistros)
+    : await this.generarContenidoPOSEntrega(this.listaregistros);
+    // Crear un iframe oculto
   const iframe = document.createElement('iframe');
   iframe.style.position = 'absolute';
   iframe.style.width = '0';
@@ -373,8 +379,8 @@ imprimir(): void {
 }
 
 
-generarContenidoPOS(formula: any): string {
-  console.log(formula);
+async  generarContenidoPOSPendiente(formula: any): Promise<string>  {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();  
   const fechaSolicitud = new Date(formula.fecSolicitud);
   const fechaFormateada = new Intl.DateTimeFormat('es-CO', { 
     day: '2-digit', month: '2-digit', year: 'numeric', 
@@ -388,23 +394,23 @@ generarContenidoPOS(formula: any): string {
     hour: '2-digit', minute: '2-digit', 
     hour12: true 
   }).format(fechaimpresion);
-
+  //Calle 24 #18a-101
   return `
     <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
      FORMATO DE PENDIENTES  
       SISM - SUPLYMEDICAL
-       Calle 24 #18a-101
-        Nro: ${formula.idFormula}
+${bodega?.direccion}
+Nro: ${formula.idFormula}
 Impresión: ${fechaimpresionFormateada}
 
 -------------------------------------
-Documento: ${formula.paciente.numDocumento}  
+Documento:${formula.paciente.numDocumento}  
 Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
           ${formula.paciente.pApellido} ${formula.paciente.sApellido}
 -------------------------------------
-Dispensario: Santa Marta
-Funcionario: ${formula.funcionariocreaformula}
-Pendiente: ${fechaFormateada}
+Dispensario:${bodega?.puntoEntrega}
+Funcionario:${formula.funcionariocreaformula}
+Pendiente:${fechaFormateada}
 Convenio: ${formula.paciente.eps.nombre}
 -------------------------------------
 
@@ -433,7 +439,7 @@ Este documento es válido hasta
 
 Si quieres saber si tu pendiente 
 ya esta disponible, contactanos
-através de WhatsApp 3227694532 
+através de WhatsApp ${bodega?.telefono} 
 
 </pre>
   `;
@@ -461,6 +467,225 @@ dividirEnLineas(texto: string, maxCaracteres: number): string[] {
 }
 
 
+async  generarContenidoPOSEntrega(formula: any): Promise<string>  {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();  
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', { 
+    day: '2-digit', month: '2-digit', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', 
+    hour12: true 
+  }).format(fechaSolicitud);
+
+  const fechaimpresion = new Date();
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', { 
+    day: '2-digit', month: '2-digit', year: 'numeric', 
+    hour: '2-digit', minute: '2-digit', 
+    hour12: true 
+  }).format(fechaimpresion);
+
+  // Genera contenido QR: puedes cambiar esto a lo que desees codificar
+  //const qrTexto = `Entrega fórmula N° ${formula.idFormula} - Paciente: ${formula.paciente.numDocumento}`;
+  //const qrBase64 = await QRCode.toDataURL(qrTexto);
+
+  return `
+    <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
+      FORMATO DE ENTREGA
+      SISM - SUPLYMEDICAL
+${bodega?.direccion}
+Nro: ${formula.idFormula}
+Impresión: ${fechaimpresionFormateada}
+
+-------------------------------------
+Documento:${formula.paciente.numDocumento}  
+Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
+          ${formula.paciente.pApellido} ${formula.paciente.sApellido}
+-------------------------------------
+Dispensario:${bodega?.puntoEntrega}
+Funcionario:${formula.funcionariocreaformula}
+Entrega: ${fechaFormateada}
+Convenio:${formula.paciente.eps.nombre}
+-------------------------------------
+
+  Detalle de los medicamentos
+-------------------------------------
+${formula.items
+  .filter((med: any) => med.totalEntregado > 0) // Filtra solo los medicamentos con pendiente > 0
+  .map((med: any, index: number) => {
+    const numero = index + 1; // Enumerar medicamentos
+    const nombreDividido = this.dividirEnLineas(`${numero}. ${med.medicamento.nombre}`, 35); // Divide en líneas de 40 caracteres
+    return `${nombreDividido.join('\n')}
+    Presentación:  ${med.medicamento.forma.nombre}
+    Entregados.  : ${med.totalEntregado}`;
+  })
+  .join('\n')}
+-------------------------------------
+
+
+       
+Firma    :___________________________
+Documento:___________________________
+
+
+
+Donar medicamentos,puede hacer la 
+diferencia en la vida de alguien. 
+Recuerde! no los deje vencer. 
+
+</pre>
+
+  `;
+
+//  <div style="text-align: center;">
+//  <img src="${qrBase64}" alt="QR Entrega" style="width: 150px; height: 150px; margin-top: 10px;" />
+//  <div style="font-family: monospace; font-size: 14px; font-weight: bold;">Verificación QR</div>
+//</div>
+}
+
+
+
+
+async imprimirTirilla(): Promise<void> {
+  const contenido = await this.generarContenidoPOSTirilla(this.listaregistros);
+ 
+  // Crear un iframe oculto
+const iframe = document.createElement('iframe');
+iframe.style.position = 'absolute';
+iframe.style.width = '0';
+iframe.style.height = '0';
+iframe.style.border = 'none';
+document.body.appendChild(iframe);
+
+const doc = iframe.contentWindow?.document;
+if (doc) {
+  doc.open();
+  doc.write(`
+    <html>
+    <head>
+      <style>
+        @media print {
+          body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 2mm;
+            padding: 0;
+          }
+          pre {
+            font-size: 20px;
+            line-height: 1.5;
+            margin: 2mm;
+            padding: 0;
+          }
+        }
+      </style>
+    </head>
+    <body onload="window.print(); window.onafterprint = function() { window.close(); }">
+      ${contenido}
+    </body>
+    </html>
+  `);
+  doc.close();
+}
+
+setTimeout(() => {
+  document.body.removeChild(iframe);
+}, 3000); // Se elimina el iframe después de imprimir
+}
+
+
+async generarContenidoPOSTirilla(formula: any): Promise<string> {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+    hour12: true
+  }).format(fechaSolicitud);
+
+  const fechaimpresion = new Date();
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+    hour12: true
+  }).format(fechaimpresion);
+
+  const detalleMedicamentos = this.generarTextoEntrega(formula);
+
+  return `
+    <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
+  FORMATO DE PREFACTURA SISM
+       Nit 900018045-5      
+${bodega?.direccion}
+Nro: ${formula.idFormula}
+Fecha: ${fechaFormateada}
+-------------------------------------
+Documento:${formula.paciente.numDocumento}  
+Paciente: ${formula.paciente.pNombre} ${formula.paciente.sNombre}
+          ${formula.paciente.pApellido} ${formula.paciente.sApellido}
+-------------------------------------
+Dispensario:${bodega?.puntoEntrega}
+Funcionario:${formula.funcionariocreaformula}
+Convenio:${formula.paciente.eps.nombre}
+-------------------------------------
+Detalle de (los) medicamento(s)
+Cantidad Valor Uni. Valor Total  
+-------------------------------------
+${detalleMedicamentos}
+-------------------------------------
+
+Firma    :___________________________
+Documento:___________________________
+
+</pre>
+  `;
+}
+
+private generarTextoEntrega(formula: any): string {
+  let total = 0;
+
+  const resultado = formula.items
+    .filter((med: any) => med.totalEntregado > 0)
+    .map((med: any) => {
+      const valorUnitario = med.importe / med.cantidad;
+      const subTotal = valorUnitario * med.totalEntregado;
+      total += subTotal;
+
+      const nombreDividido = this.dividirEnLineas(
+        `${med.medicamento.nombre}`,
+        35
+      );
+
+      const valorUnitarioFormateado = valorUnitario.toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+      });
+
+      const subTotalFormateado = subTotal.toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+      });
+
+      // Alinear cada columna usando padStart
+      const cantidadStr = med.totalEntregado.toString().padStart(3, ' ');
+      const valorUnitarioStr = valorUnitarioFormateado.padStart(12, ' ');
+      const subTotalStr = subTotalFormateado.padStart(15, ' ');
+
+      return `${nombreDividido.join('')}\n${cantidadStr} ${valorUnitarioStr} ${subTotalStr}`;
+    })
+    .join('\n\n');
+
+  const totalFormateado = total.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 2
+  });
+
+  return `${resultado}\n\n     TOTAL: ${totalFormateado}`;
+}
+
+
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
     if (isNaN(nivelUsuario)) {
@@ -473,7 +698,7 @@ dividirEnLineas(texto: string, maxCaracteres: number): string[] {
 
   eliminarRegistroEntrega(idItemEntrega: any,idMedicamento:number){
 
-    if(this.tieneAcceso(4)){
+    if(this.tieneAcceso(2)){
     Swal.fire({
       title: 'Desea eliminar?',
       text: `Esta seguro de quitar el item de la entrega de este medicamento, se devolvera a su inventario la cantidad si habia sido entregado efectiva y quedara como pendiente por entregar!`,
@@ -489,7 +714,7 @@ dividirEnLineas(texto: string, maxCaracteres: number): string[] {
            Swal.fire({
             icon: 'success',
             title: `Ok`,
-            text: `El registro de la entrega se ha quitado en la base de datos correctamente!.`,
+            text: `El registro de la entrega se ha quitado en la base de datos correctamente!, y le fue devuelta a su inventario si era una entrega efectiva.`,
           });
           this.buscarRegistro(this.parametro);             
         },

@@ -1,0 +1,79 @@
+class="custom-progress".table-container {
+    padding: 20px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  
+  .table {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgb(215, 215, 214);
+  }
+  
+ 
+  th, td {
+    padding: 4px 15px;
+  }
+  
+  td {
+    vertical-align: middle;
+  }
+  
+  .action-button {
+    width: 150px; /* Asegura que todos los botones tengan el mismo tamaño */
+    height: 40px;
+    margin: 0 5px; /* Espaciado entre los botones */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .action-button .mat-icon {
+    font-size: 18px; /* Tamaño de icono */
+  }
+  
+  button:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  
+  button:hover {
+    background-color: #083f76; /* Efecto de hover */
+  }
+  
+  button:active {
+    transform: scale(0.98); /* Efecto de click */
+  }
+  
+  /* Estilo para alinear los botones en el centro de la celda */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* Espaciado entre los botones */
+  }
+
+  loading-container {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .loading-message {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  .loading-icon {
+    margin-right: 8px;
+    color: #3f51b5;
+  }
+
+  .custom-progress {
+    height: 14px; /* Ajusta este valor a lo que quieras */
+    border-radius: 8px;
+  }

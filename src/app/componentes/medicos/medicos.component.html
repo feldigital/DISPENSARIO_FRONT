@@ -1,26 +1,21 @@
 <div class="container mt-4">
     <form [formGroup]="generalForm"  class="w-100 d-block">
-        <div class="row">
-        
+        <div class="row">        
                 <div class="input-group mb-2">
-
                     <div class="input-group mb-2">
                         <input type="text" formControlName="nombre" (input)="convertirAMayusculas($event)"
                             placeholder="Ingrese el nombre del médico" class="form-control border-end-0"
-                            required>
-                        
+                            required>                        
                     </div>
                     <div class="input-group mb-2">
                     <input type="text" formControlName="registroMedico"
                         placeholder="Ingrese el registro médico" class="form-control border-end-0"
-                        required (blur)="buscarRegistro()">
-                    
+                        required (blur)="buscarRegistro()">                    
                 </div>
                 <div class="input-group mb-2">
                     <input type="text" formControlName="especialidad" (input)="convertirAMayusculasEspecialidad($event)"
                         placeholder="Ingrese la especialidad" class="form-control border-end-0"
-                        required>
-                   
+                        required>                   
                 </div>
                 </div>
 

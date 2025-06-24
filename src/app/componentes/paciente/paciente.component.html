@@ -7,15 +7,8 @@
                     <label for="tipoDoc" class="form-label">Tipo documento</label>
                     <select id="tipoDoc" class="form-select uniform-control" formControlName="tipoDoc">
                         <option selected value="">Seleccionar Tipo de documento</option>
-                        <option value="CC">CC</option>                      
-                        <option value="TI">TI</option>
-                        <option value="RC">RC</option>
-                        <option value="NV">NV</option>
-                        <option value="CE">CE</option>
-                        <option value="PA">PA</option>
-                        <option value="PT">PT</option>
-                        <option value="SV">SV</option>                        
-                        <option value="PE">PE</option>
+                        <option *ngFor="let item of listaTiposDoc" [ngValue]="item.codigo">{{item.codigo}} - {{item.descripcion}}</option>
+                       
                     </select>
                 </div>
             </div>
@@ -75,6 +68,9 @@
                         <option selected value="">Seleccionar sexo</option>
                         <option value="M">Masculino</option>
                         <option value="F">Femenino</option>
+                        <option value="T">Transexual</option>
+                        <option value="N">No binario</option>
+                        <option value="O">Otro</option>
                     </select>
                 </div>
             </div>
@@ -178,7 +174,7 @@
                         <option selected value="">Seleccionar tipo de afiliado</option>
                         <option value="C">Cotizante</option>
                         <option value="B">Beneficiario</option>
-                        <option value="BS">Beneficiario Subsidiado</option>
+                        <option value="F">Cabeza de familia</option>
                     </select>
                 </div>
             </div>
@@ -211,7 +207,14 @@
                     <label for="estado" class="form-check-label">Estado</label>
                 </div>
             </div>
-             <!-- Estado -->
+             <!-- PAVE -->
+             <div class="col-md-4 mb-1">
+                <div class="form-group d-flex align-items-center">
+                    <input id="pave" class="form-check-input me-2" type="checkbox" formControlName="pave">
+                    <label for="pave" class="form-check-label">PAVE</label>
+                </div>
+            </div>
+             <!-- PORTABILIDAD -->
              <div class="col-md-4 mb-1">
                 <div class="form-group d-flex align-items-center">
                     <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="portabilidad" (change)="onPortabilidadChange($event)">

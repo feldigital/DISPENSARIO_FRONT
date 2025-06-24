@@ -35,9 +35,12 @@ export class MenuComponent implements OnInit {
     {name:"Bodegas",route:"bodega",icon:"domain",nivel:2},   
     {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:2},   
     {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:2},   
+    {name:"No rotan",route:"norotan",icon:"pause_circle_outline",nivel:2}, 
     {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:2}, 
-    //{name:"Medicamentos no rotan",route:"norotan",icon:"query_builder",nivel:3}, 
     {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2}, 
+    {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3}, 
+  
+    {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:3}, 
     {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
     {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
     {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}, 

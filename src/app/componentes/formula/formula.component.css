@@ -184,3 +184,17 @@
     box-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px #39548B, 0 0 40px #ec2828;
   }
 }
+
+.contacto-edicion-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5px; 
+  max-width: 300px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0px;
+  
+}

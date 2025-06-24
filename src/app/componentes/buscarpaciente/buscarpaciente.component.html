@@ -1,99 +1,215 @@
 <div class="container mt-4">
-    
-        <div [formGroup]="generalForm" class="input-group mb-2">
-            <span class="input-group-text bg-transparent">
-                <i class="fa fa-search" aria-hidden="true"></i>
-            </span>
-            <input type="text" formControlName="documento" class="form-control border-end-0"
-                placeholder="Buscar por documento">
 
-        
-            <span class="input-group-text bg-transparent">
-                <i class="fa fa-search" aria-hidden="true"></i>
-            </span>
-            <input type="text" formControlName="pNombre" class="form-control border-end-0"
-                placeholder="Buscar por primer nombre">
+  <div [formGroup]="generalForm" class="row g-2 align-items-end mb-3">
 
-            <span class="input-group-text bg-transparent">
-                <i class="fa fa-search" aria-hidden="true"></i>
-            </span>
-            <input type="text" formControlName="sNombre" class="form-control border-end-0"
-                placeholder="Buscar por segundo nombre">
-            <span class="input-group-text bg-transparent">
-                <i class="fa fa-search" aria-hidden="true"></i>
-            </span>
-            <input type="text" formControlName="pApellido" class="form-control border-end-0"
-                placeholder="Buscar por primer apellido">
-            <span class="input-group-text bg-transparent">
-                <i class="fa fa-search" aria-hidden="true"></i>
-            </span>
-            <input type="text" formControlName="sApellido" class="form-control border-end-0"
-                placeholder="Buscar por segundo apellido">
-        </div>
-
-   
-
-
-    <div class="alert alert-info my-4" *ngIf="listaregistros?.length == 0">
-        No hay registros para mostrar!
+    <!-- Documento -->
+    <div class="col-md">
+      <label for="documento" class="form-label small mb-1">Documento</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <mat-icon class="text-info">search</mat-icon> </span>
+        <input id="documento" type="text" formControlName="documento" class="form-control" placeholder="Ej: 12345678" />
+      </div>
     </div>
-    <div *ngIf="listaregistros?.length > 0">
-        <table class="table table-striped table-hover table-sm">
-            <thead class="thead-colored">
-                <tr>
-                    <th>Item</th>
-                    <th>ID</th>
-                    <th>Tipo</th>
-                    <th>Documento</th>
-                    <th>Nombres y apellidos</th>
-                    <th>Nacimiento</th>
-                    <th>Municipio</th>
-                    <th>EPS</th>
-                    <th>Formula</th>
-                    <th>Gestión</th>
 
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let itemt of listaregistros let i= index"
-                    [ngStyle]="{'color': itemt.estado ? 'black' : 'red' }">
-
-                    <td>{{i+1}}</td>
-                    <td>{{itemt.idPaciente}}</td>
-                    <td>{{itemt.tipoDoc}}</td>
-                    <td>{{itemt.numDocumento}}</td>
-                    <td>{{primerasmayusculas(itemt.pNombre + ' ' + itemt.sNombre +' '+ itemt.pApellido +' '+
-                        itemt.sApellido
-                        )}}</td>
-                    <td>{{ itemt.fecNacimiento | date:'dd/MM/yyyy' }} </td>
-                    <td>{{itemt.municipio.nombre}} </td>
-                    <td>{{itemt.eps.codigo}}</td>
-                    <td>
-                        <mat-icon class="pointer-cursor" title="Nueva formula" [ngStyle]="{'color':'#009A94'}"
-                            [routerLink]="['/menu/formula', itemt.idPaciente]">playlist_add</mat-icon>
-
-                        <mat-icon class="pointer-cursor" title="formulas paciente" [ngStyle]="{'color':'#009A94'}"
-                            [routerLink]="['/menu/historialformula', itemt.idPaciente]">list_alt</mat-icon>
-                    </td>
-                    <td>
-                        <mat-icon class="pointer-cursor" title="Actualizar el paciente" [ngStyle]="{'color':'#009A94'}"
-                            [routerLink]="['/menu/paciente', itemt.idPaciente]">edit</mat-icon>
-                        <mat-icon class="pointer-cursor" title="Eliminar el paciente" [ngStyle]="{'color':'red'}"
-                            (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
-
-                    </td>
-                    <!--    <td>
-                   
-                    <button title="Eliminar el paciente" type="button" class="btn btn-sm"
-                        (click)="eliminarRegistro(itemt)">                     
-                    </button> 
-                </td>
-                -->
-
-
-                </tr>
-            </tbody>
-        </table>
+    <!-- Primer Nombre -->
+    <div class="col-md">
+      <label for="pNombre" class="form-label small mb-1">Primer nombre</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <mat-icon class="text-info">search</mat-icon> </span>
+        <input id="pNombre" type="text" formControlName="pNombre" class="form-control" placeholder="Ej: Juan" />
+      </div>
     </div>
+
+
+    <!-- Segundo Nombre -->
+    <div class="col-md">
+      <label for="sNombre" class="form-label small mb-1">Segundo nombre</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <mat-icon class="text-info">search</mat-icon> </span>
+        <input id="sNombre" type="text" formControlName="sNombre" class="form-control" placeholder="Ej: Carlos" />
+      </div>
+    </div>
+
+    <!-- Primer Apellido -->
+    <div class="col-md">
+      <label for="pApellido" class="form-label small mb-1">Primer apellido</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <mat-icon class="text-info">search</mat-icon> </span>
+        <input id="pApellido" type="text" formControlName="pApellido" class="form-control" placeholder="Ej: Perez" />
+      </div>
+    </div>
+
+    <!-- Segundo Apellido -->
+    <div class="col-md">
+      <label for="sApellido" class="form-label small mb-1">Segundo apellido</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <mat-icon class="text-info">search</mat-icon> </span>
+        <input id="sApellido" type="text" formControlName="sApellido" class="form-control" placeholder="Ej: Gomez" />
+      </div>
+    </div>
+
+    <!-- Botón Exportar -->
+    <div class="col-md-auto d-grid">
+      <label class="form-label small invisible">Exportar</label>
+      <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center"
+        (click)="exportarPacientes()">
+        <mat-icon class="me-1">file_download</mat-icon>Exportar a Xlsx
+      </button>
+    </div>
+
+    <div>
+      <input type="file" (change)="onFileSelected($event)" />
+      <button mat-raised-button color="primary" [disabled]="isLoading" (click)="onUpload()">
+        <mat-icon>upload</mat-icon>
+        Importar Datos
+      </button>
+
+    </div>
+
+
+    <!-- Barra de progreso con mensaje -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-message">
+        <mat-icon class="loading-icon">cloud_upload</mat-icon>
+        Importando datos, por favor espere...
+      </div>
+      <mat-progress-bar class="custom-progress" mode="indeterminate" color="accent"></mat-progress-bar>
+    </div>
+
+
+
+
+
+
+
+  </div>
+
+
+
+
+
+
+  <div class="alert alert-info my-4" *ngIf="listaregistros?.length == 0">
+    No hay registros para mostrar!
+  </div>
+  <div *ngIf="listaregistros?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+      <thead class="thead-colored">
+        <tr>
+          <th>Item</th>
+          <th>ID</th>
+          <th>Tipo</th>
+          <th>Documento</th>
+          <th>Nombres y apellidos</th>
+          <th>Nacimiento</th>
+          <th>Municipio</th>
+          <th>Dispensario</th>
+          <th>EPS</th>
+          <th>Formula</th>
+          <th>Gestión</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of listaregistros let i= index" [ngStyle]="{'color': itemt.estado ? 'black' : 'red' }">
+
+          <td>{{i+1}}</td>
+          <td>{{itemt.idPaciente}}</td>
+          <td>{{itemt.tipoDoc}}</td>
+          <td>{{itemt.numDocumento}}</td>
+          <td>{{primerasmayusculas(itemt.pNombre + ' ' + itemt.sNombre +' '+ itemt.pApellido +' '+
+            itemt.sApellido
+            )}}</td>
+          <td>{{ itemt.fecNacimiento | date:'dd/MM/yyyy' }} </td>
+          <td>{{itemt.municipio.nombre}} </td>
+          <td>{{itemt.dispensario}} </td>
+          <td>{{itemt.eps.codigo}}</td>
+          <td>
+            <mat-icon class="pointer-cursor" title="Nueva formula" [ngStyle]="{'color':'#009A94'}"
+              [routerLink]="['/menu/formula', itemt.idPaciente]">playlist_add</mat-icon>
+
+            <mat-icon class="pointer-cursor" title="formulas paciente" [ngStyle]="{'color':'#009A94'}"
+              [routerLink]="['/menu/historialformula', itemt.idPaciente]">list_alt</mat-icon>
+          </td>
+          <td>
+            <mat-icon class="pointer-cursor" title="Actualizar el paciente" [ngStyle]="{'color':'#009A94'}"
+              [routerLink]="['/menu/paciente', itemt.idPaciente]">edit</mat-icon>
+            <mat-icon class="pointer-cursor" title="Eliminar el paciente" [ngStyle]="{'color':'red'}"
+              (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="listaImportacion?.length > 0" class="table-container">
+    <table class="table table-striped table-hover table-sm">
+      <thead class="thead-colored">
+        <tr>
+          <th class="text-center">Item</th>
+          <th class="text-center">Descripción</th>
+          <th class="text-center">Nro. de registros</th>
+          <th class="text-center">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of listaImportacion; let i = index"
+          [ngStyle]="{'color': itemt.dato_1 == 'ERROR' ? 'red' : 'black' }">
+          <td class="text-center">{{i + 1}}</td>
+          <td>{{itemt.dato_1 === 'ERROR' ? 'Registros con error' : 'Registros importados ' + itemt.dato_1}}</td>
+          <td class="text-center">{{itemt.d_1}}</td>
+          <td class="text-center">
+            <!-- Contenedor para los botones -->
+            <div class="button-container">
+
+              <!-- Botón 'Actualizar' -->
+              <button *ngIf="itemt.dato_1 === 'OK_EXISTE' "
+              [disabled]="loadingAccion[i]"
+               type="button"
+                class="btn btn-outline-primary btn-sm action-button" 
+                (click)="actualizarRegistros(i)">
+                <mat-icon class="me-1">edit</mat-icon> Actualizar
+              </button>
+
+              <!-- Botón 'Agregar' -->
+              <button *ngIf="itemt.dato_1 === 'OK'" 
+              
+              [ngClass]="{
+                'btn-outline-success': !btnGuardar,
+                'btn-success': btnGuardar,
+                'btn-sm': true,
+                'action-button': true
+              }" 
+              [disabled]="btnGuardar"
+                (click)="insertarNuevos(itemt.d_1, i)">
+                <mat-icon class="me-1">   {{btnGuardar ? 'check_circle' : 'save' }}</mat-icon>
+                <span *ngIf="!loadingAccion[i]  && !btnGuardar">Agregar</span>
+                <div *ngIf="loadingAccion[i]" class="spinner-border spinner-border-sm text-light me-1" role="status">
+                  <span class="visually-hidden">Agregando...</span>
+                </div>
+                <span *ngIf="loadingAccion[i]">Procesando...</span>
+                <ng-container *ngIf="btnGuardar">Guardado OK</ng-container>
+              </button>
+
+              <!-- Botón 'Exportar' -->
+              <button *ngIf="itemt.dato_1 === 'ERROR'" type="button" class="btn btn-outline-danger btn-sm action-button"
+                (click)="exportarPacientes()">
+                <mat-icon class="me-1">file_download</mat-icon> Exportar
+              </button>
+
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
 
 </div>

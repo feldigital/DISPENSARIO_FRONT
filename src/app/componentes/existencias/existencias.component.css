@@ -2,3 +2,7 @@
     margin-right: 10px; /* Espacio entre el nombre de la bodega y el input */
     font-weight: bold;  /* Opcional: resalta el nombre de la bodega */
 }
+
+.text-green {
+    color: green;
+  }

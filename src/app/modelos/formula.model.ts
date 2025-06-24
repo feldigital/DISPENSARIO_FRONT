@@ -1,5 +1,6 @@
 import { IpsI } from './ips.model';
 import { ItemFormulaI } from './itemformula.model';
+import { ItemFormulaEntregaI } from './itemformulaentrega.model';
 import { MedicoI } from './medico.model';
 import { PacienteI } from './paciente.model';
 
@@ -30,6 +31,14 @@ export class FormulaI {
   fecIngreso: Date;
   estadoanulada: boolean;
   funcionariocreaformula: string;
+  funcionarioEditformula: string;
+  fechaEditformula: Date | null;
+  codEps: string;
+  regimen: string;
+  categoria: string;
+  
+
+
   
   constructor() {
     this.idFormula = NaN;
@@ -56,6 +65,11 @@ export class FormulaI {
     this.idBodega = NaN;
     this.estadoanulada = false;
     this.funcionariocreaformula="";
+    this.funcionarioEditformula="";
+    this.fechaEditformula=null;
+    this.codEps="";
+    this.regimen="";
+    this.categoria="";
 }
 
   calcularGranTotal(): number {
@@ -65,6 +79,13 @@ export class FormulaI {
       this.total += item.cantidad * item.medicamento.valor;
     });
     return this.total;
+  }
+
+  tienePendientesDeEntrega(): boolean {
+    return this.items.some((item: ItemFormulaI) => {
+      // Si no hay entregas o alguna entrega tiene estado === false
+      return item.items.length === 0 || item.items.some((entrega: ItemFormulaEntregaI) => entrega.estado === false);
+    });
   }
 
 }

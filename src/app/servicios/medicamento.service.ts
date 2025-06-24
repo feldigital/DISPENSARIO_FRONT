@@ -148,5 +148,55 @@ export class MedicamentoService {
       }));
   } 
 
+  getMedicamentoContrato(idMedicamento: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idMedicamento', idMedicamento);     
+    return this.http.get<any>(`${this.urlEndPoint}/contrato`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  getMedicamentoContratoEps(codEps: string): Observable<any> {
+    const params = new HttpParams()
+    .set('codEps', codEps);     
+    return this.http.get<any>(`${this.urlEndPoint}/contratoeps`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  getMedicamentoFiltrados(agotado: boolean,desabastecido: boolean,controlado:boolean): Observable<any> {
+    const params = new HttpParams()
+    .set('agotado', agotado)
+    .set('desabastecido', desabastecido)
+    .set('controlado', controlado);     
+    return this.http.get<any>(`${this.urlEndPoint}/filtro`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  getMedicamentoNovigente(): Observable<any> {
+    const params = new HttpParams();     
+    return this.http.get<any>(`${this.urlEndPoint}/novigente`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+
 
 }

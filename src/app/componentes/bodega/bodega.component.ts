@@ -45,7 +45,7 @@ export class BodegaComponent implements OnInit {
   ngOnInit(): void {
     this.crearFormulario();
     const fechaActual = new Date();
-    const date30DaysAgo = new Date(fechaActual);   
+    const date30DaysAgo = new Date(fechaActual);
     this.hoy = fechaActual.toISOString().split('T')[0];  // Formato YYYY-MM-DD  
   }
 
@@ -83,6 +83,9 @@ export class BodegaComponent implements OnInit {
         puntoEntrega: ['', [Validators.required]],
         estado: ['true', [Validators.required]],
         dispensa: ['false', [Validators.required]],
+        inventario: ['false', [Validators.required]],
+        entrada: ['false', [Validators.required]],
+        salida: ['false', [Validators.required]],
         fInicial: [''],
         fFinal: [''],
       });
@@ -107,7 +110,10 @@ export class BodegaComponent implements OnInit {
           telefono: itemt.telefono,
           email: itemt.email,
           estado: itemt.estado,
-          dispensa: itemt.dispensa
+          dispensa: itemt.dispensa,
+          inventario: itemt.inventario,
+          entrada: itemt.entrada,
+          salida: itemt.salida
         });
       },
       (err) => {
@@ -271,13 +277,13 @@ export class BodegaComponent implements OnInit {
         orientation: 'p',
         unit: 'mm',
         format: 'letter',
-        putOnlyUsedFonts: true 
+        putOnlyUsedFonts: true
       });
       let totalPagesExp = '{total_pages_count_string}';
       let paginaActual = 1;
       let corte = "Periodo del reporte del " + fInicial + " al " + fFinal;
       autoTable(doc, {
-        head: [['Nro', 'CUM', 'Nombre del medicamento', 'Presentación', 'Existencias','Pendientes']],
+        head: [['Nro', 'CUM', 'Nombre del medicamento', 'Presentación', 'Existencias', 'Pendientes']],
         body: bodyData,
         startY: 25,
         theme: 'striped',
@@ -336,14 +342,24 @@ export class BodegaComponent implements OnInit {
   }
 
   private async datosPendientesTodos(idBodega: number, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
-    
+
     const data: RowInput[] = [];
     try {
-   
+
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       const resp: any = await this.servicio.getMedicamentosBodegaPendiente(idBodega, fInicial, fFinal).toPromise();
-      this.lista = resp; 
-      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));    
-      console.log(this.lista); 
+      this.lista = resp;
+      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+      console.log(this.lista);
 
       for (let i = 0; i < this.lista.length; i++) {
         const rowData: RowInput = [
@@ -351,7 +367,7 @@ export class BodegaComponent implements OnInit {
           this.lista[i].cum,
           this.lista[i].nombre,
           this.primerasmayusculas(this.lista[i].forma),
-          this.lista[i].cantidad,          
+          this.lista[i].cantidad,
           this.lista[i].pendiente,
         ];
 
@@ -359,11 +375,13 @@ export class BodegaComponent implements OnInit {
 
 
       }
-      // data.push(this.calcularTotalesRow());
-      //return data;
+
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -404,7 +422,7 @@ export class BodegaComponent implements OnInit {
       let paginaActual = 1;
       let corte = "Periodo del reporte: " + fInicial + " al " + fFinal;
       autoTable(doc, {
-        head: [['Nro', 'CUM', 'Nombre del medicamento', 'Presentación', 'Existencia','Dotación','Pendiente']],
+        head: [['Nro', 'CUM', 'Nombre del medicamento', 'Presentación', 'Existencia', 'Dotación', 'Pendiente']],
         body: bodyData,
         startY: 37,
         theme: 'striped',
@@ -429,7 +447,7 @@ export class BodegaComponent implements OnInit {
           doc.text('RELACION DE MEDICAMENTOS PENDIENTES', titleXPos, 14);
           // Establecer el color de la letra y el estilo de la fuente para el segundo texto
           doc.setTextColor('#000000'); // Color negro  #E5E5E5
-         
+
 
           doc.text('Nombre de la bodega:', 17, 20);
           //doc.setTextColor('#E5E5E5'); // Color gris
@@ -442,7 +460,7 @@ export class BodegaComponent implements OnInit {
           doc.text(bodega.telefono, 60, 35);
 
           titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth(corte) / 2);
-          doc.text(corte, titleXPos +30, 35);
+          doc.text(corte, titleXPos + 30, 35);
 
         },
         didDrawPage: function (data) {
@@ -475,14 +493,21 @@ export class BodegaComponent implements OnInit {
   }
 
   private async datosPendientes(idBodega: number, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
-    
+
     const data: RowInput[] = [];
     try {
-   
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicio.getMedicamentosBodegaPendiente(idBodega, fInicial, fFinal).toPromise();
-      this.lista = resp; 
-      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));    
-      console.log(this.lista); 
+      this.lista = resp;
+      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
 
       for (let i = 0; i < this.lista.length; i++) {
         const rowData: RowInput = [
@@ -490,20 +515,18 @@ export class BodegaComponent implements OnInit {
           this.lista[i].cum,
           this.lista[i].nombre,
           this.primerasmayusculas(this.lista[i].forma),
-          this.lista[i].cantidad,          
+          this.lista[i].cantidad,
           this.lista[i].ultFecIngreso.split('T')[0],
           this.lista[i].pendiente,
         ];
-
         data.push(rowData);
-
-
       }
-      // data.push(this.calcularTotalesRow());
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -511,7 +534,7 @@ export class BodegaComponent implements OnInit {
 
 
   reporteStopMinimo(bodega: any): void {
-    
+
     this.datosStopMinimo(bodega).then((bodyData) => {
       const doc = new jsPDF({
         orientation: 'p',
@@ -593,6 +616,15 @@ export class BodegaComponent implements OnInit {
   private async datosStopMinimo(bodega: any): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicio.getRegistrosMedicamentoBodega(bodega.idBodega).toPromise();
       this.lista = resp;
       this.lista.sort((a: any, b: any) => b.nombre - a.nombre);
@@ -610,13 +642,13 @@ export class BodegaComponent implements OnInit {
           ];
           data.push(rowData);
         }
-
       }
-      // data.push(this.calcularTotalesRow());
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -714,7 +746,7 @@ export class BodegaComponent implements OnInit {
       let paginaActual = 1;
       let corte = "Fecha y hora del reporte ";
       autoTable(doc, {
-        head: [['Nro', 'CUM','ID', 'Nombre del medicamento', 'Presentación', 'Cantidad existente']],
+        head: [['Nro', 'CUM', 'ID', 'Nombre del medicamento', 'Presentación', 'Cantidad existente']],
         body: bodyData,
         startY: 25,
         theme: 'striped',
@@ -741,7 +773,7 @@ export class BodegaComponent implements OnInit {
           doc.setTextColor('#000000'); // Color negro  #E5E5E5
           titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth(corte) / 2);
           doc.text(corte, titleXPos, 21);
-          
+
 
         },
         didDrawPage: function (data) {
@@ -778,31 +810,40 @@ export class BodegaComponent implements OnInit {
   private async datosExistencia(bodega: number): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicio.getRegistrosMedicamentoBodega(bodega).toPromise();
       this.lista = resp;
-      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));  
-      this.contador = 0;  
+      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+      this.contador = 0;
       for (let i = 0; i < this.lista.length; i++) {
-        if(this.lista[i].cantidad > 0){
-          this.contador ++;
-        const rowData: RowInput = [
-          this.contador.toString(),
-          this.lista[i].cum,
-          this.lista[i].idMedicamento,
-          this.lista[i].nombre,
-          this.primerasmayusculas(this.lista[i].forma),
-          this.lista[i].cantidad,
-        ];
-        data.push(rowData);
-      }
+        if (this.lista[i].cantidad > 0) {
+          this.contador++;
+          const rowData: RowInput = [
+            this.contador.toString(),
+            this.lista[i].cum,
+            this.lista[i].idMedicamento,
+            this.lista[i].nombre,
+            this.primerasmayusculas(this.lista[i].forma),
+            this.lista[i].cantidad,
+          ];
+          data.push(rowData);
+        }
 
       }
-   
-      // data.push(this.calcularTotalesRow());
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -908,9 +949,18 @@ export class BodegaComponent implements OnInit {
   private async datosCuotasModeradoras(bodega: number, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicioFormula.getCuotasModeradorasPDF(bodega, fInicial, fFinal).toPromise();
-      this.lista = resp;      
-      this.lista.sort((a: any, b: any) => a.dato_1.localeCompare(b.dato_1));  
+      this.lista = resp;
+      this.lista.sort((a: any, b: any) => a.dato_1.localeCompare(b.dato_1));
       this.contador = 0;;
       for (let i = 0; i < this.lista.length; i++) {
         const rowData: RowInput = [
@@ -931,10 +981,12 @@ export class BodegaComponent implements OnInit {
 
         ]
       );
-
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -1040,9 +1092,18 @@ export class BodegaComponent implements OnInit {
   private async datosFormulasPrescritas(fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicioFormula.getFormulasPrescritas(fInicial, fFinal).toPromise();
       this.lista = resp;
-      this.lista.sort((a: any, b: any) => a.dato_1.localeCompare(b.dato_1));  
+      this.lista.sort((a: any, b: any) => a.dato_1.localeCompare(b.dato_1));
       this.contador = 0;;
       for (let i = 0; i < this.lista.length; i++) {
         const rowData: RowInput = [
@@ -1064,16 +1125,18 @@ export class BodegaComponent implements OnInit {
           this.calcularTotal("d_3"),
         ]
       );
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
 
 
-  reporteFormulasNoProcesadas(idBodega:number): void {
+  reporteFormulasNoProcesadas(idBodega: number): void {
 
     const fInicial = this.generalForm.get('fInicial')?.value;
     const fFinal = this.generalForm.get('fFinal')?.value;
@@ -1099,7 +1162,7 @@ export class BodegaComponent implements OnInit {
       return;  // Detener la ejecución si las fechas no son válidas
     }
 
-    this.datosFormulasNoProcesadas(idBodega,fInicial, fFinal).then((bodyData) => {
+    this.datosFormulasNoProcesadas(idBodega, fInicial, fFinal).then((bodyData) => {
       const doc = new jsPDF({
         orientation: 'l',
         unit: 'mm',
@@ -1110,7 +1173,7 @@ export class BodegaComponent implements OnInit {
       let paginaActual = 1;
       let corte = "Periodo del reporte del " + fInicial + " al " + fFinal;
       autoTable(doc, {
-        head: [['Nro', 'Tipo y Documento', 'Nombre del paciente',  'Nro. Formula', 'Fecha Solicitud','Dispensario','Funcionario']],
+        head: [['Nro', 'Tipo y Documento', 'Nombre del paciente', 'Nro. Formula', 'Fecha Solicitud', 'Dispensario', 'Funcionario']],
         body: bodyData,
         startY: 25,
         theme: 'striped',
@@ -1173,7 +1236,16 @@ export class BodegaComponent implements OnInit {
   private async datosFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
-      const resp: any = await this.servicioFormula.getFormulasNoProcesadas(idBodega,fInicial, fFinal).toPromise();
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      const resp: any = await this.servicioFormula.getFormulasNoProcesadas(idBodega, fInicial, fFinal).toPromise();
       this.lista = resp;
       //this.lista.sort((a: any, b: any) => b.nombre - a.nombre);
       console.log(resp);
@@ -1190,10 +1262,13 @@ export class BodegaComponent implements OnInit {
         ];
         data.push(rowData);
 
-      }      
+      }
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -1306,6 +1381,15 @@ export class BodegaComponent implements OnInit {
   private async datosBodegaEntregas(bodega: any, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicio.getMedicamentosBodegaEntregados(bodega.idBodega, fInicial, fFinal).toPromise();
       this.lista = resp;
       this.lista.sort((a: any, b: any) => b.nombre - a.nombre);
@@ -1319,17 +1403,15 @@ export class BodegaComponent implements OnInit {
           this.lista[i].nombre,
           this.primerasmayusculas(this.lista[i].forma),
           this.lista[i].cantidadEntregada,
-
         ];
         data.push(rowData);
-
-
       }
-      // data.push(this.calcularTotalesRow());
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -1443,9 +1525,18 @@ export class BodegaComponent implements OnInit {
   private async datosBodegaEntregasMeses(bodega: any, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const resp: any = await this.servicio.getMedicamentosBodegaEntregadosMeses(bodega.idBodega, fInicial, fFinal).toPromise();
-      this.lista = resp;           
-      this.lista.sort((a: any, b: any) => a.dato_2.localeCompare(b.dato_2));  
+      this.lista = resp;
+      this.lista.sort((a: any, b: any) => a.dato_2.localeCompare(b.dato_2));
       console.log(this.lista);
       for (let i = 0; i < this.lista.length; i++) {
         this.contador++;
@@ -1468,17 +1559,15 @@ export class BodegaComponent implements OnInit {
           this.lista[i].d_11,
           this.lista[i].d_12,
           this.lista[i].d_t,
-
         ];
         data.push(rowData);
-
-
       }
-      // data.push(this.calcularTotalesRow());
-      //return data;
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       return data.length > 0 ? data : undefined;
     } catch (err) {
       console.error(err);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
       return undefined;
     }
   }
@@ -1528,9 +1617,20 @@ export class BodegaComponent implements OnInit {
       return;  // Detener la ejecución si las fechas no son válidas
     }
     try {
+
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       // Esperar la promesa con await
       const resp: any = await this.servicio.getMedicamentosBodegaEntregaDetallada(0, fInicial, fFinal).toPromise();
-
+      Swal.close(); // 🚨 Primero cerramos el spinner
       // Asegurarse de que resp sea un array antes de asignarlo
       if (Array.isArray(resp)) {
         this.lista = resp;
@@ -1538,8 +1638,11 @@ export class BodegaComponent implements OnInit {
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
       }
+     
     } catch (error) {
       console.error("Error al obtener los datos de entrega detallada:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
     }
   }
 
@@ -1555,7 +1658,6 @@ export class BodegaComponent implements OnInit {
       });
       return;  // Detener la ejecución si faltan las fechas
     }
-
     const fechaInicial = new Date(fInicial);
     const fechaFinal = new Date(fFinal);
 
@@ -1568,12 +1670,20 @@ export class BodegaComponent implements OnInit {
       return;  // Detener la ejecución si las fechas no son válidas
     }
 
-
-
     try {
+// Mostrar spinner mientras carga
+Swal.fire({
+  title: 'Cargando registros...',
+  html: 'Por favor espera un momento',
+  allowOutsideClick: false,
+  didOpen: () => {
+    Swal.showLoading();
+  }
+});
+
       // Esperar la promesa con await
       const resp: any = await this.servicio.getMedicamentosBodegaEntregaDetallada(bodega.idBodega, fInicial, fFinal).toPromise();
-
+      Swal.close(); // 🚨 Primero cerramos el spinner
       // Asegurarse de que resp sea un array antes de asignarlo
       if (Array.isArray(resp)) {
         this.lista = resp;
@@ -1581,8 +1691,11 @@ export class BodegaComponent implements OnInit {
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
       }
+ 
     } catch (error) {
       console.error("Error al obtener los datos de entrega detallada:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
     }
   }
 
@@ -1643,13 +1756,12 @@ export class BodegaComponent implements OnInit {
       'Fecha de entrega estimada del medicamento',
       'Medio de entrega del pendiente',
       'Tipo recibe', 'Docuemnto recibe', 'Eps', '¿Es PGP?', 'Id Formula', 'CIE-R1', 'CIE-R2', 'CIE-R3',
-      'Observación', 'Estado', 'Funcionario que entrega','PACIENTE PAVE','MEDICAMENTO CONTROLADO','PENDIENTE DEL MEDICAMENTO','PENDIENTE DE LA FORMULA'];
+      'Observación', 'Estado', 'Funcionario que entrega', 'PACIENTE PAVE', 'MEDICAMENTO CONTROLADO', 'PENDIENTE DEL MEDICAMENTO', 'PENDIENTE DE LA FORMULA'];
 
     datos.push(encabezado);
     let fecReal = "";
     let medicamentoPendiente = "";
     // Agrega los items de despacho al array
-    console.log(this.lista);
     this.lista.forEach((item: any) => {
       fecReal = "";
       medicamentoPendiente = "";
@@ -1748,7 +1860,7 @@ export class BodegaComponent implements OnInit {
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'Entregas_Detalladas');
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Entrega_Medicamentos_'+ new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Entrega_Medicamentos_' + new Date().getTime() + '.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -1782,13 +1894,20 @@ export class BodegaComponent implements OnInit {
       return;  // Detener la ejecución si las fechas no son válidas
     }
     try {
-      // Esperar la promesa con await   
-      console.log(idBodega); 
-      const parametrobodega=Number(idBodega);
-      console.log(parametrobodega);
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Esperar la promesa con await       
+      const parametrobodega = Number(idBodega);
       const resp: any = await this.servicio.getMedicamentosPendienteDetallada(parametrobodega, fInicial, fFinal).toPromise();
-     
-      console.log(resp);
+      Swal.close(); // 🚨 Primero cerramos el spinner
       // Asegurarse de que resp sea un array antes de asignarlo
       if (Array.isArray(resp)) {
         this.lista = resp;
@@ -1796,9 +1915,14 @@ export class BodegaComponent implements OnInit {
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
       }
+      
     } catch (error) {
       console.error("Error al obtener los datos de medicamentos pendientes detallados:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
     }
+
+   
   }
 
   exportarExcelPendientes() {  // Crea un array con los datos de la orden de despacho que deseas exportar
@@ -1833,7 +1957,7 @@ export class BodegaComponent implements OnInit {
       'CANTIDAD ENTREGADA',
       'CANTIDAD PENDIENTE',
       'FECHA DE SOLICITUD',
-      'FECHA DE ENTREGA',      
+      'FECHA DE ENTREGA',
       'FUNCIONARIO QUE ENTREGA',
       'PACIENTE PAVE'
     ];
@@ -1868,8 +1992,8 @@ export class BodegaComponent implements OnInit {
         item.regimen || '',
         item.bodega || '',  // nombre de la farmacia
         item.idFormula || '',
-        item.fecPrescribe || '',      
-        item.ips || '',   
+        item.fecPrescribe || '',
+        item.ips || '',
         item.cum || '',
         item.nombreMedicamento || '',
         item.via || '',
@@ -1878,7 +2002,7 @@ export class BodegaComponent implements OnInit {
         item.cantidadEntrega || 0,
         item.pendiente || 0,
         item.fecSolicitud || '',
-        item.fecEntrega || '',       
+        item.fecEntrega || '',
         item.funcionario || '',  // Validación para campos que podrían ser nulos       
         item.pave || ''  // Validación para campos que podrían ser nulos       
       ]);
@@ -1904,7 +2028,7 @@ export class BodegaComponent implements OnInit {
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'Pendientes');
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Medicamentos_Pendientes_'+ new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Medicamentos_Pendientes_' + new Date().getTime() + '.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -1915,7 +2039,7 @@ export class BodegaComponent implements OnInit {
 
 
 
-  async reporteFormulasDetalldas(idBodega: number,tipoConsulta: number): Promise<void> {
+  async reporteFormulasDetalldas(idBodega: number, tipoConsulta: number): Promise<void> {
     const fInicial = this.generalForm.get('fInicial')?.value;
     const fFinal = this.generalForm.get('fFinal')?.value;
     // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
@@ -1939,25 +2063,37 @@ export class BodegaComponent implements OnInit {
       return;  // Detener la ejecución si las fechas no son válidas
     }
     try {
-      // Esperar la promesa con await 
-    
-      const parametrobodega=Number(idBodega);
-    
-      let resp: any;      
-      let fileName: string = tipoConsulta === 0 ? "Activas" : "Anuladas";
 
-      resp = tipoConsulta === 0 
-      ? await this.servicioFormula.getFormulasDetalladas(parametrobodega, fInicial, fFinal).toPromise()
-      : await this.servicioFormula.getFormulasDetalladasAnuladas(parametrobodega, fInicial, fFinal).toPromise();
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      // Esperar la promesa con await 
+      const parametrobodega = Number(idBodega);
+      let resp: any;
+      let fileName: string = tipoConsulta === 0 ? "Activas" : "Anuladas";
+      resp = tipoConsulta === 0
+        ? await this.servicioFormula.getFormulasDetalladas(parametrobodega, fInicial, fFinal).toPromise()
+        : await this.servicioFormula.getFormulasDetalladasAnuladas(parametrobodega, fInicial, fFinal).toPromise();
       // Asegurarse de que resp sea un array antes de asignarlo
+      Swal.close(); // 🚨 Primero cerramos el spinner
       if (Array.isArray(resp)) {
         this.lista = resp;
         this.exportarExcelFormulas(fileName); // Exportar solo si la lista es válida
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
       }
+     
     } catch (error) {
       console.error("Error al obtener los datos de medicamentos pendientes detallados:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
     }
   }
 
@@ -2031,9 +2167,9 @@ export class BodegaComponent implements OnInit {
         item.municipio || '',
         item.bodega || '',  // nombre de la farmacia que dispenso el medicamento
         item.idFormula || '',
-        item.fecPrescribe || '', 
-        item.fecSolicitud || '',      
-        item.ips || '',   
+        item.fecPrescribe || '',
+        item.fecSolicitud || '',
+        item.ips || '',
         item.medico || '',
         item.tipoContrato || '',
         item.tipoOrigen || '',
@@ -2074,7 +2210,7 @@ export class BodegaComponent implements OnInit {
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Formulas_' + fileName + new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Formulas_' + fileName + new Date().getTime() + '.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -2084,22 +2220,36 @@ export class BodegaComponent implements OnInit {
   }
 
 
-    async exportarExistenciasxlsx(idBodega: number): Promise<void> {   
-   
+  async exportarExistenciasxlsx(idBodega: number): Promise<void> {
+
     try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+
       const resp: any = await this.servicio.getRegistrosMedicamentoBodega(idBodega).toPromise();
       this.lista = resp;
-      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));  
-      console.log(this.lista);
-      if (Array.isArray(resp)) {     
-        this.exportarExistenciasXlsx('Existencias'); // Exportar solo si la lista es válida
+      this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      if (Array.isArray(resp)) {
+         this.exportarExistenciasXlsx('Existencias'); // Exportar solo si la lista es válida
       } else {
         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
       }
+      
     } catch (error) {
       console.error("Error al obtener los datos de medicamentos pendientes detallados:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
     }
-  
+
   }
 
   exportarExistenciasXlsx(fileName: string) {  // Crea un array con los datos de la orden de despacho que deseas exportar
@@ -2115,7 +2265,7 @@ export class BodegaComponent implements OnInit {
       'PRESENTACION',
       'CANTIDAD EN PLATAFORMA',
       'CANTIDAD FISICA',
-      'DIFERENCIA',      
+      'DIFERENCIA',
     ];
 
     datos.push(encabezado);
@@ -2123,16 +2273,16 @@ export class BodegaComponent implements OnInit {
 
     this.contador = 0;
     this.lista.forEach((item: any) => {
-       this.contador++;
-        datos.push([
-          this.contador.toString(), // Validación si es null o undefined
-          item.cum || "",
-          item.idMedicamento,
-          item.nombre?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
-          item.forma?.toUpperCase() || "",  // Validación para evitar errores si es null o undefined
-          item.cantidad
-        ]);
-     
+      this.contador++;
+      datos.push([
+        this.contador.toString(), // Validación si es null o undefined
+        item.cum || "",
+        item.idMedicamento,
+        item.nombre?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
+        item.forma?.toUpperCase() || "",  // Validación para evitar errores si es null o undefined
+        item.cantidad
+      ]);
+
     });
 
     // Crea la hoja de trabajo de Excel (worksheet)
@@ -2155,7 +2305,7 @@ export class BodegaComponent implements OnInit {
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Inventario_' + new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Inventario_' + new Date().getTime() + '.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -2164,16 +2314,186 @@ export class BodegaComponent implements OnInit {
     });
   }
 
+  async exportarVencidosxlsx(idBodega: number): Promise<void> {
+    const fInicial = this.generalForm.get('fInicial')?.value;
+
+    // Validar que la fecha inicial no sea 
+    if (!fInicial) {
+      Swal.fire({
+        icon: 'error',
+        title: `Pendiente!`,
+        text: `Falta la informacion de la  fecha de corte inicial para generar el informe solicitado!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+
+    try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      const resp: any = await this.servicio.getMedicamentosVencidos(idBodega, fInicial).toPromise();
+      this.lista = resp;
+      //this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));  
+      if (Array.isArray(resp)) {
+        Swal.close(); // 🚨 Primero cerramos el spinner
+        this.exportarVencidosXlsx('VENCIDOS'); // Exportar solo si la lista es válida
+      } else {
+        Swal.close(); // 🚨 Primero cerramos el spinner
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+      } catch (error) {
+      console.error("Error al obtener los datos de medicamentos vencidos de manera detallada", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+
+  }
+
+
+  async exportarMedicamentosNorotanxlsx(idBodega: number): Promise<void> {
+    const fInicial = this.generalForm.get('fInicial')?.value;
+
+    // Validar que la fecha inicial no sea 
+    if (!fInicial) {
+      Swal.fire({
+        icon: 'error',
+        title: `Pendiente!`,
+        text: `Falta la informacion de la  fecha de corte inicial para generar el informe solicitado!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+
+    try {
+
+       // Mostrar spinner mientras carga
+       Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      const resp: any = await this.servicio.getMedicamentosNorotan(idBodega, fInicial).toPromise();
+      this.lista = resp;
+      //this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));  
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      if (Array.isArray(resp)) {
+        this.exportarVencidosXlsx('NO_ROTAN'); // Exportar solo si la lista es válida
+      } else {
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+      
+    } catch (error) {
+      console.error("Error al obtener los datos de medicamentos que no rotan de  manera detallada", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+
+  }
+
+
+
+  exportarVencidosXlsx(fileName: string) {  // Crea un array con los datos de la orden de despacho que deseas exportar
+    // Crea un array con los datos de la orden de despacho que deseas exportar
+    const datos: any[] = [];
+
+    // Encabezados de la tabla
+    const encabezado = [
+      'CONSECUTIVO',
+      'NOMBRE DE LA BODEGA',
+      'ID MEDICAMENTO',
+      'NOMBRE DEL MEDICAMENTO',
+      'PRESENTACION',
+      'VALOR UNITARIO',
+      'CANTIDAD ACTUAL',
+      'CANTIDAD DE REFERENCIA',
+      'ULTIMA FECHA DE DOTACION',
+      'PENDIENTE',
+      'INVIMA',
+      'LABORATORIO',
+      'LOTE',
+      'FECHA_VENCIMIENTO',
+    ];
+
+    datos.push(encabezado);
+    // Agrega los items de despacho al array
+
+    this.contador = 0;
+    this.lista.forEach((item: any) => {
+      this.contador++;
+      //const valorFormateado = (item.stopMinimo || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });      
+
+      datos.push([
+        this.contador.toString(), // Validación si es null o undefined
+        item.nombreBodega || "",
+        item.idMedicamento,
+        item.nombre?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
+        item.forma?.toUpperCase() || "",  // Validación para evitar errores si es null o undefined
+        item.stopMinimo || 0,
+        item.cantidad,
+        item.cantidadReferencia,
+        item.ultFecIngreso ? new Date(item.ultFecIngreso).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",
+        item.pendiente,
+        item.invima ? item.invima.toUpperCase() : "", // Validación adicional
+        item.laboratorio ? item.laboratorio.toUpperCase() : "", // Validación adicional
+        item.lote ? item.lote.toUpperCase() : "", // Validación adicional
+        item.fechaVencimiento ? new Date(item.fechaVencimiento).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",
+      ]);
+
+    });
+
+    // Crea la hoja de trabajo de Excel (worksheet)
+    const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+
+    // Aplicar formato al encabezado
+    const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+    for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+      const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+      if (celda) {
+        celda.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+          alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+          fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+        };
+      }
+    }
+
+    // Crea el libro de trabajo (workbook)
+    const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
+    // Genera y descarga el archivo Excel
+    XLSX.writeFile(libroDeTrabajo, fileName + '_' + new Date().getTime() + '.xlsx');
+    Swal.fire({
+      icon: 'success',
+      title: `Ok`,
+      text: 'Los medicamentos ' + fileName + ' a la fecha seleccionada fueron exportadas en su carpeta de descargas en formato xlsx',
+
+    });
+  }
 
   tieneAcceso(nivelRequerido: number): boolean {
-    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));
     if (isNaN(nivelUsuario)) {
       //console.warn("El nivel del usuario no es válido o no está definido");
       return false;
-    }  
+    }
     return nivelUsuario >= nivelRequerido;
   }
-
 
   reporteEnConstruccion() {
     Swal.fire({

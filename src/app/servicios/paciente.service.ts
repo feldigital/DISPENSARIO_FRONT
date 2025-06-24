@@ -124,8 +124,45 @@ export class PacienteService {
       })
     );
   }
+
   getCategoria(): Observable<any> { 
     return this.http.get(`${this.urlEndPoint}/categoria`).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
+  getTipoDocumento(): Observable<any> { 
+    return this.http.get(`${this.urlEndPoint}/tipo-documento`).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
+  public exportarPacientes(registro: any): Observable<any> {
+    const headers = { 'Content-Type': 'application/json' };   
+    return this.http.post<any>(`${this.urlEndPoint}/exportar`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
+  public importarPacientes(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.urlEndPoint}/importar`, formData);
+  }
+ 
+  public insertarNuevosPacientes() {
+    return this.http.post(`${this.urlEndPoint}/insertar-nuevos`, null);
+  }
+
+  public actualizarPacienteTemporal(registro: any): Observable<any> {
+    const headers = { 'Content-Type': 'application/json' };   
+    return this.http.post<any>(`${this.urlEndPoint}/actualizar-temporal`, JSON.stringify(registro), { headers }).pipe(
       catchError(e => {
         return throwError(e);
       })

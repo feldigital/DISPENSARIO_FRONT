@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { BodegaService } from 'src/app/servicios/bodega.service';
-import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable, { RowInput } from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { Observable } from 'rxjs';
 import { AjusteinventarioService } from 'src/app/servicios/ajusteinventario.service';
 
 
@@ -48,15 +45,12 @@ export class VerajusteinventarioComponent {
       fInicial: [date30DaysAgo.toISOString().split('T')[0]],
       fFinal: [currentDate.toISOString().split('T')[0]],    
     });
-
    
 
   }
 
-  ngOnInit(): void { 
-    
+  ngOnInit(): void {     
     this.parametro = parseInt(sessionStorage.getItem('bodega') || '0', 10);
-
     this.bodegaservicio.getRegistrosActivos().subscribe(
       (resp: any) => {
         this.listaregistros = resp;
@@ -67,7 +61,6 @@ export class VerajusteinventarioComponent {
           }
           return comparacionPorNombre;
         });
-
         // Establecer el valor del select después de que se cargan los registros
         if (this.parametro) {
           this.generalForm.patchValue({ idBodega: +this.parametro });          
@@ -77,7 +70,6 @@ export class VerajusteinventarioComponent {
         console.error(err);
       }
     );
-
         // Escuchar cambios en el select de bodegas
         this.generalForm.get('idBodega')!.valueChanges.subscribe((nuevoIdBodega: number) => {
           if (nuevoIdBodega) {
@@ -86,7 +78,7 @@ export class VerajusteinventarioComponent {
           }
         });
     
-        this.generalForm.patchValue({ idBodega: this.parametro });    
+       // this.generalForm.patchValue({ idBodega: this.parametro });    
   }
 
   buscarAjusteInventario(){   
@@ -99,8 +91,20 @@ export class VerajusteinventarioComponent {
   
   
   consultarAjusteInventario(bodegaId: number) { 
+    if (!bodegaId || isNaN(bodegaId) || bodegaId === 0) {
+      console.warn('❌ ID inválido para buscar registros:', bodegaId);
+      return; // Salir sin hacer nada
+    }
     this.ajusteActual=null;
     this.listaItemAjuste={};
+     Swal.fire({
+              title: 'Cargando registros...',
+              html: 'Por favor espera un momento',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
     this.ajusteInventarioservicio.getAjusteInventarioBodega(bodegaId,this.generalForm.get('fInicial')?.value, this.generalForm.get('fFinal')?.value)
       .subscribe(resp => {
         this.listaAjusteInventario = resp;
@@ -108,7 +112,14 @@ export class VerajusteinventarioComponent {
           return new Date(b.fechaDespacho).getTime() - new Date(a.fechaDespacho).getTime();
         });
         
-      });
+       Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+                },
+                (error) => {
+                  console.error('❌ Error cargando registros', error);
+                  Swal.close(); // 🚨 Primero cerramos el spinner
+                  Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+                }
+              );
   }
 
 
@@ -183,14 +194,11 @@ export class VerajusteinventarioComponent {
     
       const parametrobodega=Number(idBodega);
     
-      let resp: any;     
-      
+      let resp: any;           
       
       let fileName: string = "";
       //resp =  await this.ajusteInventarioservicio.getDetalleOrdenDespacho(parametrobodega, fInicial, fFinal,tipoReporte).toPromise();
 
-      // Asegurarse de que resp sea un array antes de asignarlo
-      console.log(resp);
       // Asegurarse de que resp sea un array antes de asignarlo
       if (Array.isArray(resp)) {
         this.lista = resp;        
@@ -314,9 +322,12 @@ export class VerajusteinventarioComponent {
 
 
   mostrarItemAjuste(item: any): void {
-    this.listaItemAjuste=item.itemsAjuste;
+    
+    this.listaItemAjuste = item.itemsAjuste.sort((a: any, b: any) => {
+      return a.medicamento.nombre.localeCompare(b.medicamento.nombre);
+    });
     this.ajusteActual=item;
-    console.log( this.ajusteActual);
+    
   }
  
   addJustifiedText = (doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): void => {
@@ -365,7 +376,7 @@ export class VerajusteinventarioComponent {
       autoTable(doc, {
         head: [['Nro', 'ID', 'Nombre del medicamento',  'Física', 'Plataforma','Diferencia +/-']],
         body: bodyData,
-        startY: 110,
+        startY: 119,
         //theme: 'striped',
         theme: 'grid',
 
@@ -413,22 +424,27 @@ export class VerajusteinventarioComponent {
           let parrafo1 = doc.splitTextToSize(texto, 190);
           self.addJustifiedText(doc, texto, 10, nuevaY, 190, 6);
           
-          texto = "Durante el proceso de verificación llevado a cabo el día [ " + idAjuste.fechaInventario + " ], se identificaron discrepancias en las cantidades registradas, motivo por el cual se realiza el siguiente ajuste:";
+          texto = "Durante el proceso de verificación llevado a cabo el día " + idAjuste.fechaInventario + ", se identificaron discrepancias en las cantidades registradas, motivo por el cual se realiza el siguiente ajuste:";
           nuevaY = nuevaY + (parrafo1.length * 6) + 6; // +10 para margen
           parrafo1 = doc.splitTextToSize(texto, 190);
           self.addJustifiedText(doc, texto, 10, nuevaY, 190, 6);            
 
-          texto = "Motivos del ajuste: " +idAjuste.observacionAjuste;
+          texto = "MOTIVOS DEL AJUSTE: " +idAjuste.observacionAjuste;
           nuevaY = nuevaY + (parrafo1.length * 6) + 6; // +10 para margen
           parrafo1 = doc.splitTextToSize(texto, 190);          
           self.addJustifiedText(doc, texto, 10, nuevaY, 190, 6);           
           
           nuevaY = nuevaY + (parrafo1.length * 6) + 6; // +10 para margen
           
-          doc.text("RELACIÓN DE MEDICAMENTOS AJUSTADOS", 10, nuevaY); 
+          titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth('RELACIÓN DE MEDICAMENTOS AJUSTADOS') / 2);
+          titleYPos = doc.getTextWidth('RELACIÓN DE MEDICAMENTOS AJUSTADOS');
+          doc.setDrawColor('#D3E3FD');
+          doc.setFillColor('#D3E3FD');
+          doc.roundedRect(titleXPos - 10, nuevaY-10, titleYPos + 20, 7, 3, 3, "FD");    
+          doc.text("RELACIÓN DE MEDICAMENTOS AJUSTADOS", titleXPos, nuevaY-5); 
+          //doc.setTextColor('#000000'); // Color negro
         },
         didDrawPage: function (data) {
-          // Agrega el número de página en la parte superior derecha de cada página
           doc.setFontSize(10);
           doc.text('Página ' + paginaActual + ' de ' + totalPagesExp, 170, doc.internal.pageSize.height - 10);
           doc.text('CALLE 24 #18A-101 Barrio Santa Catalina', 12, doc.internal.pageSize.height - 12);
@@ -436,6 +452,27 @@ export class VerajusteinventarioComponent {
           doc.setLineWidth(1.3);
           doc.setDrawColor(236, 255, 83); // draw red lines 
           doc.line(10, doc.internal.pageSize.height - 20, 10, doc.internal.pageSize.height - 5);
+          
+          // Agregar espacio antes de las firmas
+          let finalY = data.cursor!.y + 30;
+
+          let texto = "La presente acta se realiza con el fin de formalizar y documentar los ajustes necesarios para la correcta administración del inventario de los medicamentos.";
+          self.addJustifiedText(doc, texto, 10, finalY-25, 190, 6);            
+
+          
+          // Firmas
+          doc.setLineWidth(0.3);
+          doc.setDrawColor(0, 0, 0); // draw red lines 
+          doc.line(10, finalY, 70, finalY); // Línea firma izquierda
+          doc.line(100, finalY, 180, finalY); // Línea firma derecha
+          
+          doc.setFontSize(10);
+          doc.text('Responsable del Ajuste', 15, finalY + 5);
+          doc.text(idAjuste.funcionarioAjuste, 15, finalY + 10);
+      
+          doc.text('Responsable del Inventario', 105, finalY + 5);
+          doc.text(idAjuste.funcionarioInventario, 105, finalY + 10);
+          
           paginaActual++;
         },
       });
@@ -462,9 +499,10 @@ export class VerajusteinventarioComponent {
     const data: RowInput[] = [];
     try {
      // const resp: any = await this.servicioFormula.getFormulasNoProcesadas(idBodega,fInicial, fFinal).toPromise();
-      this.lista = ajuste.itemsAjuste;
-      //this.lista.sort((a: any, b: any) => b.nombre - a.nombre);
-      console.log( this.lista);
+      this.lista = ajuste.itemsAjuste.sort((a: any, b: any) => {
+        return a.medicamento.nombre.localeCompare(b.medicamento.nombre);
+      });
+      //this.lista.sort((a: any, b: any) => b.nombre - a.nombre);     
       this.contador = 0;;
       for (let i = 0; i < this.lista.length; i++) {
         const rowData: RowInput = [
@@ -474,9 +512,8 @@ export class VerajusteinventarioComponent {
           this.lista[i].cantidadFisica ?? '', // Verifica si existe y luego lo convierte, si no, coloca un valor por defecto
           this.lista[i].cantidadSistema ?? '', // Verifica si existe y luego lo convierte, si no, coloca un valor por defecto
           this.lista[i].cantidadAjuste ?? '', // Verifica si existe y luego lo convierte, si no, coloca un valor por defecto
-                ];
+          ];
         data.push(rowData);
-
       }      
       return data.length > 0 ? data : undefined;
     } catch (err) {

@@ -1,5 +1,4 @@
 <div class="container mt-2">
-  
     <div class="mb-2">
         <div class="text-container">
             <div [formGroup]="generalForm" class="input-group mb-2 align-center">
@@ -8,15 +7,22 @@
                     Visualiza solo los registros que tienen existencias
                 </span>
 
-                <span class="input-group-text bg-transparent">
-                    <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
-                </span>
-                <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
-                    placeholder="Buscar por nombre del medicamento" style="width: 200px;"> 
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>Digite y seleccione el nombre del medicamento a buscar
+                    </mat-label>
+                    <input type="text" matInput formControlName="medicamento" [matAutocomplete]="automedicamento" />
+                    <mat-autocomplete #automedicamento="matAutocomplete"
+                        (optionSelected)="seleccionarMedicamento($event)">
+                        <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option">
+                            {{ option.nombre }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+
             </div>
         </div>
-    </div>   
-  
+    </div>
+
     <div *ngIf="listaItemBodega?.length > 0">
         <table class="table table-striped table-hover table-sm">
             <thead class="thead-colored">
@@ -27,8 +33,8 @@
                     <th>Cum</th>
                     <th>Presentación</th>
                     <th>Via</th>
-                    <th>Bodega</th>                   
-                    <th>Existencia</th>                   
+                    <th>Bodega</th>
+                    <th>Existencia</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +46,43 @@
                     <td>{{itemt.dato_3}}</td>
                     <td>{{itemt.dato_4}}</td>
                     <td>{{itemt.dato_5}}</td>
-                    <td>{{itemt.d_1}}</td>          
+                    <td style="color: green; text-align: right;"><strong>{{itemt.d_1}}</strong></td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div *ngIf="listaItemEnvio?.length > 0">
+        <div class="col-12 text-center">
+            <span class="text-green">
+                <strong> EXISTENCIA DEL MEDICAMENTO EN CANJE EN ESTADO ENVIO </strong>
+            </span>
+        </div>
+
+        <table class="table table-striped table-hover table-sm mt-2">
+            <thead class="thead-gradient-d">
+                <tr>
+                    <th>Orden</th>
+                    <th>Fecha </th>
+                    <th>Origen </th>
+                    <th>Destino</th>
+                    <th>Nombre Medicamento</th>
+                    <th>Presentacion</th>
+                    <th>Cantidad</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let itemt of listaItemEnvio let i= index">
+                    <td>{{itemt.idDespacho}}</td>
+                    <td>{{itemt.fechaDespacho | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.bodegaOrigen}}</td>
+                    <td>{{itemt.bodegaDestino}}</td>
+                    <td>{{itemt.nombreMedicamento}}</td>
+                    <td>{{itemt.presentacion}}</td>
+                    <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
+
                 </tr>
             </tbody>
         </table>

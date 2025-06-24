@@ -287,7 +287,61 @@ export class BodegaService {
       }));
   } 
 
+  getExistenciasMedicamentoPuntual(idMedicamento: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idMedicamento', idMedicamento);
+    return this.http.get<any>(`${this.urlEndPoint}/existenciaspuntual`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
 
+  getMedicamentosVencidos(idBodega: number,fInicial: string): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', idBodega)
+    .set('fInicial', fInicial);
+    return this.http.get<any>(`${this.urlEndPoint}/vencidos`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  getMedicamentosNorotan(idBodega: number,fInicial: string): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', idBodega)
+    .set('fInicial', fInicial);
+    return this.http.get<any>(`${this.urlEndPoint}/norotan`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  } 
+
+  public obtenerMedicamentoPrescritosEntrega(registro: any): Observable<any> {
+    const headers = { 'Content-Type': 'application/json' };   
+    return this.http.post<any>(`${this.urlEndPoint}/prescripciones-entregas`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
+  public obtenerMedicamentoPrescritosEntregaPorBodega(registro: any): Observable<any> {
+    const headers = { 'Content-Type': 'application/json' };   
+    return this.http.post<any>(`${this.urlEndPoint}/prescripciones-entregas-bodegas`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
 
 
 }

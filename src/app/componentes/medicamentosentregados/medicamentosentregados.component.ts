@@ -1,11 +1,9 @@
 
-import { Component, Input, SimpleChanges } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, Observable, of, switchMap } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { BodegaService } from 'src/app/servicios/bodega.service';
-import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import Swal from 'sweetalert2';
 import { FormulaService } from 'src/app/servicios/formula.service';
 
@@ -22,11 +20,11 @@ export class MedicamentosentregadosComponent {
   listaregistros: any;
   medicamentosFiltrados: any[] = [];
   medicamentoActual: any = NaN;
-  
+  totalCantidadEntregada:number =0;
+
 
   constructor(
-    private servicio: BodegaService,  
-    private formulaservicio: FormulaService,
+    private servicio: BodegaService,   
     private formulaService: FormulaService,
 
     private fb: FormBuilder) {
@@ -63,7 +61,7 @@ export class MedicamentosentregadosComponent {
 
         // Establecer el valor del select después de que se cargan los registros
         if (this.parametro) {
-          this.generalForm.patchValue({ idBodega: +this.parametro });          
+          this.generalForm.patchValue({ idBodega: +this.parametro });
         }
       },
       (err: any) => {
@@ -76,9 +74,10 @@ export class MedicamentosentregadosComponent {
     // Escuchar cambios en el select de bodegas
     this.generalForm.get('idBodega')!.valueChanges.subscribe((nuevoIdBodega: number) => {
       if (nuevoIdBodega) {
-        this.parametro = nuevoIdBodega;  
-        if (this.medicamentoActual){ 
-        this.buscarRegistro(this.medicamentoActual, this.parametro);}
+        this.parametro = nuevoIdBodega;
+        if (this.medicamentoActual) {
+          this.buscarRegistro(this.medicamentoActual, this.parametro);
+        }
       }
     });
 
@@ -94,10 +93,7 @@ export class MedicamentosentregadosComponent {
       .subscribe(results => {
         this.medicamentosFiltrados = results;
       });
-
-
   }
-
 
   seleccionarMedicamento(event: MatAutocompleteSelectedEvent): void {
     this.medicamentoActual = event.option.value.idMedicamento;
@@ -106,11 +102,36 @@ export class MedicamentosentregadosComponent {
   }
 
   public buscarRegistro(idMedicamento: number, idBodega: number) {
-    if(idMedicamento){
-    this.formulaService.getMedicamentoentregadoPaciente(idMedicamento, idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
-      .subscribe((resp: any) => {
-        this.listaentregas = resp
-        });
+    if (idMedicamento) {
+      // Limpiar listas antes de cargar nueva data
+      this.listaentregas = [];
+      this.totalCantidadEntregada =0;
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      this.formulaService.getMedicamentoentregadoPaciente(idMedicamento, idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
+        .subscribe((resp: any) => {
+          this.listaentregas = resp;        
+          Swal.close(); // ✅ Cerrar el spinner al terminar correctamente          
+          const totalEntregado = this.listaentregas.reduce((sum: number, item: any) => {
+            return sum + (item.cantidadEntrega || 0); // usa 0 si el valor es null/undefined
+          }, 0);
+
+          this.totalCantidadEntregada = totalEntregado;
+        },
+          (error) => {
+            console.error('❌ Error cargando registros', error);
+            Swal.close(); // 🚨 Primero cerramos el spinner
+            Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+          }
+        );
     }
     else {
       Swal.fire({

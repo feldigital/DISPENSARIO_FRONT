@@ -154,7 +154,7 @@ getMedicamentoEntregadoPacienteMenosDe30Dias(idMedicamento: number,idPaciente: n
  const   fechaFinal=new Date();
  const fechaFinalISO = fechaFinal.toISOString();
  const fechaInicial = new Date(fechaFinal);
- fechaInicial.setDate(fechaFinal.getDate() - 30);
+ fechaInicial.setDate(fechaFinal.getDate() - 28);
  const fechaInicialISO =fechaInicial.toISOString();
   const params = new HttpParams()
   .set('idMedicamento', idMedicamento)
@@ -190,7 +190,6 @@ getCuotasModeradorasPDF(id: number,fInicial: string, fFinal: string): Observable
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);
       }
-
       return throwError(e);
     }));
  }
@@ -205,7 +204,6 @@ getFormulasPrescritas(fInicial: string, fFinal: string): Observable<any> {
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);
       }
-
       return throwError(e);
     }));
  }
@@ -221,7 +219,6 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);
       }
-
       return throwError(e);
     }));
  }
@@ -237,7 +234,6 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);
       }
-
       return throwError(e);
     }));
  }
@@ -252,7 +248,6 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);
       }
-
       return throwError(e);
     }));
  }
@@ -291,5 +286,21 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
     return this.http.delete<void>(`${this.urlEndPoint}/itementrega`, {params});
   }
 
+  getFormulaIdPaciente(idPaciente: number,fInicial: string, fFinal: string): Observable<any> {
+
+    const params = new HttpParams()
+    .set('idPaciente', idPaciente)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);
+     return this.http.get<any>(`${this.urlEndPoint}/idpaciente`, {params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+  
+        return throwError(e);
+      }));
+   }
+  
 
 }

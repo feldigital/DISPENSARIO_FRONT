@@ -47,11 +47,7 @@ export class AjusteinventarioComponent {
       this.parametro = params.get('id');
       if (this.parametro) {
         this.buscarRegistro(this.parametro);
-      }
-    //  else {
-    //    this.parametro = parseInt(sessionStorage.getItem('bodega') || '0', 10);
-    //    this.buscarRegistro(this.parametro);
-    //  }
+      }   
     });    
    
   
@@ -160,6 +156,14 @@ export class AjusteinventarioComponent {
   onBodegaChange() {
     const idBodega = this.generalForm.get('bodegaAjuste')?.value;
     
+         Swal.fire({
+              title: 'Cargando registros...',
+              html: 'Por favor espera un momento',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
     this.servicio.getRegistrosMedicamentoBodega(idBodega)
       .subscribe((resp: any) => {      
         this.listaItems = resp.map((item: any) => ({         
@@ -172,11 +176,15 @@ export class AjusteinventarioComponent {
         }));
         this.listaItems.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
         this.listaItemsFiltro=this.listaItems;
-
         this.importar=true;
-      },
-        (err: any) => { console.error(err) }
-      );    
+        Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+                },
+                (error) => {
+                  console.error('❌ Error cargando registros', error);
+                  Swal.close(); // 🚨 Primero cerramos el spinner
+                  Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+                }
+              );       
 
   }
 
@@ -318,34 +326,36 @@ export class AjusteinventarioComponent {
           icon: 'success',
           title: `Item eliminado!`,
           text: `El item de la orden de ajuste de Inventario ha sido eleiminado correctamente!`,
-        });
-
-        
+        });        
       },
       (error) => {
         console.error(`Error al eliminar el ítem con ID ${idItemBd} de la base de datos:`, error);
       }
-    );
-  
-  }
-  
-    }
-  
+    );  
+  }  
+    }  
 
 
   procesarAjusteInventario(): void {
     let funcionario = sessionStorage.getItem("nombre");
-    const tieneErrores = this.listaItems.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
-      if (itemBodega.cantidadDespacho > itemBodega.cantidad) {
-       
-        Swal.fire({
+
+    const tieneErrores = this.listaItems.some((itemAjuste: { cantidadAjuste: number; cantidad: number; }) => {
+
+      const cantidad = Number(itemAjuste.cantidad) || 0;
+      const cantidadAjuste = Number(itemAjuste.cantidadAjuste) || 0;
+      const diferencia = cantidad + cantidadAjuste; // Aquí calculamos la diferencia correctamente
+    
+      if (diferencia < 0) {
+        console.log("Cantidad actual:", cantidad, "| Ajuste:", cantidadAjuste);
+        console.log("Diferencia calculada:", diferencia);
+     
+         Swal.fire({
           icon: 'error',
           title: 'Cantidad insuficiente',
-          text: 'La orden tiene items donde la cantidad a despachar supera la cantidad existente en la bodega origen.',
+          text: 'La orden de ajuste tiene items donde la cantidad a ajustar generaria un valor negativo e las existencias de la bodega que quiere ajustar.',
         });
         return true; // Detener la iteración si se encuentra un error
-      }
-    
+      }    
       return false;
     });
 
@@ -353,7 +363,7 @@ export class AjusteinventarioComponent {
       Swal.fire({
         title: '¿Confirma?',
         icon: 'question',
-        text: 'Ajustar las cantidades de los medicamentos de la orden de ajuste de inventario número ' + this.registroUpdate.idAjuste + ' del inventario de la bodega ' + this.registroUpdate.bodega.nombre ,
+        text: 'Ajustar las cantidades de los medicamentos de la orden de ajuste de inventario número ' + this.registroUpdate.idAjuste + ' a la bodega ' + this.registroUpdate.bodegaAjuste.nombre ,
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
@@ -362,12 +372,12 @@ export class AjusteinventarioComponent {
         if (result.isConfirmed) {
 
 
-          this.ajustarInventarioServicio.ajustarInventarioBodega(this.ajusteInventario.idAjuste, this.registroUpdate.bodega.idBodega, funcionario!).subscribe(resp => {
+          this.ajustarInventarioServicio.ajustarInventarioBodega(this.ajusteInventario.idAjuste, this.registroUpdate.bodegaAjuste.idBodega, funcionario!).subscribe(resp => {
             this.nuevaAjusteInventario();
             Swal.fire({
               icon: 'success',
               title: 'Ok',
-              html: 'Las cantidades de los medicamentos en la bodega seleccionada se han ajustado correctamente.',
+              html: 'Las cantidades de los medicamentos en la orden de ajuste seleccionada se han aplicado correctamente.',
             });
           }, err => {
             Swal.fire({
@@ -628,7 +638,7 @@ if (Number(row[7]) !== diferencia) {
 
 
   onAjuste(event: any): void {
-    console.log(this.listaItems)
+   
     if(event.target.checked){   
     this.listaItemsFiltro = this.listaItems.filter((registro: any) => registro.cantidadAjuste !='');  
     }
@@ -643,6 +653,15 @@ if (Number(row[7]) !== diferencia) {
     }
     str = str.toLowerCase();
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
+  }
+
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }  
+    return nivelUsuario >= nivelRequerido;
   }
 
     reporteEnConstruccion() {

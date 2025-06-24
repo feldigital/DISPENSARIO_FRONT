@@ -115,8 +115,42 @@
                         <div *ngIf="mostrarComponente" class="card" class="col-md-7">
                             <p><strong>Nombre:</strong> {{pacienteActual.pNombre}} {{pacienteActual.sNombre}}
                                 {{pacienteActual.pApellido}} {{pacienteActual.sApellido}}</p>
-                            <p><strong>Documento:</strong> {{pacienteActual.tipoDoc}} - {{pacienteActual.numDocumento}}
-                            </p>
+                            <div>
+                                <ng-container *ngIf="!editarPaciente; else modoEdicion">
+                                    <p><strong>Documento:</strong> {{pacienteActual.tipoDoc}} -
+                                        {{pacienteActual.numDocumento}}
+                                        <button mat-icon-button (click)="enEdicion()"
+                                            style="width: 24px; height: 24px;">
+                                            <mat-icon style="font-size: 16px; color: green;">edith</mat-icon>
+                                        </button>
+                                    </p>
+                                </ng-container>
+
+                                <ng-template #modoEdicion>
+                                    <div class="contacto-edicion-container">
+                                        <div>
+                                            <mat-label>Cambio de paciente</mat-label>
+                                            <input class="form-control" type="text" formControlName="numDocumento"
+                                                placeholder="Digite nuevo documento" />                                              
+                                        </div>
+
+                                        <div class="acciones"> 
+                                             <button mat-icon-button color="primary" (click)="cambiarPaciente()"
+                                                matTooltip="Verificar">
+                                                <mat-icon>check</mat-icon>
+                                            </button>
+                                       
+                                            <button mat-icon-button color="warn" (click)="cancelarEdicion()"
+                                                matTooltip="Cancelar">
+                                                <mat-icon>close</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </ng-template>
+
+
+                            </div>
+
                             <p><strong>Eps:</strong> {{pacienteActual.eps.nombre}}</p>
                             <p><strong>Dirección:</strong> {{pacienteActual.direccion}}</p>
                             <p><strong>Celular:</strong>
@@ -207,6 +241,8 @@
                                     <option value="17">Trasplantes</option>
                                     <option value="18">Desnutrición</option>
                                     <option value="19">Gestantes</option>
+                                    <option value="20">Hipertensión y Diabete</option>
+                                    <option value="21">Niños menores de 5 años</option>
                                 </select>
                             </div>
                             <div class="alert alert-danger mt-2"
@@ -228,7 +264,7 @@
                     <div class="porta" *ngIf="!formula.estado">
                         <p> <strong>FORMULA PENDIENTE PROCESAR</strong></p>
                     </div>
-                   
+
 
                 </div>
 
@@ -286,7 +322,7 @@
                                     <select class="form-select" [value]="item.frecuencia"
                                         (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
                                         <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
-                                            [attr.data-multiplicador]="frecuencia.multiplicador" 
+                                            [attr.data-multiplicador]="frecuencia.multiplicador"
                                             [selected]="frecuencia.valor === item.frecuencia">
                                             {{frecuencia.nombre}}
                                         </option>
@@ -305,10 +341,10 @@
                                         [min]="1" />
                                 </td>
                                 <td>
-                                    {{item.medicamento.valor}}
+                                    {{item.medicamento.valor | currency}}
                                 </td>
                                 <td>
-                                    {{item.importe}}
+                                    {{item.importe | currency}}
                                 </td>
                                 <td>
                                     <button class="btn btn-danger btn-sm" type="button"
@@ -322,15 +358,10 @@
 
                 <div class="form-group row mt-3 d-flex align-items-center justify-content-between">
                     <div class="col-sm-4">
-                        <input 
-                            type="button" 
-                            (click)="actualizarFormula()" 
-                            value="Actualizar Fórmula" 
-                            class="btn btn-secondary w-100" 
-                            [disabled]="!facturaForm.valid" 
-                        />
+                        <input type="button" (click)="actualizarFormula()" value="Actualizar Fórmula"
+                            class="btn btn-secondary w-100" [disabled]="!facturaForm.valid" />
                     </div>
-                    <div class="col-sm-4 text-end"> Total formula: 
+                    <div class="col-sm-4 text-end"> Total formula:
                         <span class="fw-bold">{{ formula.total | currency }}</span>
                     </div>
                 </div>

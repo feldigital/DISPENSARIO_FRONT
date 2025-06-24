@@ -88,3 +88,17 @@ background: radial-gradient(to right, #5D8FA5, #6CC5D4);
   color: white !important;*/
   background: linear-gradient(90deg, #67ACD6, #5D8FA5) !important;
 }
+
+.mat-list-item.active-link {
+  background-color: #CFF4FC !important;  /* Fondo verde claro (puedes cambiarlo) */
+  box-shadow: inset 3px 0px 0px hsl(353, 98%, 52%);  /* Línea roja en el lateral izquierdo */
+  border-radius: 5px;  /* Esquinas redondeadas */
+  padding-left: 10px;  /* Espacio extra para el texto */
+  font-weight: bold;
+  color: #39548B !important;  /* Color de texto activo */
+}
+
+
+.mat-list-item.active-link mat-icon {
+  color: #ff6347 !important;              /* Color personalizado del ícono cuando el menú está activo */
+}

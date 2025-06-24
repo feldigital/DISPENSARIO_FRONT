@@ -20,30 +20,59 @@
     </span>
   </mat-toolbar>
 
+
+  <mat-sidenav-container class="example-sidenav-container" [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
+    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
+      <mat-nav-list>  
+        <ng-container *ngFor="let nav of fillerNav">
+          <a mat-list-item 
+             [routerLink]="nav.route" 
+             routerLinkActive="active-link"  
+             [ngClass]="{'menu-parent': nav.subNav}"  
+             *ngIf="tieneAcceso(nav.nivel)">
+            <mat-icon class="icono">{{nav.icon}}</mat-icon>
+            {{nav.name}}
+          </a>
+  
+          <!-- Mostrar submenú si hay subNav 
+          <div *ngIf="nav.subNav && nav.subNav.length" class="submenu">
+            <a mat-list-item *ngFor="let sub of nav.subNav" 
+               [routerLink]="sub.route" 
+               routerLinkActive="active-link">
+              <mat-icon class="icono">{{sub.icon}}</mat-icon>
+              {{sub.name}}
+            </a>
+          </div>
+          -->
+        </ng-container>
+      </mat-nav-list>      
+    </mat-sidenav>
+  
+    <mat-sidenav-content>
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+
+<!--
   <mat-sidenav-container class="example-sidenav-container"
                          [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
     <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'"
                  [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
-      <mat-nav-list>    
-        
-        <ng-container *ngFor="let nav of fillerNav">
+      <mat-nav-list>  
+         <ng-container *ngFor="let nav of fillerNav">
           <a mat-list-item [routerLink]="nav.route" *ngIf="tieneAcceso(nav.nivel)">
             <mat-icon class="icono">{{nav.icon}}</mat-icon>
             {{nav.name}}
           </a>
         </ng-container>
-
-      <!--<a *ngFor="let nav of fillerNav" mat-list-item [routerLink]="nav.route" *ngIf="tieneAcceso(nav.nivel)" >
-            <mat-icon  class="icono">{{nav.icon}}</mat-icon>
-          {{nav.name}}</a>          
--->
-      </mat-nav-list>      
+     </mat-nav-list>      
     </mat-sidenav>
 
     <mat-sidenav-content>
         <router-outlet></router-outlet>
     </mat-sidenav-content>
   </mat-sidenav-container>
+  -->
 </div>
 
 <div *ngIf="!shouldRun">Please open on Stackblitz to see result</div>

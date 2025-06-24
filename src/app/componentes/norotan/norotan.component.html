@@ -1,1 +1,116 @@
-<p>norotan works! Version 2.1</p>
+<div class="container mt-2">
+
+    <form [formGroup]="generalForm" class="px-2">
+        <div class="row align-items-end g-2 mb-2">
+            <!-- Selector de Bodega -->
+            <div class="col-md-3">
+                <label class="form-label mb-1 fw-bold">Bodega seleccionada</label>
+                <select class="form-select form-select-sm" formControlName="idBodega">
+                    <option selected [value]=0>TODAS LAS BODEGAS</option>
+                    <option *ngFor="let item of listaregistros" [value]="item.idBodega">
+                        {{ item.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Rango de Fechas -->
+            <div class="col-md-4">
+                <label class="form-label mb-1 fw-bold">No rotan desde</label>
+                <div class="d-flex gap-1">
+                    <input type="date" formControlName="fechainicial" class="form-control form-control-sm">
+                </div>
+            </div>
+
+            <!-- Botón Buscar -->
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-info w-100 d-flex align-items-center justify-content-center"
+                    (click)="buscarRegistro(parametro)">
+                    <mat-icon class="me-1">search</mat-icon> Buscar
+                </button>
+            </div>
+
+            <!-- Alerta: Total moléculas pendiente -->
+            <div *ngIf="listaNorotanBodega?.length > 0" class="col-md-3 d-flex align-items-end">
+                <div class="alert alert-danger d-flex align-items-center justify-content-center mb-0 w-100 py-2">
+                    <small>
+                        <strong>Moléculas que no rotan desde {{fechaFiltro| date: 'dd/MM/yyyy'}}:</strong> {{ listaNorotanBodega?.length || 0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buscador de Medicamento -->
+        <div class="row g-2">
+            <div class="col-md-12">
+                <label class="form-label mb-1 fw-bold">Buscar medicamento</label>
+                <div class="d-flex align-items-center">
+
+                    <!-- Campo de búsqueda con ícono -->
+                    <div class="input-group flex-grow-1 me-2">
+                        <span class="input-group-text bg-white border-end-0">
+                            <mat-icon class="text-info">search</mat-icon>
+                        </span>
+                        <input type="text" formControlName="listFilter"
+                            class="form-control form-control-sm border-start-0"
+                            placeholder="Digite el nombre del medicamento" />
+                    </div>
+
+                    <!-- Checkbox al lado derecho -->
+                    <div class="form-check d-flex align-items-center ms-auto">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+
+
+
+
+    <div class="alert alert-info my-2" *ngIf="listaNorotanBodega?.length == 0">
+        No hay medicamentos penidientes, asociados a esta bodega en la fecha seleccionada!
+    </div>
+
+
+
+
+    <div *ngIf="listaNorotanBodega?.length > 0">
+        <table class="table table-striped table-hover table-sm mt-2">
+            <thead class="thead-colored">
+                <tr>
+                    <th>Item</th>  
+                    <th *ngIf="todasBodega">Dispensario</th>           
+                    <th>ID</th>
+                    <th>Nombre del medicamento</th>
+                    <th>Presentación</th>
+                    <th>Existencia</th>
+                    <th>Ult. Fecha Dotación</th>
+                    <th>Invima</th>
+                    <th>Laboratorio</th>
+                    <th>Lote</th>
+                    <th>Vencimiento</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let itemt of listaNorotanBodegaFiltro let i= index">
+                    <td>{{i+1}}</td>  
+                    <td *ngIf="todasBodega">{{itemt.nombreBodega}}</td>                                  
+                    <td>{{itemt.idMedicamento}}</td>
+                    <td>{{itemt.nombre}}</td>
+                    <td>{{itemt.forma}}</td>
+                    <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
+                    <td>{{itemt.ultFecIngreso | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.invima}}</td>
+                    <td>{{itemt.laboratorio}}</td>
+                    <td>{{itemt.lote}}</td>
+                    <td [ngStyle]="{ color: esFechaVencimientoProxima(itemt.fechaVencimiento) ? 'red' : 'inherit' }">
+                        {{itemt.fechaVencimiento | date: 'dd/MM/YYYY'}}
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

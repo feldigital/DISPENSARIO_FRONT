@@ -103,40 +103,6 @@ public update(registro: OrdenDespachoI) {
 }
 
 
-/*
-
-saveEntregaFormula(idFormula: number,idBodega: number, funcionario: string , medioEntrega: string) {
- // const headers = { 'Content-Type': 'application/json' };   
-  const params = new HttpParams()
-  .set('idFormula', idFormula)
-  .set('idBodega', idBodega)
-  .set('funcionario', funcionario)
-  .set('medioEntrega', medioEntrega) ;
-  return this.http.get<any>(`${this.urlEndPoint}/entrega`, {params}).pipe(
-  catchError(e => {
-    return throwError(e);
-  })
-);
-}
-
-
-saveItemEntregaFormula(idItem: number,idBodega: number, funcionario: string, medioEntrega: string, cantidadAentregar:number) {
-  // const headers = { 'Content-Type': 'application/json' };   
-   const params = new HttpParams()
-   .set('idItem', idItem)
-   .set('idBodega', idBodega)
-   .set('funcionario', funcionario)
-   .set('medioEntrega', medioEntrega)
-   .set('cantidadAentregar', cantidadAentregar);
-    
-   return this.http.get<any>(`${this.urlEndPoint}/entrega/pendiente`, {params}).pipe(
-   catchError(e => {
-     return throwError(e);
-   })
- );
- }
- */
-
  descargarinventarioBodegacange(idDespacho: number, idBodega: number, funcionario: string) {
   const params = new HttpParams()
   .set('idDespacho', idDespacho)
@@ -167,6 +133,51 @@ cargarinventariocangeBodega(idDespacho: number, idBodega: number, funcionario: s
     }));
 } 
 
+regresarinventariocangeBodegaorigen(idDespacho: number, idBodega: number, funcionario: string) {
+  const params = new HttpParams()
+  .set('idDespacho', idDespacho)
+  .set('idBodega', idBodega)
+  .set('funcionario', funcionario);     
+  return this.http.get<any>(`${this.urlEndPoint}/regresarorigen`,{params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+} 
+
+
+regresarItemcangeBodegaorigen(idDespacho: number, idItemDespacho: number, idMedicamento: number, cantidad: number) {
+  const params = new HttpParams()
+  .set('idDespacho', idDespacho)
+  .set('idItemDespacho', idItemDespacho)
+  .set('idMedicamento', idMedicamento)
+  .set('cantidad', cantidad);     
+  return this.http.get<any>(`${this.urlEndPoint}/regresaritemorigen`,{params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+} 
+
+agregarItemAOrden(idDespacho: number, item: any) {
+  return this.http.post(`${this.urlEndPoint}/${idDespacho}/items`, item)
+    .pipe(
+      catchError(error => {
+        let errorMsg = 'Ocurrió un error desconocido';
+        if (error.error && error.error.message) {
+          errorMsg = error.error.message; // Obtener el mensaje del backend
+        }
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+}
+
 
 getDetalleOrdenDespacho( idBodega: number,fInicial: string, fFinal: string, tipoReporte: number): Observable<any> {
   const params = new HttpParams()
@@ -192,6 +203,19 @@ getMedicamentoOrdenDespacho( idMedicamento: number,idBodega: number,fInicial: st
   .set('fInicial', fInicial)
   .set('fFinal', fFinal);     
   return this.http.get<any>(`${this.urlEndPoint}/medicamento`,{params}).pipe(
+    catchError(e => {
+      if (e.status != 401 && e.error.mensaje) {        
+        console.error(e.error.mensaje);
+      }
+
+      return throwError(e);
+    }));
+} 
+
+getMedicamentoOrdenDespachoEnvio( idMedicamento: number): Observable<any> {
+  const params = new HttpParams()
+  .set('idMedicamento', idMedicamento);     
+  return this.http.get<any>(`${this.urlEndPoint}/medicamentoenvio`,{params}).pipe(
     catchError(e => {
       if (e.status != 401 && e.error.mensaje) {        
         console.error(e.error.mensaje);

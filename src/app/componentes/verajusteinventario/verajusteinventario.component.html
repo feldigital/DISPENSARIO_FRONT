@@ -1,9 +1,6 @@
-<div class="container mt-3" [formGroup]="generalForm">
-
+<form class="container mt-3" [formGroup]="generalForm" >
     <div class="row">
       <div class="col-md-6">
-  
-  
   <div class="input-group mt-2">
       <select class="form-select" formControlName="idBodega" >
           <option selected value="0">Seleccione la bodega a consultar</option>
@@ -62,7 +59,7 @@
                   }">{{itemt.estado}}</td>
                   <td> 
                    <div>                
-                     <mat-icon class="puntero" *ngIf="itemt.estado==='Ajustado'" title="Imprimir acta de ajuste" [ngStyle]="{'color':'#009A94'}" [matMenuTriggerFor]="menu">print</mat-icon>
+                     <mat-icon class="puntero"  title="Imprimir acta de ajuste" [ngStyle]="{'color':'#009A94'}" [matMenuTriggerFor]="menu">print</mat-icon>
                      <mat-icon class="puntero" *ngIf="itemt.estado==='Pendiente' && tieneAcceso(4)" title="Editar la orden de ajuste por inventario" [ngStyle]="{'color':'#009A94'}" [routerLink]="['/menu/ajusteinventario', itemt.idAjuste]">edit</mat-icon>
                      <mat-icon class="puntero" *ngIf="itemt.estado==='Pendiente' && tieneAcceso(4)" title="Eliminar la orden de ajuste por inventario" [ngStyle]="{'color':'red'}" (click)="eliminarAjusteInventario(itemt)" >delete_sweep</mat-icon>
                     <!-- <mat-icon class="puntero" *ngIf="itemt.estado==='Ajustado'" title="Ver la orden de ajuste por inventario"[ngStyle]="{'color':'green'}"  >check_circle_outline </mat-icon> -->
@@ -91,12 +88,14 @@
     <span class="fw-bold">OBSERVACIÓN DEL AJUSTE </span>
     <br>
     {{ajusteActual.observacionAjuste}}
-    
 </div>
+ 
 
   <div *ngIf="listaItemAjuste?.length > 0">
 
-    <div class="col-12 text-center"> LISTA DE MEDICAMENTOS DE LA ORDEN DE AJUSTE POR INVENTARIO Nro.  
+    <div class="col-12 text-center">
+        <span class="fw-bold">{{ajusteActual.itemsAjuste.length}}</span>
+          MEDICAMENTOS DE LA ORDEN DE AJUSTE POR INVENTARIO Nro.  
         <span class="fw-bold">{{ajusteActual.idAjuste}}</span>
     </div>
 
@@ -128,4 +127,4 @@
     </table>
 </div>
   
-  </div>
+</form>

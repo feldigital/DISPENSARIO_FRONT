@@ -14,24 +14,17 @@ export class VerordendespachoComponent implements OnInit {
   listaregistros: any;
   parametro: any;
   existencias: { [key: number]: number } = {};
-
-  constructor(
- 
-   
+  constructor(   
     private ordenDespachoservicio: OrdendespachoService,
     private activatedRoute: ActivatedRoute) { }
-
   ngOnInit(): void {   
     this.activatedRoute.paramMap.subscribe(params => {
       this.parametro = params.get('id');
       if (this.parametro) {
         this.buscarRegistro(this.parametro);
       }
-    });
-   
+    });   
   }
-
-
 
   public buscarRegistro(id: number) {
     this.ordenDespachoservicio.getOrdenDespachoId(id)
@@ -43,10 +36,8 @@ export class VerordendespachoComponent implements OnInit {
           control: false, // O cualquier lógica que determine el estado
           //editing: false,
           cantidadDespacho: '',
-        }));
-        
+        }));        
         this.listaItemsFormula.sort((a: any, b: any) => a.medicamento.nombre.localeCompare(b.medicamento.nombre));
-
       });
   }
 
@@ -59,7 +50,7 @@ export class VerordendespachoComponent implements OnInit {
   procesarOrdenDespachoIngreso(): void {
     let funcionario = sessionStorage.getItem("nombre");
     const tieneErrores = false;
-if(!this.tieneAcceso(5)){
+    if(!this.tieneAcceso(5)){
     const tieneErrores =   this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
       if (itemBodega.cantidadDespacho != itemBodega.cantidad) {
         Swal.fire({
@@ -74,7 +65,6 @@ if(!this.tieneAcceso(5)){
 }
 
     if (!tieneErrores) {
-
       Swal.fire({
         title: '¿Confirma?',
         icon: 'question',
@@ -86,25 +76,32 @@ if(!this.tieneAcceso(5)){
       }).then((result) => {
         if (result.isConfirmed) {
 
-
+          Swal.fire({
+                title: 'Actualizando inventario..',
+                html: 'Por favor espera un momento',
+                allowOutsideClick: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                }
+              });
       this.ordenDespachoservicio.cargarinventariocangeBodega(this.listaregistros.idDespacho, this.listaregistros.bodegaDestino.idBodega, funcionario!).subscribe(resp => {
         this.buscarRegistro(this.parametro);
+        Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
         Swal.fire({
           icon: 'success',
           title: 'Ok',
           html: 'La orden de despacho ha sido cargada al inventario de la bodega de destino. satisfactoriamente',
         });
       }, err => {
+         Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
         Swal.fire({
           icon: 'error',
           title: `Error`,
           text: 'No se pudo actualizar la orden de despacho al inventario de la bodega destino en la base de datos.',
         });
       });
-
  }
         });
-
     }
   }
 
@@ -117,7 +114,6 @@ if(!this.tieneAcceso(5)){
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
   }
 
-
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
     if (isNaN(nivelUsuario)) {
@@ -126,5 +122,4 @@ if(!this.tieneAcceso(5)){
     }  
     return nivelUsuario >= nivelRequerido;
   }
-
 }

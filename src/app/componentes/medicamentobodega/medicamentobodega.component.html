@@ -1,32 +1,56 @@
-<div class="container mt-2">
-    <div class="alert alert-info my-2" *ngIf="listaItemBodega?.length == 0">
+<div class="container mt-1">
+    
+   
+    <div class="mb-3" [formGroup]="generalForm">
+        <div *ngIf="listaItemBodega?.length > 0">
+          <div class="row g-2 align-items-end">
+            
+            <!-- Selector de Bodega -->
+            <div class="col-md-6">
+              <label class="form-label mb-1 fw-bold">Nombre de la bodega</label>
+              <select class="form-select form-select-sm" formControlName="idBodega">
+                <option value="">Seleccione la bodega</option>
+                <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+                  {{ item.nombre }}
+                </option>
+              </select>
+            </div>
+      
+            <!-- Buscador + Icono -->
+            <div class="col-md-4">
+              <label class="form-label mb-1 fw-bold">Buscar medicamento</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                  <mat-icon class="text-info">search</mat-icon>
+                </span>
+                <input
+                  type="text"
+                  formControlName="listFilter"
+                  class="form-control form-control-sm border-start-0"
+                  placeholder="Ingrese el nombre del medicamento"
+                />
+              </div>
+            </div>
+      
+            <!-- Alerta (mismo nivel que el buscador) -->
+            <div class="col-md-2">
+              <div class="alert alert-info text-center py-2 mb-0">
+                <small>
+                  <strong>Nro. de moléculas:&nbsp;</strong> {{ listaItemBodega?.length || 0 }}
+                </small>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+      
+      
+    
+    
+      <div class="alert alert-info my-2" *ngIf="listaItemBodega?.length == 0">
         No hay medicamentos asociados a esta bodega para mostrar!
     </div>
-   
-    <div class="mb-2">
-        <div class="text-container">
-            <div *ngIf="listaItemBodega?.length > 0" [formGroup]="generalForm" class="input-group mb-2 align-center">
-                <span class="bodega-nombre">
-                    Nombre de la bodega
-                </span>
-                <select class="form-select" formControlName="idBodega">
-                    <option selected value="null">Seleccione la bodega</option>
-                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega"> {{item.nombre }}</option>
-                </select>
-
-
-                <span class="bodega-nombre">
-                    {{listaItemBodega[0].nombreBodega}}
-                </span>
-                <span class="input-group-text bg-transparent">
-                    <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
-                </span>
-                <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
-                    placeholder="Buscar por nombre del medicamento">
-            </div>
-        </div>
-    </div>
-    
   
     <div *ngIf="listaItemBodega?.length > 0">
         <table class="table table-striped table-hover table-sm">
@@ -39,9 +63,10 @@
                     <th>Presentación</th>
                     <th>Existencia</th>
                     <th>Ult. Fecha Dotación</th>
-                    <th>Máx. Entrega</th>
-                    <th>Stock Min.</th>
-                    <th>Gestión</th>
+                    <th>Pendiente</th>  
+                    <th>Prom. mes último trimestre</th>  
+               
+                    <th>..Más</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,25 +75,26 @@
                     <td>{{i+1}}</td>
                     <td>{{itemt.cum}}</td>
                     <td>{{itemt.idMedicamento}}</td>
-                    <td>{{itemt.nombre}}</td>
+                    <td> {{itemt.nombre}}</td>
                     <td>{{itemt.forma}}</td>
-                    <td>{{itemt.cantidad}}</td>
+                    <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
                     <td>{{itemt.ultFecIngreso | date: 'dd/MM/YYYY'}}</td>
-
-                    <td>{{itemt.cantidadEntregada}}</td>
-                    <td>
+                    <td style="color: red; text-align: right;"><strong>{{itemt.pendiente}}</strong></td>
+                    <td style="text-align: right;">{{itemt.cantidadEntregada}}</td>
+                    <td> 
+                       
                         <div *ngIf="itemt.editing">
-                            <input type="number" [(ngModel)]="itemt.stopMinimo" class="form-control" />
+                            <input type="text" [(ngModel)]="itemt.invima" class="form-control" placeholder="Invima"/>
+                            <input type="text" [(ngModel)]="itemt.laboratorio" class="form-control"  placeholder="Laboratorio"/>
+                            <input type="text" [(ngModel)]="itemt.lote" class="form-control"  placeholder="Lote" />
+                            <input type="date" [(ngModel)]="itemt.fechaVencimiento" class="form-control" />
+                            <input type="number" [(ngModel)]="itemt.stopMinimo" class="form-control"  placeholder="Stock mínimo"/>
+                            <input *ngIf="tieneAcceso(6)" type="number" [(ngModel)]="itemt.pendiente" class="form-control"  placeholder="Pendiente"/>
                         </div>
-                        <div *ngIf="!itemt.editing">
-                            {{itemt.stopMinimo}}
-                        </div>
-
-                    <td>                       
-                            <mat-icon  *ngIf="!itemt.estado && !itemt.editing" title="Editar stock minimo" class="puntero" [ngStyle]="{'color':'#009A94'}" (click)="editarMedicamentoBodega(itemt)">edit</mat-icon>                      
-                        
-                            <mat-icon *ngIf="!itemt.estado && itemt.editing" title="Guardar el stock minimo" class="puntero" [ngStyle]="{'color':'green'}" (click)="guardarMedicamentoBodega(itemt)">check</mat-icon>                       
-                            <mat-icon *ngIf="!itemt.estado && itemt.editing"  class="puntero" title="Cancelar edición" [ngStyle]="{'color':'orange'}" (click)="cancelEdicion(itemt)">clear</mat-icon>
+                 
+                           <mat-icon  *ngIf="itemt.cantidad > 0 && !itemt.editing" title="Editar" class="puntero" style="font-size: 16px; color: #009A94;"  (click)="editarMedicamentoBodega(itemt)">list_alt</mat-icon>                      
+                            <mat-icon *ngIf="itemt.editing" title="Guardar" class="puntero" [ngStyle]="{'color':'green'}" (click)="guardarMedicamentoBodega(itemt)">check</mat-icon>                       
+                            <mat-icon *ngIf="itemt.editing"  class="puntero" title="Cancelar edición" [ngStyle]="{'color':'orange'}" (click)="cancelEdicion(itemt)">clear</mat-icon>
 
                       <!--      <mat-icon *ngIf="!itemt.estado" title="Eliminar medicamento" class="puntero" [ngStyle]="{'color':'red'}"  (click)="eliminarMedicamentoBodega(itemt)">delete_sweep</mat-icon>  -->
                     </td>

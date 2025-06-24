@@ -42,6 +42,13 @@
         [matMenuTriggerFor]="menuC"> 
         Exportar Detalles</button>    
 
+  <!-- Checkbox separado con margen -->
+  <div class="form-group d-flex align-items-center justify-content-end">
+    <input id="portabilidad" class="form-check-input me-2" type="checkbox" formControlName="soloajuste"
+        (change)="onAjuste($event)">
+    <label class="form-check-label" for="portabilidad">Ver órdenes pendientes por entrada</label>
+</div>
+
         <mat-menu #menuC="matMenu">
           <button  (click)='salidasExcelDetalleOrden(1)' mat-menu-item>
               <mat-icon [ngStyle]="{'color':'red'}">art_track</mat-icon>
@@ -79,10 +86,14 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let itemt of listaOrdendespacho let i= index">              
+            
+              <tr *ngFor="let itemt of listaOrdendespacho; let i = index"
+              [ngClass]="{'text-danger': itemt.bodegaOrigen.idBodega === idBodegaSeleccionada}">            
                 <td>
+               <!--
                   <mat-icon *ngIf="itemt.bodegaOrigen.idBodega===idBodegaSeleccionada"  [ngStyle]="{'color':'red'}">remove_circle_outline </mat-icon> 
                   <mat-icon *ngIf="itemt.bodegaDestino.idBodega===idBodegaSeleccionada"  [ngStyle]="{'color':'green'}">control_point </mat-icon> 
+                  -->
                   {{itemt.idDespacho}}</td>
                 <td>{{itemt.fechaDespacho | date: 'dd/MM/YYYY'}}</td>
                 <td>{{itemt.bodegaOrigen.nombre}}</td>             
@@ -99,6 +110,7 @@
                    <mat-icon class="puntero" *ngIf="itemt.estado==='Envío'"  title="Recepcionar la orden despacho"  [ngStyle]="{'color':'orange'}" [routerLink]="['/menu/verordendespacho', itemt.idDespacho]">input </mat-icon> 
                    <mat-icon class="puntero" *ngIf="itemt.estado==='Creación' && tieneAcceso(2)" title="Eliminar la orden despacho" [ngStyle]="{'color':'red'}" (click)="eliminarOrdenDespacho(itemt)" >delete_sweep</mat-icon>
                    <mat-icon class="puntero" *ngIf="itemt.estado==='Recepción'" title="Ver la orden despacho"[ngStyle]="{'color':'green'}"  [routerLink]="['/menu/verordendespacho', itemt.idDespacho]">check_circle_outline </mat-icon> 
+                   <mat-icon class="puntero" *ngIf="itemt.estado==='Envío' && tieneAcceso(3)" title="Editar la orden despacho" [ngStyle]="{'color':'green'}" [matMenuTriggerFor]="menuEdicion">edit</mat-icon>
                 </div>
                 
                 <mat-menu #menu="matMenu">
@@ -106,13 +118,22 @@
                       <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
                       <span>O. despacho sin cantidades</span>
                   </button> 
-                  <button *ngIf ="tieneAcceso(2) || itemt.estado==='Recepción'" (click)='reporteOrdenDespacho(itemt, true)' mat-menu-item>
+                  <button *ngIf ="tieneAcceso(3) || itemt.estado==='Recepción'" (click)='reporteOrdenDespacho(itemt, true)' mat-menu-item>
                       <mat-icon [ngStyle]="{'color':'#009A94'}">print</mat-icon>
                       <span>O. despacho con cantidades</span>
-                  </button>
-
-                  
+                  </button>                  
               </mat-menu>
+
+              <mat-menu #menuEdicion="matMenu">
+                <button (click)='devolverOrdenDespacho(itemt)' mat-menu-item>
+                    <mat-icon [ngStyle]="{'color':'red'}">settings_backup_restore</mat-icon>
+                    <span>Devolver orden de cange</span>
+                </button> 
+                <button  [routerLink]="['/menu/ordendespachoedit', itemt.idDespacho]" mat-menu-item>
+                    <mat-icon [ngStyle]="{'color':'green'}">compare_arrows</mat-icon>
+                    <span>Agregar o quitar item</span>
+                </button>                
+            </mat-menu>
 
                 </td>
            </tr>

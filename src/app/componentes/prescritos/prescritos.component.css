@@ -1,0 +1,10 @@
+/* Alterna color cada 2 filas (1 medicamento = 2 filas) */
+.zebra-group tbody tr:nth-child(4n-3),
+.zebra-group tbody tr:nth-child(4n-2) {
+    background-color: #f0f3f5; /* gris claro */
+}
+
+.zebra-group tbody tr:nth-child(4n-1),
+.zebra-group tbody tr:nth-child(4n) {
+    background-color: #ffffff; /* blanco */
+}

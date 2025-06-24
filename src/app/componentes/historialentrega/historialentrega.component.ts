@@ -1,10 +1,9 @@
 
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-
 import Swal from 'sweetalert2';
 import { PacienteService } from 'src/app/servicios/paciente.service';
-import { FormulaI } from 'src/app/modelos/formula.model';
+import { FormulaService } from 'src/app/servicios/formula.service';
 
 @Component({
   selector: 'app-historialentrega',
@@ -23,6 +22,7 @@ export class HistorialentregaComponent {
 
   constructor(
     private servicio: PacienteService,
+    private servicioformula: FormulaService,
     private fb: FormBuilder) {
     // Calcula la fecha actual
     const currentDate = new Date();
@@ -40,30 +40,35 @@ export class HistorialentregaComponent {
   public buscarRegistro() {
     this.servicio.getRegistroDocumento(this.generalForm.get('documento')?.value)
       .subscribe((resp: any) => {
-
-        this.listaregistros = resp
-        console.log(resp);
+        this.listaregistros = resp     
         if (resp && resp.length > 1) {
           Swal.fire({
             icon: 'warning',
             title: `DOCUMENTO DUPLICADO`,
             text: `Este documento está duplicado en la base de datos. Identifique claramente al paciente para consultar el medicamento.`,
-          });
-          
+          });          
           this.listaformulas = {};
           return;
-        }
-      
+        }      
 
-        if (resp && resp.length === 1) {
-          const rangoInicio = new Date(this.generalForm.get('fechainicial')?.value); // Fecha de inicio del rango
-          const rangoFin = new Date(this.generalForm.get('fechafinal')?.value);   // Fecha de fin del rango
-          this.listaformulas = resp[0].formulas         
+        if (resp && resp.length === 1) {         
+          this.buscarFormulas(resp[0].idPaciente)    
           this.listaItemsFormula = {};
         }
 
 });
   }
+
+  public buscarFormulas(id: number) {  
+    this.servicioformula.getFormulaIdPaciente(id,this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
+      .subscribe((resp: any) => {   
+        this.listaformulas = resp 
+        this.listaformulas.sort((a: any, b: any) => b.idFormula - a.idFormula);
+      });
+
+  }
+
+  
 
   calcularPendiente(item: any): number {
     return item.cantidad - item.totalEntregado;
@@ -76,8 +81,9 @@ export class HistorialentregaComponent {
     this.ajusteActual=item;
   }
   
-  mostrarformula(item: any): void {    
-    if(item.formulas.length>0)
+  mostrarformula(item: any): void {   
+    
+   if (item.formulas && Array.isArray(item.formulas) && item.formulas.length > 0) 
     {this.listaformulas=item.formulas;}
     else{
       Swal.fire({

@@ -14,7 +14,7 @@ import Swal from 'sweetalert2';
 export class PacienteComponent implements OnInit {
   generalForm!: FormGroup;
   nombrebtn!: string;
-  //listaregistros: any;
+  listaTiposDoc: any;
   //banderaRegistro!: boolean;
   listaDpto: any;
   listaMpio: any;
@@ -43,6 +43,7 @@ export class PacienteComponent implements OnInit {
     this.cargarDepartamentos();
     this.cargarEps();
     this.cargarCategoria();
+    this.cargarTipoDocumento();
 
 
   }
@@ -90,6 +91,7 @@ export class PacienteComponent implements OnInit {
         (err: any) => { console.error(err) }
       );
   }
+
   cargarEps() {
     this.servicio.getEps()
       .subscribe((resp: any) => {
@@ -99,6 +101,7 @@ export class PacienteComponent implements OnInit {
         (err: any) => { console.error(err) }
       );
   }
+
   cargarCategoria() {
     this.servicio.getCategoria()
       .subscribe((resp: any) => {
@@ -108,6 +111,18 @@ export class PacienteComponent implements OnInit {
         (err: any) => { console.error(err) }
       );
   }
+
+  cargarTipoDocumento() {
+    this.servicio.getTipoDocumento()
+      .subscribe((resp: any) => {
+        this.listaTiposDoc = resp;
+
+      },
+        (err: any) => { console.error(err) }
+      );
+  }
+
+
   buscarDocumento() {
     const numDocumento = this.generalForm.get('numDocumento')?.value;
     if (numDocumento) {
@@ -171,7 +186,7 @@ export class PacienteComponent implements OnInit {
         departamento: [''],
         municipio: [''],
         dispensario: [''],
-
+        pave: [false],
         portabilidad: [false],
         dptoportabilidad: [''],
         mpoportabilidad: [''],
@@ -241,6 +256,7 @@ export class PacienteComponent implements OnInit {
     categoria: itemt.categoria.codigo,
     departamento: itemt.departamento,
     estado: itemt.estado,
+    pave: itemt.pave,
     dispensario: itemt.dispensario,
     dptoportabilidad: itemt.dptoportabilidad || '',
     portabilidad: itemt.portabilidad,

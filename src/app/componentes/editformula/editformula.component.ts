@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormulaI } from 'src/app/modelos/formula.model';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,7 +8,7 @@ import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoI } from 'src/app/modelos/medicamento.model';
 import { ItemFormulaI } from 'src/app/modelos/itemformula.model';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { MedicoService } from 'src/app/servicios/medico.service';
@@ -31,6 +31,7 @@ export class EditformulaComponent implements OnInit {
   facturaForm!: FormGroup;
   listaMedicamento: any;
   pacienteActual: any;
+  pacienteNuevo: any;
   bodegaActual: any;
   mostrarComponente: Boolean = false;
   existencias: { [key: number]: number } = {};
@@ -59,6 +60,7 @@ export class EditformulaComponent implements OnInit {
     { nombre: '2 Cada 6 Horas', multiplicador: 8, valor: '2 Cada 6 Horas' },
     { nombre: '2 Cada 4 Horas', multiplicador: 12, valor: '2 Cada 4 Horas' },
     { nombre: '3 Cada 8 Horas', multiplicador: 9, valor: '3 Cada 8 Horas' },
+    { nombre: '4 Cada 8 Horas', multiplicador: 12, valor: '4 Cada 8 Horas' },
     { nombre: '2 Despues de cada comida', multiplicador: 6, valor: '2 Despues de cada comida' },
     { nombre: '1 Cada 7 dias', multiplicador: 4, valor: '1 Cada 7 dias' },
     { nombre: '2 Cada 15 dias', multiplicador: 4, valor: '2 Cada 15 dias' },
@@ -72,6 +74,8 @@ export class EditformulaComponent implements OnInit {
   medicamentosFiltrados: any[] = [];
   medicosFiltrados: any[] = [];
   ipsFiltrados: any[] = [];
+  editarPaciente: boolean = false;
+
 
   constructor(private pacienteService: PacienteService,
     private formulaService: FormulaService,
@@ -105,39 +109,42 @@ export class EditformulaComponent implements OnInit {
       cobroCM: [false],
       pgp: [false],
       valorCM: ['0'],
-    
+      numDocumento: [''],
+
     });
   }
 
   ngOnInit() {
-   // this.deshabilitarControles();
+    // this.deshabilitarControles();
     this.activatedRoute.paramMap.subscribe(params => {
-       let formulaId = +params.get('id')!;      
+      let formulaId = +params.get('id')!;
       if (formulaId) {
         // Procesar la formula formulaService 
         this.formulaService.getFormulaId(formulaId).subscribe(reg => {
           this.formula = reg;
-      
-          if (reg) {             
+
+          if (reg) {
             this.formula.items = this.formula.items.map((item: any) => ({
               ...item,
-              habilitarCantidad:this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
+              habilitarCantidad: this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
             }));
 
-           // Llenar existencias
-       this.formula.items.forEach((item: any) => {
-        const idMedicamento = item.medicamento.idMedicamento;       
-        this.existenciaAcutal(idMedicamento, bodega);
-      });
-    }
-    
+            // Llenar existencias
+            this.formula.items.forEach((item: any) => {
+              const idMedicamento = item.medicamento.idMedicamento;
+              this.existenciaAcutal(idMedicamento, bodega);
+            });
+          }
+
           this.mostrarComponente = true;
           this.pacienteActual = reg.paciente;
           this.mostrarRegistro(reg);
           this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
         });
+      }
 
-
+      if (!this.tieneAcceso(4)) {
+        this.facturaForm.get('idFormula')?.disable();
       }
 
     });
@@ -189,7 +196,7 @@ export class EditformulaComponent implements OnInit {
       },
         (err: any) => { console.error(err) }
       );
-   
+
 
     this.fechaActual = new Date();
     const date30DaysAgo = new Date(this.fechaActual);
@@ -229,7 +236,7 @@ export class EditformulaComponent implements OnInit {
     })
   }
 
- 
+
 
 
   openDialogIps(): void {
@@ -298,49 +305,49 @@ export class EditformulaComponent implements OnInit {
 
   public buscarFormula() {
     let bodega = parseInt(sessionStorage.getItem("bodega") || "0", 10);
-    this.formula = new FormulaI();  
+    this.formula = new FormulaI();
     this.pacienteActual = {};
     this.mostrarComponente = false;
     this.formulaService.getFormulaId(this.facturaForm.get('idFormula')!.value).subscribe(reg => {
-     
+
       if (reg) {
-      this.formula = reg;    
-      //this.formula = Object.assign(new FormulaI(), reg);
-      this.formula.items = this.formula.items.map((item: any) => ({
-        ...item,
-        habilitarCantidad:this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
-      }));
+        this.formula = reg;
+        //this.formula = Object.assign(new FormulaI(), reg);
+        this.formula.items = this.formula.items.map((item: any) => ({
+          ...item,
+          habilitarCantidad: this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
+        }));
 
-       // Llenar existencias
-       this.formula.items.forEach((item: any) => {
-        const idMedicamento = item.medicamento.idMedicamento;       
-        this.existenciaAcutal(idMedicamento, bodega);
-      });
-
-      this.mostrarComponente = true;
-      this.pacienteActual = reg.paciente;
-      this.mostrarRegistro(reg);
-      this.ValidaPaciente();
-      this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
-      }else {
-        Swal.fire({
-            icon: 'info',
-            title: `Información`,
-            text: `No se encontró ninguna formula asociada a ese numero ID proporcionado.`,
+        // Llenar existencias
+        this.formula.items.forEach((item: any) => {
+          const idMedicamento = item.medicamento.idMedicamento;
+          this.existenciaAcutal(idMedicamento, bodega);
         });
-       
-    }
+
+        this.mostrarComponente = true;
+        this.pacienteActual = reg.paciente;
+        this.mostrarRegistro(reg);
+        this.ValidaPaciente();
+        this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
+      } else {
+        Swal.fire({
+          icon: 'info',
+          title: `Información`,
+          text: `No se encontró ninguna formula asociada a ese numero ID proporcionado.`,
+        });
+
+      }
     }, error => {
       Swal.fire({
-          icon: 'error',
-          title: `Error`,
-          text: `Ocurrió un error al buscar la formula. Intente nuevamente más tarde.`,
+        icon: 'error',
+        title: `Error`,
+        text: `Ocurrió un error al buscar la formula. Intente nuevamente más tarde.`,
       });
-     
+
     });
 
 
-        }
+  }
 
 
 
@@ -367,7 +374,7 @@ export class EditformulaComponent implements OnInit {
     this.facturaForm.get('cieR3')?.setValue(input.value, { emitEvent: false });
   }
 
- 
+
 
   habilitarControles(): void {
     this.facturaForm.get('observacion')?.enable();
@@ -426,14 +433,14 @@ export class EditformulaComponent implements OnInit {
       nuevoItem.importe = nuevoItem.calcularImporte();
 
       // Habilitar cantidad según el idForma del medicamento
-     
+
       nuevoItem.habilitarCantidad = this.formasConCantidadHabilitada.includes(medicamento.forma.idForma);
 
       this.formula.items = this.formula.items || [];  // Asegúrate de que items esté inicializado
-      this.formula.items.push(nuevoItem);      
+      this.formula.items.push(nuevoItem);
       this.existenciaAcutal(medicamento.idMedicamento, bodega);
 
-      if (medicamento.desabastecido || medicamento.agostado) {
+      if (medicamento.desabastecido || medicamento.agotado) {
         Swal.fire({
           icon: 'warning',
           title: 'MEDICAMENTO CON CARTA DE AGOTADO Y/O DESABASTECIDO',
@@ -449,7 +456,7 @@ export class EditformulaComponent implements OnInit {
   existenciaAcutal(idMedicamento: number, idBodega: number) {
     this.medicamentoService.getMedicamentoBodega(idMedicamento, idBodega).subscribe(
       (existencia: any) => {
-        this.existencias[idMedicamento] = existencia.cantidad;        
+        this.existencias[idMedicamento] = existencia.cantidad;
       },
       (error: any) => {
         console.error('Error fetching existencia:', error);
@@ -466,9 +473,9 @@ export class EditformulaComponent implements OnInit {
       if (id === item.medicamento.idMedicamento) {
         item.cantidad = cantidad;
         item.importe = item.cantidad * item.medicamento.valor;
-        this.formula.total= 0//this.formula.calcularGranTotal();
-        
- 
+        this.formula.total = 0//this.formula.calcularGranTotal();
+
+
       }
       return item;
     });
@@ -480,10 +487,11 @@ export class EditformulaComponent implements OnInit {
     this.formula.items = this.formula.items.map((item: ItemFormulaI) => {
       if (id === item.medicamento.idMedicamento) {
         item.duracion = duracion.toString();
-        if (item.habilitarCantidad){
-          this.calcularCantidad(item);} // Recalcular la cant   
-          item.importe = item.cantidad * item.medicamento.valor;
-          this.formula.total= 0;//this.formula.calcularGranTotal();         
+        if (item.habilitarCantidad) {
+          this.calcularCantidad(item);
+        } // Recalcular la cant   
+        item.importe = item.cantidad * item.medicamento.valor;
+        this.formula.total = 0;//this.formula.calcularGranTotal();         
       }
       return item;
     });
@@ -496,14 +504,15 @@ export class EditformulaComponent implements OnInit {
   }
 
   seleccionFrecuencia(id: number, event: any): void {
-    let frecuencia: string = event.target.value;   
-    this.formula.items = this.formula.items.map((item: ItemFormulaI) => {      
+    let frecuencia: string = event.target.value;
+    this.formula.items = this.formula.items.map((item: ItemFormulaI) => {
       if (id === item.medicamento.idMedicamento) {
-        item.frecuencia = frecuencia;      
-        if (item.habilitarCantidad){
-          this.calcularCantidad(item);} // Recalcular la cant
-          item.importe = item.cantidad * item.medicamento.valor;
-          this.formula.total= 0;//this.formula.calcularGranTotal();
+        item.frecuencia = frecuencia;
+        if (item.habilitarCantidad) {
+          this.calcularCantidad(item);
+        } // Recalcular la cant
+        item.importe = item.cantidad * item.medicamento.valor;
+        this.formula.total = 0;//this.formula.calcularGranTotal();
       }
       return item;
     });
@@ -525,7 +534,7 @@ export class EditformulaComponent implements OnInit {
       if (id === item.medicamento.idMedicamento) {
         ++item.cantidad;
         item.importe = item.cantidad * item.medicamento.valor;
-        this.formula.total= 0;//this.formula.calcularGranTotal();
+        this.formula.total = 0;//this.formula.calcularGranTotal();
       }
       return item;
     });
@@ -541,8 +550,8 @@ export class EditformulaComponent implements OnInit {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Si, eliminar!'
     }).then((result) => {
-      if (result.isConfirmed) {        
-        this.formulaService.deleteItemFormula(this.formula.idBodega,idItem ,this.formula.estado).subscribe(resp => {
+      if (result.isConfirmed) {
+        this.formulaService.deleteItemFormula(this.formula.idBodega, idItem, this.formula.estado).subscribe(resp => {
           this.formula.items = this.formula.items.filter((item: ItemFormulaI) => idItem !== item.idItem);
           Swal.fire({
             icon: 'success',
@@ -556,9 +565,9 @@ export class EditformulaComponent implements OnInit {
               title: `Error`,
               text: err.mensaje,
             });
-          });          
+          });
       }
-    });   
+    });
   }
 
 
@@ -584,67 +593,44 @@ export class EditformulaComponent implements OnInit {
         });
       }
     );
-  } 
+  }
 
   actualizarFormula(): void {
-/*
-    Swal.fire({
-      icon: 'warning',
-      title: 'Permisos',
-      text: 'Usted no tiene permisos para realizar modificaciones a la formula, pronto lo podras hacer!',
-    });
-    return;
-
-
-console.log("Este es la validez del DX principal ", this.dxValido)
-    if (this.facturaForm.get('cieP')?.invalid || this.dxValido) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'El diagnostico principal que estas digitando no es valido o no esta acorde al sexo o la edad, corregirlo y continuar!',
-      });
-      return;
-    }
-      */
-  
     if (this.facturaForm.valid) {
-        if (this.formula.items.length == 0) {
-          this.facturaForm.get('medicamento')?.setErrors({ invalid: true });
-        } else if (this.formula.items.length > 0) {
-          if (!this.validateItems()) {
-            // Detener el flujo de ejecución si hay un error
-            return;
-          }
-  
-          let mensaje = `Con estos items y cantidades <br>`;
-          for (let i = 0; i < this.formula.items.length; i++) {
-            mensaje +=
-              i + 1 + ` - ${this.formula.items[i].medicamento.nombre} - Cantidad - ${this.formula.items[i].cantidad}<br>`;
-          }
-  
-          Swal.fire({
-            title: 'Confirma editar la formula?',
-            icon: 'question',
-            html: mensaje,
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Confirmar!',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              this.editFormula();
-             
-        
-            }
-          });
-        } else {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Verificar!',
-            text: 'No se ha agregado ningún medicamento a la formula que intenta actualizar!',
-          });
+      if (this.formula.items.length == 0) {
+        this.facturaForm.get('medicamento')?.setErrors({ invalid: true });
+      } else if (this.formula.items.length > 0) {
+        if (!this.validateItems()) {
+          // Detener el flujo de ejecución si hay un error
+          return;
         }
-      
+        let mensaje = `Con estos items y cantidades <br>`;
+        for (let i = 0; i < this.formula.items.length; i++) {
+          mensaje +=
+            i + 1 + ` - ${this.formula.items[i].medicamento.nombre} - Cantidad - ${this.formula.items[i].cantidad}<br>`;
+        }
+
+        Swal.fire({
+          title: 'Confirma editar la formula?',
+          icon: 'question',
+          html: mensaje,
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Confirmar!',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.editFormula();
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Verificar!',
+          text: 'No se ha agregado ningún medicamento a la formula que intenta actualizar!',
+        });
+      }
+
     } else {
       Swal.fire({
         icon: 'warning',
@@ -654,13 +640,22 @@ console.log("Este es la validez del DX principal ", this.dxValido)
     }
   }
 
-  public editFormula() {    
-    let funcionario = sessionStorage.getItem("nombre");
+  public editFormula() {
+    const funcionario = sessionStorage.getItem("nombre") || '';
     this.formula.ips = this.facturaForm.get('ips')?.value;
     this.formula.medico = this.facturaForm.get('medico')?.value;
     this.formula.nroFormula = this.facturaForm.get('nroFormula')?.value;
     this.formula.fecPrescribe = this.facturaForm.get('fecPrescribe')?.value;
-   
+    this.formula.funcionarioEditformula = funcionario;
+    this.formula.fechaEditformula = new Date(); // Asignar fecha actual
+
+    // actualizar los datos de EPS si hubo cambio de paciente
+    if( this.pacienteActual?.idPaciente === this.pacienteNuevo?.idPaciente){
+    this.formula.codEps=this.pacienteNuevo.eps.codigo;
+    this.formula.regimen= this.pacienteNuevo.regimen;
+    this.formula.categoria= this.pacienteNuevo.categoria.codigo;
+    }
+
     this.formula.observacion = this.facturaForm.get('observacion')?.value;
     this.formula.cobroCM = this.facturaForm.get('cobroCM')?.value;
     this.formula.valorCM = (this.formula.cobroCM ? this.pacienteActual.categoria.valor : 0); //this.facturaForm.get('valorCM')?.value;
@@ -672,33 +667,42 @@ console.log("Este es la validez del DX principal ", this.dxValido)
     this.formula.programa = this.facturaForm.get('programa')?.value;
     this.formula.total = 0//this.formula.calcularGranTotal();
 
-   
+
     //this.formula.funcionarioeditaformula = funcionario!;
     const formulaEditada = this.formula; // Crear una copia para no modificar el original
     formulaEditada.items = formulaEditada.items.map((item: any) => ({
       ...item,
       itemsEntrega: [], // Anular entregas
     }));
-    
-     this.formulaService.update(formulaEditada).subscribe(resp => {        
+
+    this.formulaService.update(formulaEditada).subscribe(resp => {
       Swal.fire({
         icon: 'success',
         title: `Ok`,
         text: `La formula ha sido actualizado correctamente!`,
-      });
-        
-      },
-        err => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error...',
-            text: 'No se pudo guardar la formula en la base de datos!',
-            footer: err.mensaje
-          });
-        }
-      );
-    
+      }).then(() => {
+    if (!this.tieneAcceso(4)) {
+      this.router.navigate(['/menu/formula', this.formula.paciente.idPaciente]);
+    }
+  });
+
+    },
+      err => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error...',
+          text: 'No se pudo guardar la formula en la base de datos!',
+          footer: err.mensaje
+        }).then(() => {
+    if (!this.tieneAcceso(4)) {
+      this.router.navigate(['/menu/formula', this.formula.paciente.idPaciente]);
+    }
+  });
+      }
+    );
+
   }
+
 
 
   ocultarComentario() {
@@ -716,13 +720,11 @@ console.log("Este es la validez del DX principal ", this.dxValido)
         reg => {
           if (reg) {
             this.dxValido = false;
-            console.log(reg);
             this.mensajeComentario = reg.nombre;
             if (reg.sexo != 'A' && reg.sexo != this.pacienteActual.sexo) {
               this.mensajeErrorDx = "Error de diagnóstico diligenciado, no corresponde con el sexo del paciente por favor verificar!"
               this.dxValido = true;
             }
-
           } else {
             this.mensajeComentario = 'El diagnóstico no se encontró en la tabla CIE10.';
             this.dxValido = true;
@@ -754,7 +756,7 @@ console.log("Este es la validez del DX principal ", this.dxValido)
   }
 
   validateItems() {
-    const hasInvalidDuration = this.formula.items.some(item => Number(item.duracion) === 0);  
+    const hasInvalidDuration = this.formula.items.some(item => Number(item.duracion) === 0);
     if (hasInvalidDuration) {
       Swal.fire({
         icon: 'error',
@@ -762,61 +764,142 @@ console.log("Este es la validez del DX principal ", this.dxValido)
         text: 'La duración de tratamiento del medicamento y/o insumo no puede ser cero (0), por favor corregirlo y continuar.',
       });
       return false; // Retorna false si hay un error
-    }  
+    }
     return true; // Retorna true si todo está correcto
   }
 
-ValidaPaciente(){     
-        if (this.pacienteActual.estado === true) {
-            if (this.pacienteActual.dispensario === "SISM DISPENSARIO") {
-                this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
+  ValidaPaciente() {
+    if (this.pacienteActual.estado === true) {
+      if (this.pacienteActual.dispensario === "SISM DISPENSARIO") {
+        this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
+        const municipioPaciente = this.pacienteActual.municipio.codigo;
+        const municipioPortabilidad = this.pacienteActual.mpoportabilidad?.codigo;
+        const fechaVencimientoPortabilidad = new Date(this.pacienteActual?.fecVencePortabilidad);
+        const fechaActual = new Date(this.fechaActual);
 
-                const municipioPaciente = this.pacienteActual.municipio.codigo;
-                const municipioPortabilidad = this.pacienteActual.mpoportabilidad?.codigo;
-                const fechaVencimientoPortabilidad = new Date(this.pacienteActual?.fecVencePortabilidad);
-                const fechaActual = new Date(this.fechaActual);
-
-                if (this.bodegaActual.municipio === municipioPaciente || 
-                    (this.pacienteActual.portabilidad && 
-                     this.bodegaActual.municipio === municipioPortabilidad && 
-                     fechaVencimientoPortabilidad >= fechaActual)) {
-                    this.habilitarControles();
-                    this.facturaForm.updateValueAndValidity(); // Asegura que el formulario esté actualizado
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: `OTRO MUNICIPIO`,
-                        text: `El paciente está en otro municipio o portabilidad vencida.`,
-                    });
-                }
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: `OTRO DISPENSARIO`,
-                    text: `El paciente pertenece a otro dispensario.`,
-                });
-            }
+        if (this.bodegaActual.municipio === municipioPaciente ||
+          (this.pacienteActual.portabilidad &&
+            this.bodegaActual.municipio === municipioPortabilidad &&
+            fechaVencimientoPortabilidad >= fechaActual)) {
+          this.habilitarControles();
+          this.facturaForm.updateValueAndValidity(); // Asegura que el formulario esté actualizado
         } else {
-            Swal.fire({
-                icon: 'info',
-                title: `INACTIVO`,
-                text: `El paciente está inactivo. No se puede generar la entrega de medicamentos.`,
-            });
+          Swal.fire({
+            icon: 'warning',
+            title: `OTRO MUNICIPIO`,
+            text: `El paciente está en otro municipio o portabilidad vencida.`,
+          });
         }
-   
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: `OTRO DISPENSARIO`,
+          text: `El paciente pertenece a otro dispensario.`,
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: 'info',
+        title: `INACTIVO`,
+        text: `El paciente está inactivo. No se puede generar la entrega de medicamentos.`,
+      });
+    }
 
 
-if (!this.bodegaActual.dispensa) {
-     Swal.fire({
+
+    if (!this.bodegaActual.dispensa) {
+      Swal.fire({
         icon: 'warning',
         title: "!Alerta",
         text: `La bodega ${this.bodegaActual.nombre} donde está logueado el funcionario no está habilitada para dispensar fórmulas a pacientes.`,
+      });
+    }
+
+  }
+
+
+  cancelarEdicion() {
+    this.editarPaciente = false;
+    this.facturaForm.get('numDocumento')?.reset();
+  }
+
+  enEdicion() {
+    this.editarPaciente = true;
+  }
+
+  cambiarPaciente() {
+    this.pacienteNuevo = null;
+    const documento = this.facturaForm.get('numDocumento')?.value;
+    if (!documento) {
+      Swal.fire(
+        'Campo vacío',
+        'Debe ingresar un número del documento del paciente a quien le pertenece la fórmula.',
+        'warning'
+      );
+      return;
+    }
+    this.pacienteService.getRegistroDocumento(documento).subscribe((clientes) => {
+      if (!clientes || clientes.length === 0) {
+        Swal.fire('No encontrado', 'No se encontró ningún paciente con ese documento.', 'info');
+        return;
+      }
+
+      if (clientes.length > 1) {
+        Swal.fire({
+          icon: 'error',
+          title: 'DOCUMENTO DUPLICADO',
+          text: 'Este documento está duplicado en la base de datos. Identifique claramente al paciente para hacer el cambio.',
+        });
+        return;
+      }
+
+      this.pacienteNuevo = clientes[0];
+
+      Swal.fire({
+        title: '¿Desea cambiar?',
+        html: `
+        <p style="margin:2px 0;"><strong>Paciente anterior:</strong> 
+          ${this.pacienteActual.pNombre || ''} ${this.pacienteActual.sNombre || ''} 
+          ${this.pacienteActual.pApellido || ''} ${this.pacienteActual.sApellido || ''}
+        </p>
+        <p style="margin:2px 0;"><strong>Paciente nuevo:</strong> 
+          ${this.pacienteNuevo.pNombre || ''} ${this.pacienteNuevo.sNombre || ''} 
+          ${this.pacienteNuevo.pApellido || ''} ${this.pacienteNuevo.sApellido || ''}
+        </p>
+      `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Cambiar!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.formula.paciente = this.pacienteNuevo;
+          this.pacienteActual = this.pacienteNuevo;
+          this.editarPaciente = false;
+
+          // Limpiar input del documento
+          this.facturaForm.get('numDocumento')?.reset();
+
+          // Mostrar mensaje de éxito
+          Swal.fire({
+            icon: 'success',
+            title: 'Paciente actualizado',
+            text: `El paciente ha sido cambiado exitosamente, recuerde actualizar la formula para que el cambio persista en base de datos`,
+
+          });
+        }
+      });
     });
-}
+  }
 
-}
-
-
-
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }
+    return nivelUsuario >= nivelRequerido;
+  }
 
 }

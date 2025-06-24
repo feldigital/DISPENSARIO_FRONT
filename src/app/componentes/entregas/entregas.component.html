@@ -1,4 +1,4 @@
-<div class="container mt-2">
+<div class="container">
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
@@ -13,14 +13,12 @@
                     </p>
                     <p><strong>Sexo:</strong> {{listaregistros?.paciente?.sexo}} <strong> - Edad:</strong>
                         {{calcularEdad(listaregistros?.paciente?.fecNacimiento)}} años</p>
-                    <p><strong>Eps:</strong> {{listaregistros?.paciente?.eps.nombre}}</p>
-                    <p><strong>Regimen:</strong> {{listaregistros?.paciente?.regimen}} <strong>Categoria:</strong>
+                    <p><strong>Eps:</strong> {{listaregistros?.paciente?.eps.nombre}} <strong>Regimen:</strong> {{listaregistros?.paciente?.regimen}} <strong>Categoria:</strong>
                         {{listaregistros?.paciente?.categoria?.nombre}}</p>
-                    <!--<p><strong>Categoria:</strong> {{listaregistros.paciente.categoria.nombre}}</p> -->
                     <p><strong>Dirección:</strong> {{listaregistros?.paciente?.direccion}}</p>
                     <p><strong>Teléfono:</strong> {{listaregistros?.paciente?.celularPrincipal}} <strong>Municipio:</strong> {{listaregistros?.paciente?.municipio?.nombre}} -
                         {{listaregistros?.paciente?.municipio?.departamento?.nombre}}</p>
-                    <p></p>
+                    <p><strong>¿PGP?:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }}   <strong>¿Servicio de Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}</p>
 
                 </div>
             </div>
@@ -129,25 +127,48 @@
         </table>
     </div>
 
-    <hr>
-    <div class="row justify-content-between">
-        <div class="col-auto">
-            <button class="btn btn-outline-primary"
-                [routerLink]="['/menu/formula']">
-                Regresar
-            </button>
-        </div>
-        <div class="col-auto" *ngIf="tieneAcceso(4)">
-            <button class="btn btn-outline-primary"
+    <hr />
+    <div class="d-flex justify-content-end flex-wrap gap-2">
+    
+      <!-- Botón Regresar -->
+      <button mat-stroked-button color="primary"
+              [routerLink]="['/menu/formula']">
+        <mat-icon class="me-1">arrow_back</mat-icon>
+        Regresar
+      </button>
+    
+      <!-- Botón Editar fórmula -->
+      <ng-container *ngIf="tieneAcceso(4)">
+        <button mat-stroked-button color="accent"
                 [routerLink]="['/menu/editformula', listaregistros.idFormula]">
-                Editar la fórmula
-            </button>
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-outline-primary" (click)="imprimir()">
-                Imprimir recibo de pendiente
-            </button>
-        </div>
-    </div>
+          <mat-icon class="me-1">edit</mat-icon>
+          Editar fórmula
+        </button>
+      </ng-container>
+    
+      <!-- Botón Imprimir pendiente -->
+      <button mat-stroked-button color="warn" (click)="imprimir(1)">
+        <mat-icon class="me-1">receipt_long</mat-icon>
+        Imprimir pendiente
+      </button>
+    
+       <!-- Botón Imprimir entrega (verde personalizado) -->
+  <button mat-stroked-button class="btn-success" (click)="imprimir(0)">
+    <mat-icon class="me-1">local_printshop</mat-icon>
+    Imprimir entrega
+  </button>
+
+
+   <!-- Botón Editar fórmula -->
+   <ng-container *ngIf="tieneAcceso(3)">
+    <button mat-stroked-button color="primary"
+    (click)="imprimirTirilla()">
+      <mat-icon class="me-1">receipt_long</mat-icon>
+      Pre Factura
+    </button>
+  </ng-container>
+</div>
+    
+    
 
 </div>

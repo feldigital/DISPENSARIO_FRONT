@@ -25,6 +25,12 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
     background-color: #5D8FA5;
     color: white;
   }
+
+  .thead-gradient-d {
+    background: linear-gradient(to right, #ff9966, #ff5e62);
+    color: white;
+   
+  }
   
   .table th {
     text-align: center;
@@ -106,3 +112,9 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
       overflow-x: auto; /* Añade desplazamiento horizontal en tablas para pantallas pequeñas */
     }
   }
+
+  .swal-wide {
+    width: 550px !important;
+  }
+  
+

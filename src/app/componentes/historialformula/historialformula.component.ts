@@ -1,8 +1,7 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input,   OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormulaI } from 'src/app/modelos/formula.model';
 import { FormulaService } from 'src/app/servicios/formula.service';
-import { PacienteService } from 'src/app/servicios/paciente.service';
 import Swal from 'sweetalert2';
 
 
@@ -11,100 +10,70 @@ import Swal from 'sweetalert2';
   templateUrl: './historialformula.component.html',
   styleUrls: ['./historialformula.component.css']
 })
-export class HistorialformulaComponent implements OnInit, OnDestroy {
+export class HistorialformulaComponent implements OnInit {
 
   listaFormula: any;
   pacienteActual: any;
   listaItemFactura: any;
   parametro: any;
   @Input() idPaciente: number = NaN;
-  private intervalId: any;
+  generalForm!: FormGroup;
 
-  constructor(
-    private servicio: PacienteService,
+  constructor(    
     private servicioformula: FormulaService,
     private activatedRoute: ActivatedRoute,
-    private router: Router) { }
+    private router: Router,
+    private fb: FormBuilder ) {
+      // Calcula la fecha actual
+    const currentDate = new Date();
+    const currentDateFutura = new Date(currentDate);
+    currentDateFutura.setDate(currentDate.getDate() + 90);
+    // Calcula la fecha 30 días antes de la fecha actual
+    const date30DaysAgo = new Date(currentDate);
+    date30DaysAgo.setDate(currentDate.getDate() - 90);
+    //  this.spinner.show();
+    // Inicializa el formulario y define los FormControl para fechainicial y fechafinal
+    this.generalForm = this.fb.group({    
+      fechainicial: [date30DaysAgo.toISOString().split('T')[0]],
+      fechafinal: [currentDateFutura.toISOString().split('T')[0]],      
+    });
+     }
+  
 
   ngOnInit(): void {
-    // Configurar un intervalo que verifique la condición cada minuto (60000 milisegundos)
-
-    this.parametro = this.idPaciente
-    this.activatedRoute.paramMap.subscribe(params => {
-      this.parametro = params.get('id');
-      if (this.parametro) {
-        this.buscarRegistro(this.parametro);
-      }
-    });
-    if (this.idPaciente) {
-      this.buscarRegistro(this.idPaciente);
-    }
-    this.intervalId = setInterval(() => {
-      this.listaFormula.forEach((formula: any) => {
-        formula.showButton = this.ControlEliminar(formula);
-      });
-    }, 60000);
+    this.parametro = this.activatedRoute.snapshot.paramMap.get('id') || this.idPaciente;
+  if (this.parametro) {
+    this.buscarRegistro(this.parametro);
+   
+  }
   }
 
 
-  ngOnDestroy() {
-    // Limpiar el intervalo cuando se destruya el componente
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-  }
 
   onInputChange(event: any,itemt: any) {
     itemt.tipoRecibe = event.target.value.toUpperCase();
   }
 
-  public buscarRegistro(id: number) {
-    this.servicio.getRegistroId(id)
-      .subscribe((resp: any) => {
-        this.pacienteActual = resp;       
-        this.listaFormula = resp.formulas;
+  public buscarRegistro(id: number) {   
+    this.servicioformula.getFormulaIdPaciente(id,this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
+      .subscribe((resp: any) => {      
+        this.pacienteActual = resp[0]?.paciente;   
+       // console.log(this.pacienteActual);    
+        this.listaFormula = resp //.formulas;
         this.listaFormula = this.listaFormula.map((item: any) => ({
           ...item,
          // estado: false, // O cualquier lógica que determine el estado
           editing: false,
          
         }));
-
         this.listaFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
+        console.log(this.listaFormula);
+
       });
 
   }
 
 
-  public eliminarFormula(itemt: FormulaI) {
-    Swal.fire({
-      title: 'Desea eliminar?',
-      text: `La formula número ${itemt.idFormula} prescita del prestador  ${itemt.ips.nombre}  de la base de datos.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, eliminar!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.servicioformula.delete(itemt.idFormula).subscribe(resp => {
-          this.listaFormula = this.listaFormula.filter((cli: FormulaI) => cli !== itemt);
-          Swal.fire({
-            icon: 'success',
-            title: `Ok`,
-            text: `La formula número ${itemt.nroFormula} prescita del prestador ${itemt.ips.nombre} ha sido eliminado correctamente.`,
-          });
-        },
-          err => {
-            Swal.fire({
-              icon: 'error',
-              title: `Error`,
-              text: err.mensaje,
-            });
-          });
-      }
-    });
-  }
 
   public verDetalles(itemt: any) {
     let mensaje = `Medico que prescribe: ${itemt.medico.nombre} <br> <br>`;
@@ -118,18 +87,6 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
     });
   }
 
-  public ControlEliminar(itemt: any): boolean {
-    const fha = new Date();
-    //const fechaSolicitud = new Date(itemt.fecSolicitud);
-    const fechaSolicitud = itemt.fecSolicitud ? new Date(itemt.fecSolicitud) : new Date();
-    // Calcular la diferencia en milisegundos entre la fecha actual y la fecha de solicitud
-    const diferenciaEnMilisegundos = fha.getTime() - fechaSolicitud.getTime();
-    // Convertir la diferencia a minutos
-    const diferenciaEnMinutos = diferenciaEnMilisegundos / (1000 * 60);
-    // console.log(diferenciaEnMinutos);
-    // Devolver true si la diferencia es menor a 5 minutos
-    return diferenciaEnMinutos < 5;
-  }
 
   public guardarEntregaFormula(itemt: any) {
     let bodegaString = sessionStorage.getItem("bodega");
@@ -139,12 +96,7 @@ export class HistorialformulaComponent implements OnInit, OnDestroy {
       const fechaActual = new Date(); // Obtener la fecha actual
       const fechaPrescribe = new Date(itemt.fecPrescribe); // Convertir itemt.fecPrescribe a objeto Date
       // Formatear la fecha a 'dd/MM/yyyy'
-    /*  const fechaFormateada = fechaPrescribe.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-*/
+    
       const resetHora = (fecha: Date): Date => {
         return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
       };
