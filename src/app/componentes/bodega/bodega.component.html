@@ -116,10 +116,17 @@
 
 
                     <mat-menu #menuC="matMenu">
+
+                        <button (click)='reporteBodegaEntregasDetalldasTodasConsoloidada()' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">vertical_split</mat-icon>
+                                <span>Entregas det. item formula</span>
+                            </button>
                         <button *ngIf ="tieneAcceso(3)" (click)='reporteBodegaEntregasDetalldasTodas()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
-                            <span>Entregas detalladas</span>
+                            <span>Entregas det. item entrega</span>
                         </button>
+
+                         
 
                         <button *ngIf ="tieneAcceso(3)" (click)='reporteExistenciasActualestotal()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
@@ -247,18 +254,25 @@
                         <mat-icon title="Listar en PDF" class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
                             [matMenuTriggerFor]="menu">print</mat-icon>
 
-                        <mat-icon *ngIf ="tieneAcceso(3)" title="Actualizar datos de la bodega" class="pointer-cursor"
+                        <mat-icon *ngIf ="tieneAcceso(4)" title="Actualizar datos de la bodega" class="pointer-cursor"
                             [ngStyle]="{'color':'#009A94'}" (click)="mostrarRegistro(itemt)">edit</mat-icon>
 
-                        <mat-icon *ngIf ="tieneAcceso(3)" title="Eliminar la bodega" class="pointer-cursor" [ngStyle]="{'color':'red'}"
+                        <mat-icon *ngIf ="tieneAcceso(4)" title="Eliminar la bodega" class="pointer-cursor" [ngStyle]="{'color':'red'}"
                             (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
 
                         <mat-menu #menu="matMenu">
+                            <button (click)='reporteBodegaEntregasDetalldasConsolidada(itemt)' mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">vertical_split</mat-icon>
+                                <span>Entregas det. item formula</span>
+                            </button>
                             
                             <button (click)='reporteBodegaEntregasDetalldas(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
-                                <span>Entregas detalladas</span>
+                                <span>Entregas det. item entrega</span>
                             </button>
+
+                          
+
                             <button (click)='reporteExistenciasActuales(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
                                 <span>Existencias actuales PDF</span>

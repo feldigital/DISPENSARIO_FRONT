@@ -6,24 +6,62 @@
                     Datos del paciente
                 </div>
                 <div class="card-body">
-                    <p><strong>Nombre:</strong> {{listaregistros?.paciente?.pNombre}} {{listaregistros?.paciente?.sNombre}}
+                    <p><strong>Nombre:</strong> {{listaregistros?.paciente?.pNombre}}
+                        {{listaregistros?.paciente?.sNombre}}
                         {{listaregistros?.paciente?.pApellido}} {{listaregistros?.paciente?.sApellido}}
                         <strong> Documento:</strong> {{listaregistros?.paciente?.tipoDoc}} -
                         {{listaregistros?.paciente?.numDocumento}}
                     </p>
                     <p><strong>Sexo:</strong> {{listaregistros?.paciente?.sexo}} <strong> - Edad:</strong>
                         {{calcularEdad(listaregistros?.paciente?.fecNacimiento)}} años</p>
-                    <p><strong>Eps:</strong> {{listaregistros?.paciente?.eps.nombre}} <strong>Regimen:</strong> {{listaregistros?.paciente?.regimen}} <strong>Categoria:</strong>
+                    <p><strong>Eps:</strong> {{listaregistros?.paciente?.eps.nombre}} <strong>Regimen:</strong>
+                        {{listaregistros?.paciente?.regimen}} <strong>Categoria:</strong>
                         {{listaregistros?.paciente?.categoria?.nombre}}</p>
                     <p><strong>Dirección:</strong> {{listaregistros?.paciente?.direccion}}</p>
-                    <p><strong>Teléfono:</strong> {{listaregistros?.paciente?.celularPrincipal}} <strong>Municipio:</strong> {{listaregistros?.paciente?.municipio?.nombre}} -
-                        {{listaregistros?.paciente?.municipio?.departamento?.nombre}}</p>
-                    <p><strong>¿PGP?:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }}   <strong>¿Servicio de Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}</p>
+                    <p><strong>Teléfono:</strong> {{listaregistros?.paciente?.celularPrincipal}}
+                        <strong>Municipio:</strong> {{listaregistros?.paciente?.municipio?.nombre}} -
+                        {{listaregistros?.paciente?.municipio?.departamento?.nombre}}
+                    </p>
+                    <p><strong>¿PGP?:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }} <strong>¿Servicio de
+                            Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}</p>
+                    <div>
+                            <p>
+                                <strong>Soporte escaneado: </strong> 
+                             <mat-icon *ngIf="!this.listaregistros.urlFormula && !editingSoporte" class="pointer-cursor"
+                        title="Adicionar pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                        (click)="editarSoporte()">
+                        add_circle
+                    </mat-icon>
+                    <mat-icon *ngIf="this.listaregistros.urlFormula && !editingSoporte" title="Gestión pdf de la formula"
+                        class="pointer-cursor" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                        [matMenuTriggerFor]="menu">attach_file</mat-icon>
+                    </p>
+
+                    <div *ngIf="editingSoporte">
+                        <input type="file" (change)="onFileSelected($event)" />
+                    </div>
+
+                   
+
+                    <mat-icon *ngIf="editingSoporte" title="Cancelar" class="pointer-cursor" title="Cancelar edición"
+                        [ngStyle]="{'color':'orange'}" (click)="cancelSoporte()">clear</mat-icon>
+
+                    <mat-menu #menu="matMenu">
+                        <button (click)="verArchivo()" mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'#2BB6D7'}">attach_file</mat-icon>
+                            <span>Ver soporte</span>
+                        </button>
+                        <button (click)="editarSoporte()" mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'orange'}">repeat</mat-icon>
+                            <span>Reemplazar soporte</span>
+                        </button>
+                    </mat-menu>
+</div>
 
                 </div>
             </div>
 
-            <div class="col-md-6">            
+            <div class="col-md-6">
                 <div class="card-header">
                     Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong>
                 </div>
@@ -31,13 +69,17 @@
                     <p><strong>IPS que prescribe:</strong> {{listaregistros?.ips?.nombre}}</p>
                     <p><strong>Medico que prescribe:</strong> {{listaregistros?.medico?.nombre}}</p>
                     <p><strong>Fecha de prescripción:</strong> {{listaregistros?.fecPrescribe | date: 'dd/MM/YYYY'}}
-                        <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}} </p>
-                    <p><strong>Continuidad:</strong> {{listaregistros?.continuidad }} <strong>Programa:</strong> {{listaregistros?.programa?.nombre}}</p>
-                    
+                        <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/YYYY :
+                        hh:mm'}}
+                    </p>
+                    <p><strong>Continuidad:</strong> {{listaregistros?.continuidad }} <strong>Programa:</strong>
+                        {{listaregistros?.programa?.nombre}}</p>
+
                     <p><strong>Diagnostico:</strong> {{listaregistros?.cieP}} {{listaregistros?.cieR1}}
-                        {{listaregistros?.cieR2}} <strong>Funcionario crea formula: </strong> {{listaregistros?.funcionariocreaformula}}</p>
+                        {{listaregistros?.cieR2}} <strong>Funcionario crea formula: </strong>
+                        {{listaregistros?.funcionariocreaformula}}</p>
                     <p><strong>Observación de la formula:</strong> {{listaregistros?.observacion}}</p>
-                  
+
                 </div>
 
             </div>
@@ -51,8 +93,9 @@
     <div *ngIf="listaItemsFormula?.length > 0">
         <table class="table table-striped table-hover table-sm">
             <thead class="thead-colored">
-                <tr>  
+                <tr>
                     <th>ID</th>
+                    <th>PQRS</th>
                     <th>Medicamento</th>
                     <th>Presentación</th>
                     <th>Cant. presc</th>
@@ -64,17 +107,61 @@
                     <th>Dispensario</th>
                     <th>Quien entrega</th>
                     <th>Quien recibe</th>
-                    <th><mat-icon title="Proceso con permisos" 
-                        [ngStyle]="{'color':'green'}" >account_circle</mat-icon></th> 
+                    <th><mat-icon title="Proceso con permisos" [ngStyle]="{'color':'green'}">account_circle</mat-icon>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 <ng-container *ngFor="let item of listaItemsFormula; let i = index">
                     <tr>
-                        <!-- Celdas para la información del medicamento -->
-                        <!-- <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ item.medicamento.codigoCum }}</td>-->
-                        <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{ item.medicamento.idMedicamento
+
+                        <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{
+                            item.medicamento.idMedicamento
                             }}</td>
+
+                        <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">
+                            <div *ngIf="item.editing && tieneAcceso(3)">
+                                <select class="form-select" [(ngModel)]="item.canalPqrs">
+                                    <option selected value="">Seleccione el canal</option>
+                                    <option value="SUPERSALUD">SUPERSALUD</option>
+                                    <option value="TUTELA">TUTELA</option>
+                                    <option value="ENTE DE CONTROL">ENTE DE CONTROL</option>
+                                    <option value="BUZON DISPENSARIO">BUZON DISPENSARIO</option>
+                                    <option value="LINEA TELEFONICA">LINEA TELEFONICA</option>
+                                    <option value="BUZON ASEGURADOR">BUZON ASEGURADOR</option>
+                                    <option value="EMAIL">EMAIL</option>
+                                </select>
+                                <input type="date" [(ngModel)]="item.fechaPqrs" class="form-control" [max]="hoy" />
+                            </div>
+                            <mat-icon *ngIf="item.editing" title="Guardar" class="puntero" [ngStyle]="{'color':'green'}"
+                                (click)="aplicarPQRS(item)">check</mat-icon>
+                            <mat-icon *ngIf="item.editing" class="puntero" title="Cancelar edición"
+                                [ngStyle]="{'color':'orange'}" (click)="cancelEdicion(item)">clear</mat-icon>
+                            <mat-icon *ngIf="item.editing" class="puntero" title="Aplicar a TODOS"
+                                [ngStyle]="{'color':'black'}" (click)="aplicarPQRSATodos(item)">done_all</mat-icon>
+
+                            <mat-icon
+                                *ngIf="(!item.canalPqrs || item.canalPqrs.trim() === '') && !item.editing  && tieneAcceso(3)"
+                                class="pointer-cursor" title="Ingresar PQRS"
+                                [ngStyle]="{'font-size': '18px', 'color':'#009A94'}" (click)="editarPqrs(item)">
+                                add_circle
+                            </mat-icon>
+
+                            <mat-icon
+                                *ngIf="(item.canalPqrs && item.canalPqrs.trim() !== '') && !item.editing  && tieneAcceso(3) "
+                                class="pointer-cursor" title="Ver PQRS" [ngStyle]="{'font-size': '18px', 'color':'red'}"
+                                (click)="editarPqrs(item)">
+                                record_voice_over
+                            </mat-icon>
+
+
+                            <mat-icon *ngIf="(item.canalPqrs && item.canalPqrs.trim() !== '') && !tieneAcceso(3) "
+                                title={{item.canalPqrs}} [ngStyle]="{'font-size': '18px', 'color':'red'}">
+                                record_voice_over
+                            </mat-icon>
+
+                        </td>
+
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{ item.medicamento.nombre
                             }}</td>
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{
@@ -83,28 +170,80 @@
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ calcularPendiente(item) }}
                         </td>
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">
-                            <mat-icon title="Entrega completa" *ngIf="item.cantidad == item.totalEntregado"
-                                [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon>
-                            
-                                 <mat-icon *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0" 
-                                 class="pointer-cursor" title="Gestionar Pendiente" [matMenuTriggerFor]="menu"                                
-                                    [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon>                            
-                                
+                            <div style="display: flex; gap: 5px; align-items: center;">
+
+                                <mat-icon title="Entrega completa" *ngIf="item.cantidad == item.totalEntregado"
+                                    [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon>
+
+                                <mat-icon *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0"
+                                    class="pointer-cursor" title="Gestionar Pendiente" [matMenuTriggerFor]="menu"
+                                    [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon>
+
                                 <mat-icon *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado>0"
                                     class="pointer-cursor" title="Gestionar Pendiente" [matMenuTriggerFor]="menu"
-                                    [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon> 
+                                    [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
+
+                                <mat-icon
+                                    *ngIf="tieneAcceso(2) && (item?.itemsMensaje?.length > 0 || item.cantidad != item.totalEntregado)"
+                                    class="pointer-cursor" [matMenuTriggerFor]="menuMensaje" title="Enviar mensaje"
+                                    style="font-size: 20px; color: #25D366;" class="icono-con-badge"
+                                    [matBadge]="item?.itemsMensaje?.length > 0 ? item.itemsMensaje.length : null"
+                                    matBadgeOverlap="true" matBadgeColor="warn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 0 448 512"
+                                        fill="currentColor">
+                                        <path d="M380.9 97.1C339 55.1 283.2 32 224.2 32c-115 0-208 93-208 208 
+                                            0 36.7 9.7 72.4 28.1 103.9L2.5 470.1c-2.2 6.5-.4 13.7 4.5 
+                                            18.5 3.6 3.6 8.4 5.5 13.1 5.5 2 0 4.1-.3 6-1l119.8-38.2c30.4 
+                                            16.6 64.7 25.4 99.1 25.4h.1c115 0 208-93 208-208 
+                                            0-55.6-21.6-107.9-60.2-146.2zM224.2 438.6c-30.5 0-60.6-8.2-86.7-23.7l-6.2-3.7-71.2 
+                                            22.7 22.9-69.3-4.1-6.4c-17.7-27.6-27-59.5-27-92.2 
+                                            0-95.1 77.4-172.4 172.5-172.4 46 0 89.2 17.9 121.7 
+                                            50.4s50.3 75.8 50.3 121.6c.1 95.1-77.3 172.6-172.2 
+                                            172.6zm101.4-138.1c-5.5-2.8-32.7-16.1-37.8-17.9-5.1-1.9-8.8-2.8-12.6 
+                                            2.8s-14.5 17.9-17.8 21.6c-3.3 3.7-6.5 4.2-12 
+                                            1.4s-23.4-8.6-44.6-27.4c-16.5-14.7-27.6-32.9-30.8-38.4-3.2-5.6-.3-8.6 
+                                            2.4-11.4 2.5-2.6 5.6-6.6 8.4-9.9 2.8-3.3 3.7-5.6 
+                                            5.6-9.3s.9-7-0.5-9.9c-1.4-2.8-12.6-30.3-17.3-41.4-4.5-10.8-9.1-9.3-12.6-9.5-3.3-.2-7.1-.2-10.9-.2s-10.1 
+                                            1.4-15.4 7c-5.3 5.6-20.2 19.7-20.2 48.1s20.7 55.8 
+                                            23.5 59.7c2.8 3.7 40.7 62.1 98.6 87.2 13.8 5.9 
+                                            24.6 9.4 33 12 13.9 4.4 26.5 3.8 36.5 2.3 11.1-1.7 
+                                            32.7-13.3 37.3-26.2 4.6-12.9 4.6-23.9 3.2-26.2-1.3-2.2-5-3.6-10.5-6.3z" />
+                                    </svg>
+                                </mat-icon>
+                            </div>
 
                             <mat-menu #menu="matMenu">
                                 <button (click)="entregarPendiente(item)" mat-menu-item>
                                     <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
                                     <span>Entregar pendiente</span>
                                 </button>
-                                <button *ngIf ="tieneAcceso(2)" (click)="subsanarPendiente(item)" mat-menu-item>
+                                <button *ngIf="tieneAcceso(2)" (click)="subsanarPendiente(item)" mat-menu-item>
                                     <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
                                     <span>Cancelacion Administrativa</span>
                                 </button>
+                            </mat-menu>
 
-
+                            <mat-menu #menuMensaje="matMenu">
+                                <button *ngIf="item.cantidad != item.totalEntregado" (click)='vermensajeWhatsApp(item)'
+                                    mat-menu-item>
+                                    <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
+                                    <span>Ver mensaje</span>
+                                </button>
+                                <button *ngIf="item.cantidad != item.totalEntregado" (click)='enviarWhatsApp(item)'
+                                    mat-menu-item>
+                                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add</mat-icon>
+                                    <span>Enviar mensaje CP</span>
+                                </button>
+                                <button *ngIf="item.cantidad != item.totalEntregado" (click)='enviarWhatsApp2(item)'
+                                    mat-menu-item>
+                                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add</mat-icon>
+                                    <span>Enviar mensaje CS</span>
+                                </button>
+                                <button *ngIf="item?.itemsMensaje?.length > 0" (click)='historialEnvios(item)'
+                                    mat-menu-item>
+                                    <mat-icon [ngStyle]="{'color':'#2BB6D7'}">record_voice_over</mat-icon>
+                                    <span>Historial de mensaje</span>
+                                </button>
                             </mat-menu>
 
                         </td>
@@ -118,9 +257,9 @@
                         <td>{{ primerasmayusculas(entrega.bodega.puntoEntrega) || '' }}</td>
                         <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>
                         <td>{{ entrega.tipoRecibe | uppercase }} {{ entrega.documentoRecibe }}</td>
-                        <td> <mat-icon title="Eliminar la entrega" class="pointer-cursor" 
-                            [ngStyle]="{'color':'red'}"  (click)="eliminarRegistroEntrega(entrega,item.medicamento.idMedicamento)">clear</mat-icon>
-    </td>
+                        <td> <mat-icon title="Eliminar la entrega" class="pointer-cursor" [ngStyle]="{'color':'red'}"
+                                (click)="eliminarRegistroEntrega(entrega,item.medicamento.idMedicamento)">clear</mat-icon>
+                        </td>
                     </tr>
                 </ng-container>
             </tbody>
@@ -129,46 +268,48 @@
 
     <hr />
     <div class="d-flex justify-content-end flex-wrap gap-2">
-    
-      <!-- Botón Regresar -->
-      <button mat-stroked-button color="primary"
-              [routerLink]="['/menu/formula']">
-        <mat-icon class="me-1">arrow_back</mat-icon>
-        Regresar
-      </button>
-    
-      <!-- Botón Editar fórmula -->
-      <ng-container *ngIf="tieneAcceso(4)">
-        <button mat-stroked-button color="accent"
-                [routerLink]="['/menu/editformula', listaregistros.idFormula]">
-          <mat-icon class="me-1">edit</mat-icon>
-          Editar fórmula
+        <!-- Botón Desprocesar -->
+        <button mat-stroked-button color="warn">
+            <mat-icon class="me-1">loop</mat-icon>
+            Desprocesar
         </button>
-      </ng-container>
-    
-      <!-- Botón Imprimir pendiente -->
-      <button mat-stroked-button color="warn" (click)="imprimir(1)">
-        <mat-icon class="me-1">receipt_long</mat-icon>
-        Imprimir pendiente
-      </button>
-    
-       <!-- Botón Imprimir entrega (verde personalizado) -->
-  <button mat-stroked-button class="btn-success" (click)="imprimir(0)">
-    <mat-icon class="me-1">local_printshop</mat-icon>
-    Imprimir entrega
-  </button>
+
+        <!-- Botón Regresar -->
+        <button mat-stroked-button color="primary" [routerLink]="['/menu/formula']">
+            <mat-icon class="me-1">arrow_back</mat-icon>
+            Regresar
+        </button>
+
+        <!-- Botón Editar fórmula -->
+        <ng-container *ngIf="tieneAcceso(4)">
+            <button mat-stroked-button color="accent" [routerLink]="['/menu/editformula', listaregistros.idFormula]">
+                <mat-icon class="me-1">edit</mat-icon>
+                Editar fórmula
+            </button>
+        </ng-container>
+
+        <!-- Botón Imprimir pendiente -->
+        <button mat-stroked-button color="warn" (click)="imprimir(1)">
+            <mat-icon class="me-1">receipt_long</mat-icon>
+            Imprimir pendiente
+        </button>
+
+        <!-- Botón Imprimir entrega (verde personalizado) -->
+        <button mat-stroked-button class="btn-success" (click)="imprimir(0)">
+            <mat-icon class="me-1">local_printshop</mat-icon>
+            Imprimir entrega
+        </button>
 
 
-   <!-- Botón Editar fórmula -->
-   <ng-container *ngIf="tieneAcceso(3)">
-    <button mat-stroked-button color="primary"
-    (click)="imprimirTirilla()">
-      <mat-icon class="me-1">receipt_long</mat-icon>
-      Pre Factura
-    </button>
-  </ng-container>
-</div>
-    
-    
+        <!-- Botón Editar fórmula -->
+        <ng-container *ngIf="tieneAcceso(3)">
+            <button mat-stroked-button color="primary" (click)="imprimirTirilla()">
+                <mat-icon class="me-1">receipt_long</mat-icon>
+                Pre Factura
+            </button>
+        </ng-container>
+    </div>
+
+
 
 </div>

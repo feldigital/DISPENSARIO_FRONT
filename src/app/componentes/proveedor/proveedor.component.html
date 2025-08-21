@@ -2,12 +2,12 @@
 
 <div class="container mt-4">
   <form [formGroup]="generalForm" class="w-100">
-      <h5 class="mb-3">Registro del Profesional</h5>
+      <h5 class="mb-3">Registro del Proveedor</h5>
     <div class="row g-3">
 
       <!-- Nombre del médico -->
       <div class="col-md-12">
-        <label for="nombre" class="form-label">Nombre del médico</label>
+        <label for="nombre" class="form-label">Nombre o razon social</label>
         <input
           type="text"
           id="nombre"
@@ -20,57 +20,47 @@
       </div>
 
       <!-- Registro médico -->
-      <div class="col-md-4">
-        <label for="registroMedico" class="form-label">Reg. médico</label>
+      <div class="col-md-6">
+        <label for="nit" class="form-label">Nit</label>
         <input
           type="text"
-          id="registroMedico"
-          formControlName="registroMedico"
+          id="nit"
+          formControlName="nit"
           (blur)="buscarRegistro()"
-          placeholder="Ej: 123456"
+          placeholder="Ej: 900018045-5"
           class="form-control"
           required
         />
       </div>
 
       <!-- Especialidad -->
-      <div class="col-md-8">
-        <label for="especialidad" class="form-label">Especialidad</label>
+      <div class="col-md-6">
+        <label for="direccion" class="form-label">Dirección</label>
         <input
           type="text"
-          id="especialidad"
-          formControlName="especialidad"
-          (input)="toUpperCase($event, 'especialidad')"
-          placeholder="Ej: PEDIATRÍA"
+          id="direccion"
+          formControlName="direccion"
+          (input)="toUpperCase($event, 'direccion')"
+          placeholder="Ej: CL 3 # 12-50"
           class="form-control"
-          required
+        
         />
       </div>
 
       <!-- Tipo de documento -->
-      <div class="col-md-4">
-        <label for="tipoDoc" class="form-label">Tipo</label>
+      <div class="col-md-6">
+        <label for="telefono" class="form-label">Telefono</label>
         <input
           type="text"
-          id="tipoDoc"
-          formControlName="tipoDoc"
-          (input)="toUpperCase($event, 'tipoDoc')"
-          placeholder="Ej: CC, TI, CE"
+          id="telefono"
+          formControlName="telefono"
+          (input)="toUpperCase($event, 'telefono')"
+          placeholder="Ej: 3125678934"
           class="form-control"
         />
       </div>
 
-      <!-- Número de documento -->
-      <div class="col-md-8">
-        <label for="numDocumento" class="form-label">Nro de documento</label>
-        <input
-          type="number"
-          id="numDocumento"
-          formControlName="numDocumento"
-          placeholder="Ej: 1234567890"
-          class="form-control"
-        />
-      </div>
+   
 
       <!-- Estado -->
       <div class="col-md-6 d-flex align-items-center">
@@ -109,9 +99,8 @@
       <thead class="table-primary">
         <tr>
           <th>#</th>
-          <th>Registro</th>
           <th>Nombre</th>
-          <th>Especialidad</th>
+          <th>Nit</th>
           <th>Gestión</th>
         </tr>
       </thead>
@@ -120,10 +109,9 @@
           *ngFor="let item of listaregistrosFiltrados; let i = index"
           [style.color]="item.estado ? 'black' : 'red'"
         >
-          <td>{{ i + 1 }}</td>
-          <td>{{ item.registroMedico }}</td>
+          <td>{{ i + 1 }}</td>       
           <td>{{ primerasmayusculas(item.nombre) }}</td>
-          <td>{{ primerasmayusculas(item.especialidad) }}</td>
+          <td>{{ primerasmayusculas(item.nit) }}</td>
           <td>
             <button class="btn btn-sm me-1" (click)="mostrarRegistro(item)" title="Editar">
               <mat-icon style="color: #009A94">edit</mat-icon>

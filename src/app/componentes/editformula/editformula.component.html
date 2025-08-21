@@ -1,5 +1,6 @@
 <div class="card bg-light">
     <div class="card-body">
+
         <form [formGroup]="facturaForm">
             <div class="row">
                 <div class="col-md-6">
@@ -131,15 +132,15 @@
                                         <div>
                                             <mat-label>Cambio de paciente</mat-label>
                                             <input class="form-control" type="text" formControlName="numDocumento"
-                                                placeholder="Digite nuevo documento" />                                              
+                                                placeholder="Digite nuevo documento" />
                                         </div>
 
-                                        <div class="acciones"> 
-                                             <button mat-icon-button color="primary" (click)="cambiarPaciente()"
+                                        <div class="acciones">
+                                            <button mat-icon-button color="primary" (click)="cambiarPaciente()"
                                                 matTooltip="Verificar">
                                                 <mat-icon>check</mat-icon>
                                             </button>
-                                       
+
                                             <button mat-icon-button color="warn" (click)="cancelarEdicion()"
                                                 matTooltip="Cancelar">
                                                 <mat-icon>close</mat-icon>
@@ -152,10 +153,55 @@
                             </div>
 
                             <p><strong>Eps:</strong> {{pacienteActual.eps.nombre}}</p>
-                            <p><strong>Dirección:</strong> {{pacienteActual.direccion}}</p>
-                            <p><strong>Celular:</strong>
-                                {{pacienteActual.celularPrincipal}} - {{pacienteActual.celularSecundario}}
-                            </p>
+
+                            <div>
+                                <ng-container *ngIf="!editarContacto; else modoEdicionContacto">
+                                    <p>
+                                        <strong>Dirección:</strong> {{ pacienteActual.direccion }}<br />
+                                        <strong>Celular:</strong> {{ pacienteActual.celularPrincipal }} - {{
+                                        pacienteActual.celularSecundario }}
+                                        <button mat-icon-button (click)="enEdicionContacto()"
+                                            style="width: 24px; height: 24px;">
+                                            <mat-icon style="font-size: 16px; color: green;">edit</mat-icon>
+                                        </button>
+                                    </p>
+                                </ng-container>
+
+                                <ng-template #modoEdicionContacto>
+                                    <div class="contacto-edicion-container">
+                                        <div>
+                                            <mat-label>Datos de contacto</mat-label>
+                                            <input class="form-control" type="number" formControlName="celularPrincipal"
+                                                placeholder="Digite teléfono principal" />
+                                            <input class="form-control" type="number"
+                                                formControlName="celularSecundario"
+                                                placeholder="Digite teléfono secundario" />
+                                            <input class="form-control" type="text" formControlName="direccion"
+                                                placeholder="Digite dirección" />
+                                            <input class="form-control" type="text" formControlName="barrio"
+                                                placeholder="Digite barrio" />
+                                            <input class="form-control" type="text" formControlName="email"
+                                                placeholder="Digite correo electrónico" />
+                                        </div>
+
+                                        <div class="acciones">
+                                            <button mat-icon-button color="primary" (click)="guardarDatosContacto()"
+                                                matTooltip="Guardar">
+                                                <mat-icon>check</mat-icon>
+                                            </button>
+                                            <button mat-icon-button color="warn" (click)="cancelarEdicionContacto()"
+                                                matTooltip="Cancelar">
+                                                <mat-icon>close</mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </ng-template>
+
+
+                            </div>
+
+
+
                             <p><strong>Sexo:</strong> {{pacienteActual.sexo}} <strong> - Edad:</strong>
                                 {{calcularEdad(pacienteActual.fecNacimiento)}} años</p>
                         </div>
@@ -292,81 +338,136 @@
                         </div>
                     </div>
                 </div>
-
-
-                <div class="alert alert-info" *ngIf="formula.items.length == 0">
-                    No hay medicamentos asignados para la fórmula, debe agregar al menos uno.
-                </div>
-                <div>
-                    <table class="table table-striped table-hover table-sm" *ngIf="formula.items.length > 0">
-                        <thead class="thead-colored">
-                            <tr>
-                                <th>ID</th>
-                                <th>Medicamento</th>
-                                <th style="width: 180px;">Frecuencia</th>
-                                <th style="width: 80px;">Duración</th>
-                                <th style="width: 80px;">Cantidad</th>
-                                <th style="width: 80px;">Precio Unitario</th>
-                                <th style="width: 80px;">Total</th>
-                                <th style="width: 80px;">Eliminar</th>
-                                <th>Inventario</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let item of formula.items; let i = index"
-                                [ngStyle]="{'color': !item.medicamento.desabastecido  ? 'black' : 'red' }">
-
-                                <td>{{ item.medicamento.idMedicamento }}</td>
-                                <td>{{ item.medicamento.nombre }}</td>
-                                <td>
-                                    <select class="form-select" [value]="item.frecuencia"
-                                        (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
-                                        <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
-                                            [attr.data-multiplicador]="frecuencia.multiplicador"
-                                            [selected]="frecuencia.valor === item.frecuencia">
-                                            {{frecuencia.nombre}}
-                                        </option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="number" [value]="item.duracion" class="form-control col-sm-4"
-                                        (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)"
-                                        [min]="1" />
-                                </td>
-                                <td>
-                                    <input type="number" [value]="item.cantidad" class="form-control col-sm-4"
-                                        (change)="actualizarCantidad(item.medicamento.idMedicamento, $event)"
-                                        [disabled]="item.habilitarCantidad"
-                                        [ngStyle]="{'background-color': item.habilitarCantidad ?  'gris' : '#A5E3C6'}"
-                                        [min]="1" />
-                                </td>
-                                <td>
-                                    {{item.medicamento.valor | currency}}
-                                </td>
-                                <td>
-                                    {{item.importe | currency}}
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm" type="button"
-                                        (click)="eliminarItemFormula(item.idItem)">x</button>
-                                </td>
-                                <td>{{ existencias[item.medicamento.idMedicamento] || '0' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="form-group row mt-3 d-flex align-items-center justify-content-between">
-                    <div class="col-sm-4">
-                        <input type="button" (click)="actualizarFormula()" value="Actualizar Fórmula"
-                            class="btn btn-secondary w-100" [disabled]="!facturaForm.valid" />
-                    </div>
-                    <div class="col-sm-4 text-end"> Total formula:
-                        <span class="fw-bold">{{ formula.total | currency }}</span>
-                    </div>
-                </div>
             </div>
         </form>
+
+        <div class="alert alert-info" *ngIf="formula.items.length == 0">
+            No hay medicamentos asignados para la fórmula, debe agregar al menos uno.
+        </div>
+        <div>
+            <table class="table table-striped table-hover table-sm" *ngIf="formula.items.length > 0">
+                <thead class="thead-colored">
+                    <tr>
+                        <th>ID</th>
+                        <th>PQRS</th>
+                        <th>Medicamento</th>
+                        <th style="width: 180px;">Frecuencia</th>
+                        <th style="width: 80px;">Duración</th>
+                        <th style="width: 80px;">Cantidad</th>
+                        <th style="width: 80px;">Precio Unitario</th>
+                        <th style="width: 80px;">Total</th>
+                        <th style="width: 80px;">Eliminar</th>
+                        <th colspan="2">Inventario/Entrega</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of formula.items; let i = index"
+                        [ngStyle]="{'color': !item.medicamento.desabastecido  ? 'black' : 'red' }">
+
+                        <td>{{ item.medicamento.idMedicamento }}</td>
+                        <td>
+                            <div *ngIf="item.editing">
+                                <select class="form-select" [(ngModel)]="item.canalPqrs">
+                                    <option selected value="">Seleccione el canal</option>
+                                    <option value="SUPERSALUD">SUPERSALUD</option>
+                                    <option value="TUTELA">TUTELA</option>
+                                    <option value="ENTE DE CONTROL">ENTE DE CONTROL</option>
+                                    <option value="BUZON DISPENSARIO">BUZON DISPENSARIO</option>
+                                    <option value="LINEA TELEFONICA">LINEA TELEFONICA</option>
+                                    <option value="BUZON ASEGURADOR">BUZON ASEGURADOR</option>
+                                    <option value="EMAIL">EMAIL</option>
+                                </select>
+                                <input type="date" [(ngModel)]="item.fechaPqrs" class="form-control" [max]="hoy" />
+                            </div>
+                            <mat-icon *ngIf="item.editing" title="Guardar" class="puntero" [ngStyle]="{'color':'green'}"
+                                (click)="aplicarPQRS(item)">check</mat-icon>
+                            <mat-icon *ngIf="item.editing" class="puntero" title="Cancelar edición"
+                                [ngStyle]="{'color':'orange'}" (click)="cancelEdicion(item)">clear</mat-icon>
+                            <mat-icon *ngIf="item.editing" class="puntero" title="Aplicar a TODOS"
+                                [ngStyle]="{'color':'black'}" (click)="aplicarPQRSATodos(item)">done_all</mat-icon>
+
+                            <mat-icon *ngIf="(!item.canalPqrs || item.canalPqrs.trim() === '') && !item.editing"
+                                class="pointer-cursor" title="Ingresar PQRS"
+                                [ngStyle]="{'font-size': '18px', 'color':'#009A94'}" (click)="editarPqrs(item)">
+                                add_circle
+                            </mat-icon>
+
+                            <mat-icon *ngIf="(item.canalPqrs && item.canalPqrs.trim() !== '') && !item.editing "
+                                class="pointer-cursor" title="Ver PQRS" [ngStyle]="{'font-size': '18px', 'color':'red'}"
+                                (click)="editarPqrs(item)">
+                                record_voice_over
+                            </mat-icon>
+                        </td>
+
+                        <td>{{ item.medicamento.nombre }}</td>
+                        <td>
+                            <select class="form-select" [value]="item.frecuencia"
+                                (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
+                                <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
+                                    [attr.data-multiplicador]="frecuencia.multiplicador"
+                                    [selected]="frecuencia.valor === item.frecuencia">
+                                    {{frecuencia.nombre}}
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" [value]="item.duracion" class="form-control col-sm-4"
+                                (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)" [min]="1" />
+                        </td>
+                        <td>
+                            <input type="number" [value]="item.cantidad" class="form-control col-sm-4"
+                                (change)="actualizarCantidad(item.medicamento.idMedicamento, $event)"
+                                [disabled]="item.habilitarCantidad"
+                                [ngStyle]="{'background-color': item.habilitarCantidad ?  'gris' : '#A5E3C6'}"
+                                [min]="1" />
+                        </td>
+                        <td>
+                            {{item.medicamento.valor | currency}}
+                        </td>
+                        <td>
+                            {{item.importe | currency}}
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" type="button"
+                                (click)="eliminarItemFormula(item.idItem)">x</button>
+                        </td>
+                        <td style="text-align: center;">{{ existencias[item.medicamento.idMedicamento] || '0' }}</td>
+                        <td style="text-align: right;">{{ item.totalEntregado || '0' }}
+                            <mat-icon title="Entrega completa"
+                                *ngIf="item.cantidad == item.totalEntregado && item.entregaEfectiva"
+                                [ngStyle]="{'color':'#009A94'}">check_circle_outline</mat-icon>
+
+                            <mat-icon title="Entrega subsanada"
+                                *ngIf="item.cantidad == item.totalEntregado && !item.entregaEfectiva"
+                                [ngStyle]="{'color':'orange'}">check_circle_outline</mat-icon>
+
+                            <mat-icon *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado==0"
+                                class="pointer-cursor" title="Gestionar Pendiente"
+                                [ngStyle]="{'color':'red'}">remove_circle_outline</mat-icon>
+
+                            <mat-icon *ngIf="item.cantidad != item.totalEntregado && item.totalEntregado>0"
+                                class="pointer-cursor" title="Gestionar Pendiente"
+                                [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!--!facturaForm.valid && -->
+
+        <div class="form-group row mt-3 d-flex align-items-center justify-content-between">
+            <div class="col-sm-4">
+                <input type="button" (click)="actualizarFormula()" value="Actualizar Fórmula"
+                    class="btn btn-secondary w-100" [disabled]="!botonActivo" />
+            </div>
+            <div class="col-sm-4 text-end"> Total formula:
+                <span class="fw-bold">{{ formula.total | currency }}</span>
+            </div>
+        </div>
     </div>
+
+
+
 
 </div>

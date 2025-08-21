@@ -4,6 +4,8 @@ export class MedicoI {
     nombre: String;
     estado: Boolean; 
     especialidad: String;
+    tipoDoc: String;
+    numDocumento: String;
 
 
     constructor() {
@@ -12,6 +14,8 @@ export class MedicoI {
         this.nombre = "";       
         this.estado = true;     
         this.especialidad = "";      
+        this.tipoDoc = "";    
+        this.numDocumento = "";    
     }
 
 }

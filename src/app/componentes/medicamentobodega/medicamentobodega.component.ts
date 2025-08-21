@@ -66,8 +66,7 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
       }
     );
 
-    this.generalForm
-      .get('listFilter')!
+    this.generalForm.get('listFilter')!
       .valueChanges.pipe(
         debounceTime(300),
         switchMap((query) => this.buscarMedicamentos(query))
@@ -110,7 +109,7 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
           ...item,
           editing: false,
         }));
-        console.log(resp);
+    
         this.listaItemBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
         this.listaItemBodegaFiltro = this.listaItemBodega
         Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
@@ -123,21 +122,24 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
       );
 
   }
-
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaItemBodega.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaItemBodega);
+  
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaItemBodega.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
   }
-
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaItemBodega);
+}
+  
 
   public editarMedicamentoBodega(itemt: any) {
+    this.listaItemBodegaFiltro.forEach((p: any) => p.editing = false);
     itemt.editing = true;
 
   }
@@ -156,6 +158,17 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
    // Validar que el stock sea un número válido y positivo
    if (isNaN(itemt.pendiente) || itemt.pendiente < 0) {
     Swal.fire('Pendiente inválido', 'El pendiente debe ser un número positivo.', 'warning');
+    return;
+  }
+
+ // Validar que la fecha de vencimiento no sea menor a la fecha actual
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+  const fechaVenc = new Date(itemt.fechaVencimiento);
+  fechaVenc.setHours(0, 0, 0, 0);
+
+  if (fechaVenc < hoy) {
+    Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
     return;
   }
 

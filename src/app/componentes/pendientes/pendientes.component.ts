@@ -2,7 +2,9 @@ import { Component, Input } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { debounceTime, Observable, of, switchMap } from 'rxjs';
+import { HistorialMensajeI } from 'src/app/modelos/historialMensaje';
 import { BodegaService } from 'src/app/servicios/bodega.service';
+import { FormulaService } from 'src/app/servicios/formula.service';
 import { WhatsappService } from 'src/app/servicios/whatsapp.service';
 import Swal from 'sweetalert2';
 
@@ -22,10 +24,15 @@ export class PendientesComponent {
   listaPaciente: any = [];
   enviandoMensajes: boolean = false;
   mayorExistencia: String = "";
+  historialEnvio: HistorialMensajeI = new HistorialMensajeI();
+  celular:string="";
+  funcionario:string | null ="";
+  
 
   constructor(
     private servicio: BodegaService,
     private activatedRoute: ActivatedRoute,  
+    private servicioformula: FormulaService,
     private whatsappService: WhatsappService,
     private fb: FormBuilder) {
     // Calcula la fecha actual
@@ -102,6 +109,7 @@ export class PendientesComponent {
     });
 
     this.generalForm.patchValue({ idBodega: this.datoRecibido });
+    this.funcionario= sessionStorage.getItem("nombre");
 
   }
 
@@ -141,17 +149,20 @@ export class PendientesComponent {
         );
   }
 
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaPendienteBodega.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaPendienteBodega);
+
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaPendienteBodega.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
   }
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaPendienteBodega);
+}
 
  
   public buscarPacientePendiente(idBodega: number, idMedicamento: number): Promise<void> {
@@ -201,68 +212,73 @@ export class PendientesComponent {
     this.enviarMensajesConRetraso();
   }
   
-  async enviarMensajesConRetraso() {
-    const confirmacion = await Swal.fire({
-      title: '¿Confirmar envío masivo?',
-      html: `Se enviarán mensajes de WhatsApp a <strong>${this.listaPaciente.length}</strong> pacientes.<br><br>¿Deseas continuar?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, enviar',
-      cancelButtonText: 'Cancelar'
-    });
-  
-    if (!confirmacion.isConfirmed) return;
-  
-    this.enviandoMensajes = true;
-    let contador = 0;
-  
-    // NO USAR await aquí, solo mostrar el Swal
-    Swal.fire({
-      title: 'Enviando mensajes...',
-      html: `0 de ${this.listaPaciente.length} enviados`,
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-  
+
+private delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async enviarMensajesConRetraso() {
+  const confirmacion = await Swal.fire({
+    title: '¿Confirmar envío masivo?',
+    html: `Se enviarán mensajes de WhatsApp a <strong>${this.listaPaciente.length}</strong> pacientes.<br><br>¿Deseas continuar?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, enviar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!confirmacion.isConfirmed) {
+    return; // salir si cancela
+  }
+
+  this.enviandoMensajes = true;
+  let enviadosOk = 0;
+
+  for (const paciente of this.listaPaciente) {
+    // Construir mensaje
+    const textomensaje = `Hola *${paciente.pNombre}*! \n${paciente.bodega} te informa que el pendiente Nro. *${paciente.idFormula}* de tu medicamento. \n💊${paciente.nombreMedicamento} \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*`;
+    this.celular = paciente?.telefono.replace(/\s/g, '');
+    const telefono = "57" + this.celular;
+
+    if (!this.celularValido(this.celular)) {
+      console.warn(`⚠️ Teléfono inválido: ${paciente.telefono}`);
+      continue;
+    }
     try {
-      for (const paciente of this.listaPaciente) {
-        const textomensaje = `Hola *${paciente.pNombre}*! \n${paciente.bodega} te informa que el pendiente Nro. *${paciente.idFormula}* de tu medicamento. \n💊${paciente.nombreMedicamento} \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*`;
-        const telefono = "57" + paciente?.telefono.replace(/\s/g, '');
-        if (this.celularValido(paciente?.telefono.replace(/\s/g, ''))) {
-          try {
-            contador++;
-            await this.whatsappService.enviarMensaje({ phone: telefono, message: textomensaje }).toPromise();
-          } catch (error) {
-            console.error(`❌ Error enviando a ${telefono}`, error);
-          }
-        } else {
-          console.warn(`⚠️ Teléfono inválido: ${paciente.telefono}`);
-        }
-  
-        // Actualizar el progreso dinámicamente
-        Swal.update({
-          html: `<strong>${contador}</strong> de <strong>${this.listaPaciente.length}</strong> mensajes enviados`
-        });
-  
-        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos entre mensajes
+      // Enviar mensaje y esperar respuesta
+      const respuesta: any = await this.whatsappService.enviarMensaje({
+        phone: telefono,
+        message: textomensaje
+      }).toPromise();
+      // Validar respuesta
+      if (respuesta?.responseExSave.key.id) {
+        // Registrar historial
+        this.historialEnvio.itemFormula_id = paciente.idItemFormula;
+        this.historialEnvio.celularEnvio = this.celular;
+        this.historialEnvio.funcionarioEnvio = this.funcionario!;
+        this.historialEnvio.fechaEnvio = new Date();
+        await this.servicioformula.guardarMensaje(this.historialEnvio).toPromise();
+        enviadosOk++;       
+      } else {
+        console.warn(`⚠️ Falló el envío a ${telefono}:`, respuesta);
       }
     } catch (error) {
-      console.error('❌ Error general enviando mensajes:', error);
-      await Swal.fire('Error', 'Ocurrió un error durante el envío de mensajes.', 'error');
-    } finally {
-      this.enviandoMensajes = false;
-      Swal.close(); // Cierra el Swal sí o sí
+      console.error(`❌ Error enviando a ${telefono}`, error);
     }
-  
-    await Swal.fire(
-      '✔️ Mensajes procesados',
-      `Se enviaron <strong>${contador}</strong> mensajes de un total de <strong>${this.listaPaciente.length}</strong>.<br>Los demás presentaron inconvenientes en el número de celular.`,
-      'success'
-    );
+
+    // Retraso antes de enviar el siguiente
+    await this.delay(3000); // 3 segundos
   }
-  
+
+  this.enviandoMensajes = false;
+
+  await Swal.fire(
+    '✔️ Mensajes procesados',
+    `Se enviaron correctamente <strong>${enviadosOk}</strong> de <strong>${this.listaPaciente.length}</strong> mensajes.<br>Los demás presentaron inconvenientes en el número o en el envío.`,
+    'success'
+  );
+}
+
     
     celularValido(celular: string): boolean {
       // Validar que tenga exactamente 10 dígitos, empiece por "3" y solo números

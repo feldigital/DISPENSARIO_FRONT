@@ -8,7 +8,10 @@ import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import { ActivatedRoute } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
-import { Observable, debounceTime, of, switchMap } from 'rxjs';
+import { Observable, debounceTime, map, of, switchMap } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ProveedorComponent } from '../proveedor/proveedor.component';
+import { ProveedorService } from 'src/app/servicios/proveedor.service';
 
 @Component({
   selector: 'app-despacho',
@@ -33,13 +36,17 @@ export class DespachoComponent implements OnInit {
   fechaActual!: Date;
   isCompra: boolean = false;
   itemParaEliminar: any;
+  proveedorFiltrados: any[] = [];
+  
+
 
   constructor(
     private fb: FormBuilder,
     private servicio: BodegaService,
-    private medicamentoServicio: MedicamentoService,
+    private proveedorService: ProveedorService,
     private ordenDespachoservicio: OrdendespachoService,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+     public dialog: MatDialog
   ) {
     this.nombrebtn = "Crear orden"
   }
@@ -73,6 +80,23 @@ export class DespachoComponent implements OnInit {
     this.hoy = this.fechaActual.toISOString().split('T')[0];  // Formato YYYY-MM-DD
     this.onTipoChange();
 
+ this.generalForm.get('nomProvedor')!.valueChanges
+      .pipe(
+        debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+       map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
+        switchMap(query => this.proveedorService.filtrarProveedores(query))
+      )
+      .subscribe(results => {
+        this.proveedorFiltrados = results;    
+      });
 
 
 
@@ -90,18 +114,47 @@ export class DespachoComponent implements OnInit {
       });
   }
 
-
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaItems.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaItems);
+   
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaItems.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
   }
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaItems);
+}
+  
+
+   openDialogProveedor(): void {
+      const dialogRef = this.dialog.open(ProveedorComponent, {
+        width: '400px',
+        data: { /* puedes pasar datos iniciales aquí */ }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          // Aquí puedes manejar los datos devueltos, por ejemplo, seleccionar la IPS recién creada
+          this.generalForm.get('nomProvedor')!.setValue(result.nombre);
+        }
+      });
+    }
+
+    
+  onOptionSelectedProveedor(option: any) {
+    this.generalForm.get('nomProvedor')?.setValue(option);
+    this.generalForm.get('nitProvedor')?.setValue(option.nit);
+
+  }
+
+  displayProveedor(proveedor?: any): string {
+    return proveedor ? proveedor.nombre : '';
+  }
+
 
   crearFormulario() {
     this.generalForm = this.fb.group
@@ -113,7 +166,7 @@ export class DespachoComponent implements OnInit {
         observacion: ['', [Validators.required]],
         estado: [false, [Validators.required]],
         tipo: ['ORDEN DE DESPACHO'],
-        nitProvedor: [''],
+        nitProvedor: [{ value: '', disabled: true }],
         nomProvedor: [''],
         numFactura: [''],
         valor: [''],
@@ -232,10 +285,21 @@ export class DespachoComponent implements OnInit {
 
 
   cargarRegistros() {
+    const bodegaActiva = Number(sessionStorage.getItem("bodega"));
     this.servicio.getRegistrosActivos()
       .subscribe((resp: any) => {
-        // this.listaregistros = resp
-        this.listaregistrosOrigen = resp.filter((registro: any) => registro.salida === true);
+        if (this.tieneAcceso(4)) {
+          // Usuario con acceso completo
+          this.listaregistrosOrigen = resp.filter((registro: any) =>
+            registro.salida === true
+          );
+        } else {
+          // Usuario con acceso restringido a su bodega
+          this.listaregistrosOrigen = resp.filter((registro: any) =>
+            registro.salida === true && registro.idBodega === bodegaActiva
+          );
+        }
+        // this.listaregistrosOrigen = resp.filter((registro: any) => registro.salida === true);
         this.listaregistrosDestino = resp.filter((registro: any) => registro.entrada === true);
         this.listaregistrosOrigen.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
         this.listaregistrosDestino.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
@@ -250,6 +314,7 @@ export class DespachoComponent implements OnInit {
   }
 
   public editarMedicamentoOrdenDespacho(itemt: any) {
+    this.listaItemsFiltro.forEach((p: any) => p.editing = false);
     itemt.editing = true;
   }
 
@@ -269,8 +334,34 @@ export class DespachoComponent implements OnInit {
   }
 
   public guardarMedicamentoOrdenDespacho(itemt: any) {
+    // Validar que los campos obligatorios no estén vacíos
+    if (!itemt.invima || !itemt.laboratorio || !itemt.lote || !itemt.fechaVencimiento) {
+      Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
+      return;
+    }
+
+    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+
+    // Validar que la fecha de vencimiento no sea menor a la fecha actual
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+    const fechaVenc = new Date(itemt.fechaVencimiento);
+    fechaVenc.setHours(0, 0, 0, 0);
+
+    if (fechaVenc < hoy && idBodegaDestino !== 106) {
+      Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
+      return;
+    }
+
+    // Convertir a mayúsculas
+    itemt.invima = itemt.invima.toUpperCase();
+    itemt.laboratorio = itemt.laboratorio.toUpperCase();
+    itemt.lote = itemt.lote.toUpperCase();
+
+
     itemt.editing = false;
     if (itemt && itemt.idMedicamento) {
+      this.procesar = false;
       if (this.existeItem(itemt.idMedicamento)) {
         this.actualizarCantidad(itemt.idMedicamento, itemt.cantidadDespacho);
       } else {
@@ -416,14 +507,14 @@ export class DespachoComponent implements OnInit {
         confirmButtonText: 'Confirmar!'
       }).then((result) => {
         if (result.isConfirmed) {
-               Swal.fire({
-                    title: 'Procesando registros...',
-                    html: 'Por favor espera un momento',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                      Swal.showLoading();
-                    }
-                  });
+          Swal.fire({
+            title: 'Procesando registros...',
+            html: 'Por favor espera un momento',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
 
           this.ordenDespachoservicio.descargarinventarioBodegacange(this.ordenDespacho.idDespacho, this.registroUpdate.bodegaOrigen.idBodega, funcionario!).subscribe(resp => {
             Swal.close(); // 🚨 Primero cerramos el spinner           
@@ -488,7 +579,7 @@ export class DespachoComponent implements OnInit {
       }
 
       else {
-        Swal.fire({
+       Swal.fire({
           icon: 'warning',
           title: 'Verificar!',
           text: 'No se ha agregado ningún medicamento a la orden que intenta guardar!',
@@ -506,14 +597,14 @@ export class DespachoComponent implements OnInit {
 
   // Método para crear una nueva orden de despacho
   crearNuevaOrdenDespacho(funcionario: string) {
-     Swal.fire({
-              title: 'Creando la orden..',
-              html: 'Por favor espera un momento',
-              allowOutsideClick: false,
-              didOpen: () => {
-                Swal.showLoading();
-              }
-            });
+    Swal.fire({
+      title: 'Creando la orden..',
+      html: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     this.ordenDespacho.bodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
     this.ordenDespacho.bodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
     this.ordenDespacho.fechaDespacho = this.generalForm.get('fechaDespacho')?.value;
@@ -521,11 +612,12 @@ export class DespachoComponent implements OnInit {
 
     this.ordenDespacho.tipo = this.generalForm.get('tipo')?.value;
     this.ordenDespacho.nitProvedor = this.generalForm.get('nitProvedor')?.value;
-    this.ordenDespacho.nomProvedor = this.generalForm.get('nomProvedor')?.value;
+    this.ordenDespacho.nomProvedor = this.generalForm.get('nomProvedor')?.value?.nombre;
     this.ordenDespacho.numFactura = this.generalForm.get('numFactura')?.value;
     this.ordenDespacho.valor = this.generalForm.get('valor')?.value;
-
+    
     this.ordenDespacho.funcionarioDespacho = funcionario!;
+    console.log(this.generalForm.get('nomProvedor')?.value);
     this.ordenDespachoservicio.create(this.ordenDespacho).subscribe(resp => {
       // this.buscarRegistro(resp.idDespacho);
       this.generalForm.get('idBodegaOrigen')?.enable();
@@ -606,7 +698,7 @@ export class DespachoComponent implements OnInit {
         text: 'La orden ha sido actualizada correctamente.',
       });
     }, err => {
-       Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       Swal.fire({
         icon: 'error',
         title: `Error`,
@@ -657,6 +749,7 @@ export class DespachoComponent implements OnInit {
     };
     reader.readAsBinaryString(target.files[0]);
   }
+
   // Método para validar los datos
   validateData(data: any[]): boolean {
     for (let index = 1; index < data.length; index++) {

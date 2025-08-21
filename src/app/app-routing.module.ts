@@ -31,6 +31,8 @@ import { VerajusteinventarioComponent } from './componentes/verajusteinventario/
 import { OrdendespachoeditComponent } from './componentes/ordendespachoedit/ordendespachoedit.component';
 import { MedicamentoepsComponent } from './componentes/medicamentoeps/medicamentoeps.component';
 import { PrescritosComponent } from './componentes/prescritos/prescritos.component';
+import { VencidosComponent } from './componentes/vencidos/vencidos.component';
+import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -59,6 +61,7 @@ const routes: Routes = [
       { path: 'verordendespacho/:id', component: VerordendespachoComponent },  
       { path: 'existencias', component: ExistenciasComponent },  
       { path: 'norotan', component: NorotanComponent }, 
+      { path: 'vencidos', component: VencidosComponent }, 
       { path: 'entregados', component: MedicamentosentregadosComponent }, 
       { path: 'trazamedicamento', component: TrazamedicamentoComponent }, 
       { path: 'historialentrega', component: HistorialentregaComponent },  
@@ -68,10 +71,11 @@ const routes: Routes = [
       { path: 'medicamentoeps', component: MedicamentoepsComponent },  
       { path: 'ajusteinventario', component: AjusteinventarioComponent },
       { path: 'prescritos', component: PrescritosComponent },
+      { path: 'captadosdx', component: FormulasdxComponent },  
       { path: 'verajusteinventario', component: VerajusteinventarioComponent },
       { path: 'ordendespachoedit/:id', component: OrdendespachoeditComponent },  
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
-      { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto
+      { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto 
     ]
   }, 
   { path: '', redirectTo: '/login', pathMatch: 'full' }

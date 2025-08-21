@@ -79,9 +79,9 @@
                     <!--  <mat-slide-toggle formControlName="estado">Estado !</mat-slide-toggle> -->
                     <input class="form-check-input" style="margin-right: 5px" type="checkbox" formControlName="estado"> Vigente 
 
-                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="desabastecido"> Desabastecido
+                    <input *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="desabastecido"> Desabastecido
 
-                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="agotado"> Agotado
+                    <input *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="agotado"> Agotado
 
                     <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="controlado"> Controlado
                 </div>

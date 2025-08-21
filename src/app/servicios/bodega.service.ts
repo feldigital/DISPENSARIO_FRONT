@@ -211,12 +211,29 @@ export class BodegaService {
       }));
   } 
 
+  
+
   getMedicamentosBodegaEntregaDetallada(id: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
     .set('idBodega', id)
     .set('fInicial', fInicial)
     .set('fFinal', fFinal);
     return this.http.get<any>(`${this.urlEndPoint}/entrega/detallada`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  }
+
+
+  getMedicamentosBodegaEntregaDetalladaConsolidada(id: number,fInicial: string, fFinal: string): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', id)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);
+    return this.http.get<any>(`${this.urlEndPoint}/entrega/detalladaconsolidada`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        
           console.error(e.error.mensaje);
@@ -337,6 +354,15 @@ export class BodegaService {
   public obtenerMedicamentoPrescritosEntregaPorBodega(registro: any): Observable<any> {
     const headers = { 'Content-Type': 'application/json' };   
     return this.http.post<any>(`${this.urlEndPoint}/prescripciones-entregas-bodegas`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
+    public obtenerFormulasByDx(registro: any): Observable<any> {
+    const headers = { 'Content-Type': 'application/json' };   
+    return this.http.post<any>(`${this.urlEndPoint}/prescripciones-diagnosticos`, JSON.stringify(registro), { headers }).pipe(
       catchError(e => {
         return throwError(e);
       })

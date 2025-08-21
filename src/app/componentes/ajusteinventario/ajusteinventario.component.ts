@@ -76,17 +76,23 @@ export class AjusteinventarioComponent {
   }
 
 
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaItems.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaItems);
+   
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaItems.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
   }
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaItems);
+}
+  
+
+
 
   crearFormulario() {
     this.generalForm = this.fb.group

@@ -13,10 +13,14 @@ export class VerordendespachoComponent implements OnInit {
   listaItemsFormula: any;
   listaregistros: any;
   parametro: any;
+ 
+
   existencias: { [key: number]: number } = {};
   constructor(   
     private ordenDespachoservicio: OrdendespachoService,
     private activatedRoute: ActivatedRoute) { }
+
+
   ngOnInit(): void {   
     this.activatedRoute.paramMap.subscribe(params => {
       this.parametro = params.get('id');
@@ -24,6 +28,8 @@ export class VerordendespachoComponent implements OnInit {
         this.buscarRegistro(this.parametro);
       }
     });   
+
+    
   }
 
   public buscarRegistro(id: number) {
@@ -49,9 +55,9 @@ export class VerordendespachoComponent implements OnInit {
 
   procesarOrdenDespachoIngreso(): void {
     let funcionario = sessionStorage.getItem("nombre");
-    const tieneErrores = false;
+    let tieneErrores = false;
     if(!this.tieneAcceso(5)){
-    const tieneErrores =   this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
+     tieneErrores =   this.listaItemsFormula.some((itemBodega: { cantidadDespacho: number; cantidad: number; }) => {
       if (itemBodega.cantidadDespacho != itemBodega.cantidad) {
         Swal.fire({
           icon: 'error',
@@ -115,11 +121,22 @@ export class VerordendespachoComponent implements OnInit {
   }
 
   tieneAcceso(nivelRequerido: number): boolean {
-    const nivelUsuario = Number(sessionStorage.getItem("nivel"));  
-    if (isNaN(nivelUsuario)) {
-      //console.warn("El nivel del usuario no es válido o no está definido");
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));      
+    if (isNaN(nivelUsuario)) {      
       return false;
     }  
     return nivelUsuario >= nivelRequerido;
   }
+  
+permisoBodega(): boolean {
+  const bodegaActiva = Number(sessionStorage.getItem("bodega"));  
+  const destino = this.listaregistros.bodegaDestino?.idBodega;
+  if (destino === bodegaActiva) {    
+    return true;
+  }
+  return false;
+}
+
+
+
 }

@@ -1,0 +1,118 @@
+<div class="container mt-2">
+
+    <form [formGroup]="generalForm" class="px-2">
+        <div class="row g-3">
+            <!-- Columna 1: Descripción -->
+            <div class="col-md-4">
+                <textarea formControlName="medicamento" rows="6" class="form-control form-control-sm"
+                    placeholder="Ingrese lista de diagnosticos a consultar, separados por ','"></textarea>
+            </div>
+            <!-- Columna 2: Bodega + Rango de fechas -->
+            <div class="col-md-4">
+                <!-- Selector de Bodega -->
+                <div class="mb-2">
+                    <label class="form-label mb-1 fw-bold">Bodega</label>
+                    <select class="form-select form-select-sm" formControlName="idBodega">
+                        <option selected value="0">TODAS LAS BODEGAS</option>
+                        <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+                            {{ item.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <!-- Rango de Fechas -->
+                <div>
+                    <label class="form-label mb-1 fw-bold">Rango de fechas</label>
+                    <div class="d-flex gap-1">
+                        <input type="date" formControlName="fInicial" class="form-control form-control-sm">
+                        <span class="px-1 text-muted d-flex align-items-center">al</span>
+                        <input type="date" formControlName="fFinal" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+            </div>
+            <!-- Columna 3: Botones + Alerta -->
+            <div class="col-md-4 d-flex flex-column justify-content-between">
+
+                <!-- Botones -->
+                <div class="mb-3">
+                    <button type="button"
+                        class="btn btn-info w-100 d-flex align-items-center justify-content-center mb-2"
+                        (click)="buscarRegistro(parametro)">
+                        <mat-icon class="me-1">search</mat-icon> Buscar
+                    </button>
+                    <button type="button" class="btn w-100 d-flex align-items-center justify-content-center"
+                        (click)="exportarExcelCaptados()">
+                        <mat-icon class="me-1">file_download</mat-icon> Exportar a XLSX
+                    </button>
+                </div>
+
+               <div *ngIf="listaentregas?.length > 0" class="d-flex flex-column flex-md-row gap-3 mb-3">
+                    <!-- CARD 1 -->
+                    <div
+                        class="card shadow-sm text-center flex-fill border-0 bg-success-subtle d-flex align-items-center justify-content-center py-2">
+                        <div>
+                            <small class="text-danger">Total Formulas:</small>
+                            <div class="fw-bold text-danger fs-6">{{ totalCantidadFormulas }}</div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2 -->
+                    <div
+                        class="card shadow-sm text-center flex-fill border-0 bg-info-subtle d-flex align-items-center justify-content-center py-2">
+                        <div>
+                            <small class="text-success">Total Pacientes:</small>
+                            <div class="fw-bold text-success fs-6">{{ totalCantidadPacientes }}</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+    <div class="alert alert-info my-2" *ngIf="listaentregas?.length == 0">
+        No hay formulas con estos DX en la fecha y bodega seleccionada!
+    </div>
+
+    <div *ngIf="listaentregas?.length > 0 ">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mt-2 zebra-group">
+                <thead class="thead-colored">
+                    <tr>
+                        <th class="text-start">#</th>
+                        <th>Tipo</th>
+                        <th>Documento</th>
+                        <th>Nombres y apellidos</th>
+                        <th>Formula</th>
+                        <th>IPS</th>
+                        <th>DxP</th>
+                        <th>Dxr1</th>
+                        <th>Dxr2</th>
+                        <th>Dxr3</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr *ngFor="let itemt of listaentregas; let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ itemt.tipoDoc }}</td>
+                        <td>{{ itemt.numDocumento }}</td>
+                        <td> {{ ((itemt.pNombre ?? '') + ' ' +
+                            (itemt.sNombre ?? '') + ' ' +
+                            (itemt.pApellido ?? '') + ' ' +
+                            (itemt.sApellido ?? '')).toUpperCase()
+                            }}
+                        </td>
+                        <td>{{ itemt.idFormula }}</td>
+                        <td>{{ itemt.ips }}</td>
+                        <td>{{ itemt.dxP }}</td>
+                        <td>{{ itemt.cieR1 }}</td>
+                        <td>{{ itemt.cieR2 }}</td>
+                        <td>{{ itemt.cieR3 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormulaI } from 'src/app/modelos/formula.model';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,7 +8,7 @@ import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoI } from 'src/app/modelos/medicamento.model';
 import { ItemFormulaI } from 'src/app/modelos/itemformula.model';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { MedicoService } from 'src/app/servicios/medico.service';
@@ -18,7 +18,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { IpsComponent } from '../ips/ips.component';
 import { MedicosComponent } from '../medicos/medicos.component';
 import { HistorialformulaComponent } from '../historialformula/historialformula.component';
-
 
 @Component({
   selector: 'app-formula',
@@ -50,10 +49,6 @@ export class FormulaComponent implements OnInit {
   dxValido: boolean = true;
   editarContacto: boolean = false;
 
-  // Opcional: copia de los valores originales para editar
-  //celularPrincipalEditado: string = '';
-  //celularSecundarioEditado: string = '';
-  //direccionEditada: string = '';
 
   frecuencias = [
     { nombre: '1 Cada 24 Horas', multiplicador: 1, valor: '1 Cada 24 Horas' },
@@ -140,12 +135,7 @@ export class FormulaComponent implements OnInit {
 
         this.pacienteService.getRegistroId(pacienteId).subscribe(cliente => {
           this.procesarPaciente(cliente);
-          // this.formula.paciente = cliente;
-          // this.facturaForm.get('paciente')?.setValue(this.formula.paciente.numDocumento);
-          // this.mostrarComponente = true;
-          //this.pacienteActual = cliente;
-          // this.habilitarControles();
-          // this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
+
         });
 
       } else if (formulaId) {
@@ -163,19 +153,38 @@ export class FormulaComponent implements OnInit {
 
     });
 
+
     this.facturaForm.get('medico')!.valueChanges
       .pipe(
-        debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+        debounceTime(300),
+       map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
         switchMap(query => this.medicoService.filtrarMedicos(query))
       )
       .subscribe(results => {
-        this.medicosFiltrados = results
+        this.medicosFiltrados = results;
       });
 
 
     this.facturaForm.get('ips')!.valueChanges
       .pipe(
         debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+       map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
         switchMap(query => this.ipsService.filtrarIpss(query))
       )
       .subscribe(results => {
@@ -183,9 +192,9 @@ export class FormulaComponent implements OnInit {
       });
 
 
-    this.facturaForm.get('medicamento')!.valueChanges
+   /* this.facturaForm.get('medicamento')!.valueChanges
       .pipe(
-        debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir          
+        debounceTime(300), 
         switchMap(query => {
           if (this.pacienteActual && this.pacienteActual.eps) {
             return this.formulaService.filtrarMedicamentosEps(query, this.pacienteActual.eps.codigo);
@@ -195,11 +204,34 @@ export class FormulaComponent implements OnInit {
           }
         })
       )
-
       .subscribe(results => {
         this.medicamentosFiltrados = results;
       });
+*/
 
+this.facturaForm.get('medicamento')!.valueChanges
+  .pipe(
+    debounceTime(300),
+     map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
+    switchMap(query => {
+      if (query.length >= 3 && this.pacienteActual?.eps?.codigo) {
+        return this.formulaService.filtrarMedicamentosEps(query, this.pacienteActual.eps.codigo);
+      } else {
+        return of([]);
+      }
+    })
+  )
+  .subscribe(results => {
+    this.medicamentosFiltrados = results;
+  });
 
 
     let bodegaString = sessionStorage.getItem("bodega");
@@ -211,7 +243,6 @@ export class FormulaComponent implements OnInit {
         (err: any) => { console.error(err) }
       );
     this.setPosfechados();
-
     this.fechaActual = new Date();
     const date30DaysAgo = new Date(this.fechaActual);
     date30DaysAgo.setDate(this.fechaActual.getDate() - 5);
@@ -349,97 +380,6 @@ export class FormulaComponent implements OnInit {
     });
   }
 
-  /*
-  public buscarDocumento() {
-
-    this.deshabilitarControles(); // Deshabilitamos inicialmente
-    this.pacienteService.getRegistroDocumento(this.facturaForm.get('paciente')!.value).subscribe(cliente => {
-      if (cliente && cliente.length > 1) {
-        Swal.fire({
-          icon: 'error',
-          title: `DOCUMENTO DUPLICADO`,
-          text: `Este documento está duplicado en la base de datos. Identifique claramente al paciente para entregar el medicamento.`,
-        });
-        return;
-      }
-      if (cliente && cliente.length === 1) {
-        this.formula.paciente = cliente[0];
-        this.pacienteActual = cliente[0];
-        this.mostrarComponente = true;
-
-        // Verificar que historialFormulaComponente esté inicializado
-        if (this.historialFormulaComponente) {
-          this.historialFormulaComponente.buscarRegistro(this.pacienteActual.idPaciente);
-        } else {
-          console.error("historialFormulaComponente no está definido.");
-        }
-
-        this.formula.items = [];
-
-        if (this.pacienteActual.estado === true) {
-          if (this.pacienteActual.dispensario === "SISM DISPENSARIO") {
-            this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
-
-            const municipioPaciente = this.pacienteActual.municipio.codigo;
-            const municipioPortabilidad = this.pacienteActual.mpoportabilidad?.codigo;
-            const fechaVencimientoPortabilidad = new Date(this.pacienteActual?.fecVencePortabilidad);
-            const fechaActual = new Date(this.fechaActual);
-
-            if (this.bodegaActual.municipio === municipioPaciente ||
-              (this.pacienteActual.portabilidad &&
-                this.bodegaActual.municipio === municipioPortabilidad &&
-                fechaVencimientoPortabilidad >= fechaActual)) {
-              this.habilitarControles();
-              console.log("Controles habilitados");
-              this.facturaForm.updateValueAndValidity(); // Asegura que el formulario esté actualizado
-            } else {
-              Swal.fire({
-                icon: 'warning',
-                title: `OTRO MUNICIPIO`,
-                text: `El paciente está en otro municipio o portabilidad vencida.`,
-              });
-            }
-          } else {
-            Swal.fire({
-              icon: 'warning',
-              title: `OTRO DISPENSARIO`,
-              text: `El paciente pertenece a otro dispensario.`,
-            });
-          }
-        } else {
-          Swal.fire({
-            icon: 'info',
-            title: `INACTIVO`,
-            text: `El paciente está inactivo. No se puede generar la entrega de medicamentos.`,
-          });
-        }
-      } else {
-        Swal.fire({
-          icon: 'info',
-          title: `Información`,
-          text: `No se encontró ningún paciente para el documento proporcionado.`,
-        });
-        this.mostrarComponente = false;
-      }
-    }, error => {
-      Swal.fire({
-        icon: 'error',
-        title: `Error`,
-        text: `Ocurrió un error al buscar el documento. Intente nuevamente más tarde.`,
-      });
-      this.mostrarComponente = false;
-    });
-
-    if (!this.bodegaActual.dispensa) {
-      this.deshabilitarControles(); // Deshabilitamos inicialmente
-      Swal.fire({
-        icon: 'warning',
-        title: "!Alerta",
-        text: `La bodega ${this.bodegaActual.nombre} donde está logueado el usuario no está habilitada para dispensar fórmulas a pacientes.`,
-      });
-    }
-  }
-*/
 
   private procesarPaciente(cliente: any): void {
     this.formula.paciente = cliente;
@@ -475,7 +415,7 @@ export class FormulaComponent implements OnInit {
             this.bodegaActual.municipio === municipioPortabilidad &&
             fechaVencimientoPortabilidad >= fechaActual)) {
           this.habilitarControles();
-          console.log("Controles habilitados");
+         
           this.facturaForm.updateValueAndValidity();
         } else {
           Swal.fire({
@@ -719,33 +659,7 @@ export class FormulaComponent implements OnInit {
   }
 
 
-  /*medicamentoEntegadoMenos30Dias(idMedicamento: number, idPaciente: number) {
-    this.formulaService.getMedicamentoEntregadoPacienteMenosDe30Dias(idMedicamento, idPaciente).subscribe(
-      (response: any) => {
-        if (response && response.length > 0 && response[0].medicamento) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Entregado menos de 30 días',
-            text: `El medicamento ${response[0].medicamento.nombre} que está intentando dispensar, tiene un registro de entrega en menos de 30 días a este paciente. Por favor, verificar.`,
-          });
-        } else {
-          console.log('No se encontraron registros recientes de entrega para este medicamento.');
-        }
-      },
-      (error: any) => {
-        console.error('Error en la consulta de la base de datos:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Ocurrió un error al verificar el historial de entregas del medicamento. Por favor, inténtelo nuevamente más tarde.',
-        });
-      }
-    );
-  } 
-    */
-
   create(): void {
-
     if (this.facturaForm.get('cieP')?.invalid || this.dxValido) {
       Swal.fire({
         icon: 'error',
@@ -755,10 +669,7 @@ export class FormulaComponent implements OnInit {
       return;
     }
 
-
-
     if (this.facturaForm.valid) {
-
       const fechaPrescribe = new Date(this.facturaForm.get('fecPrescribe')?.value); // Fecha del formulario
       const fechaLimite = new Date(); // Calculamos 30 días atrás
       fechaLimite.setDate(fechaLimite.getDate() - 31);

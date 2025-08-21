@@ -28,7 +28,7 @@
     </div>
 
 <div   class="col-12 text-center mt-1">  
-    <span class="fw-bold">MEDICAMENTOS ASOCIADOS A LA ORDEN DE DESPACHO Nro. {{listaregistros?.idDespacho}}  DEL {{listaregistros?.fechaDespacho}} </span>             
+    <span class="fw-bold">MEDICAMENTOS ASOCIADOS A LA ORDEN DE DESPACHO Nro. <strong  [ngStyle]="{'color':'red'}">{{listaregistros?.idDespacho}}</strong>   DEL {{listaregistros?.fechaDespacho}} </span>             
 </div>
 
 <div *ngIf="listaItemsFormula?.length > 0">
@@ -81,8 +81,8 @@
     <div class="col-6">
         <button class="btn btn-outline-primary w-50" [routerLink]="['/menu/historialordendespacho']" >
            Regresar</button>
-    </div>        
-    <div class="col-6" *ngIf="listaregistros?.estado==='Envío'">
+    </div>       
+    <div class="col-6" *ngIf="listaregistros?.estado==='Envío' && (permisoBodega() || tieneAcceso(4) )">
         <button class="btn btn-outline-primary w-50" (click)="procesarOrdenDespachoIngreso()">
             Validar y Generar ingresos</button>
     </div>              

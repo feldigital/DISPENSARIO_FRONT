@@ -45,3 +45,11 @@ pre {
   font-weight: bold; /* Aplicar negrita */
   line-height: 1.5; /* Más espaciado */
 }
+
+::ng-deep .mat-badge-content {
+  font-size:8px;        /* Tamaño del número */
+  height: 10px;           /* Alto del círculo */
+  min-width: 10px;        /* Ancho mínimo del círculo */
+  line-height: 10px;      /* Centrado vertical del texto */
+  padding: 0;
+}

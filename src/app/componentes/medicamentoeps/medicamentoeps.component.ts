@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { debounceTime, Observable, of, switchMap } from 'rxjs';
+import { debounceTime, map, Observable, of, switchMap } from 'rxjs';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MedicamentoService } from 'src/app/servicios/medicamento.service';
@@ -44,21 +44,31 @@ export class MedicamentoepsComponent {
 
      this.cargarEps();
 
-    this.generalForm.get('medicamento')!.valueChanges
-    .pipe(
-      debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir          
-      switchMap(query => {
-        return this.formulaService.filtrarMedicamentos(query);
-      })
-    )
-    .subscribe(results => {
-      this.medicamentosFiltrados = results;
-    });
-
+     this.generalForm.get('medicamento')!.valueChanges
+        .pipe(
+          debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir    
+          map(value => {
+                if (typeof value === 'string') {
+                  return value.trim().toLowerCase();
+                } else if (value && typeof value === 'object' && 'nombre' in value) {
+                  return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+                } else {
+                  return '';
+                }
+              }),    
+          switchMap(query => {
+          if (query.length >= 3 ) {
+              return this.formulaService.filtrarMedicamentos(query);
+          } else {
+            return of([]);
+          }
+        })
+      )
+        .subscribe(results => {
+          this.medicamentosFiltrados = results;
+        });
     
-    this.generalForm
-    .get('listFilter')!
-    .valueChanges.pipe(
+    this.generalForm.get('listFilter')!.valueChanges.pipe(
       debounceTime(300),
       switchMap((query) => this.buscarMedicamentos(query))
     )
@@ -67,18 +77,21 @@ export class MedicamentoepsComponent {
     });
   }
 
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaItemEps.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaItemEps);
-  }
 
+
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaItemEps.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
+  }
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaItemEps);
+}
 
 
   cargarEps() {
@@ -94,7 +107,7 @@ export class MedicamentoepsComponent {
      seleccionarMedicamento(event: MatAutocompleteSelectedEvent): void {
       this.medicamentoActual = event.option.value;     
       this.generalForm.get('medicamento')?.setValue(event.option.value.nombre);
-      console.log("Este es el medicamento seleccionado",this.medicamentoActual);
+     
       this.buscarRegistro(this.medicamentoActual.idMedicamento);
 
       this.verItem = false;
@@ -282,7 +295,7 @@ export class MedicamentoepsComponent {
       this.medicamentoServicio.getMedicamentoContratoEps(contrato)
         .subscribe({
           next: (resp: any) => {
-            console.log(resp);
+            
             this.listaItemEps = resp.sort((a: any, b: any) => 
               a.nombre.localeCompare(b.nombre)    );
             this.listaItemEpsFiltro= this.listaItemEps;
@@ -371,12 +384,5 @@ export class MedicamentoepsComponent {
     return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
   }
 
-   reporteEnConstruccion() {
-        Swal.fire({
-          icon: 'info',
-          title: `En construcción!`,
-          text: `El reporte esta en proceso de construcción, te estaremos informando cuando esté disponible!`,
-        });
-      }
 
 }

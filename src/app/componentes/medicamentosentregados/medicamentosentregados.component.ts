@@ -1,7 +1,7 @@
 
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { debounceTime, switchMap } from 'rxjs';
+import { debounceTime, map, of, switchMap } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { BodegaService } from 'src/app/servicios/bodega.service';
 import Swal from 'sweetalert2';
@@ -82,7 +82,7 @@ export class MedicamentosentregadosComponent {
     });
 
     this.generalForm.patchValue({ idBodega: this.parametro });
-
+/*
     this.generalForm.get('medicamento')!.valueChanges
       .pipe(
         debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir          
@@ -93,6 +93,32 @@ export class MedicamentosentregadosComponent {
       .subscribe(results => {
         this.medicamentosFiltrados = results;
       });
+*/
+
+ this.generalForm.get('medicamento')!.valueChanges
+    .pipe(
+      debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir    
+      map(value => {
+            if (typeof value === 'string') {
+              return value.trim().toLowerCase();
+            } else if (value && typeof value === 'object' && 'nombre' in value) {
+              return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+            } else {
+              return '';
+            }
+          }),    
+      switchMap(query => {
+      if (query.length >= 3 ) {
+          return this.formulaService.filtrarMedicamentos(query);
+      } else {
+        return of([]);
+      }
+    })
+  )
+    .subscribe(results => {
+      this.medicamentosFiltrados = results;
+    });
+
   }
 
   seleccionarMedicamento(event: MatAutocompleteSelectedEvent): void {

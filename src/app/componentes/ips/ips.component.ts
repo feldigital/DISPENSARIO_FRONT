@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IpsService } from 'src/app/servicios/ips.service';
 import { IpsI } from 'src/app/modelos/ips.model';
-import { debounceTime, switchMap } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -35,6 +35,7 @@ export class IpsComponent {
     this.generalForm.get('nombre')!.valueChanges
     .pipe(
       debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+      map(value => value.trim().toLowerCase()),
       switchMap(query => this.servicio.filtrarIpss(query))
     )
     .subscribe(results => {       
@@ -42,37 +43,23 @@ export class IpsComponent {
     });
   }
 
-  convertirAMayusculas(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.toUpperCase();
-    this.generalForm.get('nombre')?.setValue(input.value, { emitEvent: false });
+ 
+  toUpperCase(event: Event, controlName: string) {
+  const input = event.target as HTMLInputElement;
+  const cursorPos = input.selectionStart || 0;
+  const upperValue = input.value.toUpperCase();
+
+  // Evitar reestablecer si no ha cambiado
+  if (input.value !== upperValue) {
+    this.generalForm.get(controlName)?.setValue(upperValue, { emitEvent: false });
+
+    // Restaurar el cursor en el siguiente ciclo de renderizado
+    setTimeout(() => {
+      input.setSelectionRange(cursorPos, cursorPos);
+    });
   }
+}
 
-/*
-  filtrarRegistros(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 2) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaregistros.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaregistros);
-  }
-
-
-  cargarRegistros(term: string) {
-
-    this.servicio.filtrarIpss(term)
-      .subscribe((resp: any) => {
-        this.listaregistros = resp;
-        this.listaregistrosFiltrados = resp;
-      },
-        (err: any) => { console.error(err) }
-      );
-  }
-*/
 
   /*FUNCION DE CREACION DEL FORMULARIO*/
   crearFormulario() {
@@ -129,7 +116,7 @@ export class IpsComponent {
         );
       }
       else {
-        console.log(this.generalForm.value);
+       
         this.servicio.update(this.generalForm.value).subscribe(nuevaIps => {
           this.nombrebtn = "Crear";
           //this.cargarRegistros();

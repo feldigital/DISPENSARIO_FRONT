@@ -64,17 +64,22 @@ export class MedicamentoComponent implements OnInit {
       });
   }
 
-  buscarMedicamentos(filterValue: string): Observable<any[]> {
-    if (filterValue && filterValue.length > 3) {
-      filterValue = filterValue.toLocaleLowerCase();
-      const filteredResults = this.listaregistros.filter((item: any) =>
-        item.nombre.toLowerCase().includes(filterValue)
-      );
-      return of(filteredResults);
-    }
-    // Retornar la lista completa si no se cumplen las condiciones
-    return of(this.listaregistros);
+  
+   
+buscarMedicamentos(filterValue: string): Observable<any[]> {
+  if (filterValue && filterValue.trim().length > 3) {
+    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+    const filteredResults = this.listaregistros.filter((item: any) => {
+      const nombre = item.nombre.toLowerCase();
+      // Verificar que todas las palabras estén en el nombre
+      return palabras.every(palabra => nombre.includes(palabra));
+    });
+    return of(filteredResults);
   }
+  // Si no hay filtro, devolver la lista completa
+  return of(this.listaregistros);
+}
+  
 
   cargarRegistros() {
 
@@ -593,5 +598,14 @@ export class MedicamentoComponent implements OnInit {
   }
 
 
+  
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }
+    return nivelUsuario >= nivelRequerido;
+  }
 }
 

@@ -36,6 +36,7 @@ export class MenuComponent implements OnInit {
     {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:2},   
     {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:2},   
     {name:"No rotan",route:"norotan",icon:"pause_circle_outline",nivel:2}, 
+    {name:"Vencidos",route:"vencidos",icon:"alarm_off",nivel:2}, 
     {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:2}, 
     {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2}, 
     {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3}, 
@@ -44,6 +45,7 @@ export class MenuComponent implements OnInit {
     {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
     {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
     {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}, 
+     {name:"Captados por Dx",route:"captadosdx",icon:"list_alt",nivel:2}, 
     {name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1},   
     
    

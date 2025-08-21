@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, catchError, of, throwError } from 'rxjs';
 import { FormulaI } from '../modelos/formula.model';
 import { MedicamentoI } from '../modelos/medicamento.model';
 import { environment } from 'src/environments/environment';
+import { HistorialMensajeI } from '../modelos/historialMensaje';
 
 @Injectable({
   providedIn: 'root'
@@ -43,12 +44,26 @@ export class FormulaService {
 update(registro: FormulaI): Observable<FormulaI> {
   const headers = { 'Content-Type': 'application/json' };   
   //console.log(JSON.stringify(registro));
-  console.log(registro);
   return this.http.put<FormulaI>(this.urlEndPoint, JSON.stringify(registro), { headers }).pipe(
     catchError(e => {
       return throwError(e);
     })
   );
+}
+
+ getItemFormula(idItem: number): Observable<any> {
+    const params = new HttpParams()
+    .set('idItem', idItem);
+    return this.http.get<any>(`${this.urlEndPoint}/item`, {params});
+  }
+
+ guardarMensaje(registro: HistorialMensajeI): Observable<HistorialMensajeI> {
+    const headers = { 'Content-Type': 'application/json' };    
+    return this.http.post<HistorialMensajeI>(`${this.urlEndPoint}/item_mensaje`, JSON.stringify(registro), { headers }).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
 }
 
 
@@ -302,5 +317,11 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
       }));
    }
   
+    public subirFormula(soporte: File, idFormula: number ): Observable<string> {
+    const formData = new FormData();
+    formData.append('soporte', soporte);
+    formData.append('idFormula', idFormula.toString());
+    return this.http.post(`${this.urlEndPoint}/subir`, formData, { responseType: 'text' });
+  }
 
 }

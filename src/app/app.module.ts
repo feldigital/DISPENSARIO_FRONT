@@ -33,6 +33,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatBadgeModule } from '@angular/material/badge';
 
 import { DetalleformulaComponent } from './componentes/detalleformula/detalleformula.component';
 import { EntregasComponent } from './componentes/entregas/entregas.component';
@@ -60,6 +61,9 @@ import { VerajusteinventarioComponent } from './componentes/verajusteinventario/
 import { OrdendespachoeditComponent } from './componentes/ordendespachoedit/ordendespachoedit.component';
 import { MedicamentoepsComponent } from './componentes/medicamentoeps/medicamentoeps.component';
 import { PrescritosComponent } from './componentes/prescritos/prescritos.component';
+import { VencidosComponent } from './componentes/vencidos/vencidos.component';
+import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
+import { ProveedorComponent } from './componentes/proveedor/proveedor.component';
 
 
 export function initPermisos(permisosService: PermisosService) {
@@ -102,6 +106,9 @@ export function initPermisos(permisosService: PermisosService) {
     OrdendespachoeditComponent,
     MedicamentoepsComponent,
     PrescritosComponent,
+    VencidosComponent,
+    FormulasdxComponent,
+    ProveedorComponent,
 
   ],
   imports: [
@@ -125,8 +132,8 @@ export function initPermisos(permisosService: PermisosService) {
     MatDialogModule,
     MatTabsModule,
     MatProgressBarModule,
-    MatSnackBarModule
-
+    MatSnackBarModule,
+    MatBadgeModule
   ],
 
   providers: [

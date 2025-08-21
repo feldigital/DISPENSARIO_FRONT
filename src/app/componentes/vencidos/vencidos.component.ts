@@ -5,16 +5,16 @@ import { debounceTime, Observable, of, switchMap } from 'rxjs';
 import { BodegaService } from 'src/app/servicios/bodega.service';
 import Swal from 'sweetalert2';
 
-
 @Component({
-  selector: 'app-norotan',
-  templateUrl: './norotan.component.html',
-  styleUrls: ['./norotan.component.css']
+  selector: 'app-vencidos',
+  templateUrl: './vencidos.component.html',
+  styleUrls: ['./vencidos.component.css']
 })
-export class NorotanComponent {
-  listaNorotanBodega: any = [];
-  listaNorotanBodegaFiltro: any = [];
-  parametro: any;
+export class VencidosComponent {
+
+  listaVencidosBodega: any = [];
+  listaVencidosBodegaFiltro: any = [];
+  parametro: any; 
   @Input() datoRecibido: number = NaN;
   generalForm!: FormGroup;
   listaregistros: any;
@@ -28,7 +28,7 @@ export class NorotanComponent {
     const currentDate = new Date();
     // Calcula la fecha 30 días antes de la fecha actual
     const date30DaysAgo = new Date(currentDate);
-    date30DaysAgo.setDate(currentDate.getDate() - 180);
+    date30DaysAgo.setDate(currentDate.getDate() - 0);
  
     this.generalForm = this.fb.group({
       idBodega: [0],
@@ -84,7 +84,7 @@ export class NorotanComponent {
         switchMap(query => this.buscarMedicamentos(query))
       )
       .subscribe(results => {
-        this.listaNorotanBodegaFiltro = results
+        this.listaVencidosBodegaFiltro = results
       });
 
     // Escuchar cambios en el select de bodegas
@@ -95,20 +95,14 @@ export class NorotanComponent {
         this.buscarRegistro(nuevoIdBodega);
       }
     });
-
     this.generalForm.patchValue({ idBodega: this.datoRecibido });
- 
-
   }
-
-
 
 
   public async buscarRegistro(id: number) {   
     // Limpiar listas antes de cargar nueva data
-    this.listaNorotanBodega = [];
-    this.listaNorotanBodegaFiltro = [];
-
+    this.listaVencidosBodega = [];
+    this.listaVencidosBodegaFiltro = [];
      Swal.fire({
           title: 'Cargando registros...',
           html: 'Por favor espera un momento',
@@ -118,11 +112,15 @@ export class NorotanComponent {
           }
         });
 
-    this.servicio.getMedicamentosNorotan(id, this.generalForm.get('fechainicial')?.value)
-      .subscribe((resp: any) => {       
-        this.listaNorotanBodega = resp
-        this.listaNorotanBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));        
-        this.listaNorotanBodegaFiltro = this.listaNorotanBodega
+    this.servicio.getMedicamentosVencidos(id, this.generalForm.get('fechainicial')?.value)
+      .subscribe((resp: any) => {    
+        this.listaVencidosBodega = resp.map((item: any) => ({
+          ...item,
+          editing: false,
+        }));     
+             
+        this.listaVencidosBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));        
+        this.listaVencidosBodegaFiltro = this.listaVencidosBodega
       Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
           },
           (error) => {
@@ -134,11 +132,10 @@ export class NorotanComponent {
   }
 
 
-
 buscarMedicamentos(filterValue: string): Observable<any[]> {
   if (filterValue && filterValue.trim().length > 3) {
     const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
-    const filteredResults = this.listaNorotanBodega.filter((item: any) => {
+    const filteredResults = this.listaVencidosBodega.filter((item: any) => {
       const nombre = item.nombre.toLowerCase();
       // Verificar que todas las palabras estén en el nombre
       return palabras.every(palabra => nombre.includes(palabra));
@@ -146,10 +143,11 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
     return of(filteredResults);
   }
   // Si no hay filtro, devolver la lista completa
-  return of(this.listaNorotanBodega);
+  return of(this.listaVencidosBodega);
 }
 
  
+
  
   esFechaVencimientoProxima(fecha: Date | string): boolean {
   const hoy = new Date();
@@ -166,9 +164,82 @@ get fechaFiltro(): Date {
 
 
 get todasBodega(): boolean {
-   const val = this.generalForm.get('idBodega')?.value; 
-  return val === 0;
+   const val = this.generalForm.get('idBodega')?.value;  
+  return val === 0;  
 }
+
+
+  public editarMedicamentoBodega(itemt: any) {
+      this.listaVencidosBodegaFiltro.forEach((p: any) => p.editing = false);
+      itemt.editing = true;
+    
+
+  }
+
+  public guardarMedicamentoBodega(itemt: any) {  
+     // Validar que los campos obligatorios no estén vacíos
+  if (!itemt.invima || !itemt.laboratorio || !itemt.lote || !itemt.fechaVencimiento ) {
+    Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
+    return;
+  }
+  
+ // Validar que la fecha de vencimiento no sea menor a la fecha actual
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+  const fechaVenc = new Date(itemt.fechaVencimiento);
+  fechaVenc.setHours(0, 0, 0, 0);
+
+  if (fechaVenc < hoy) {
+    Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
+    return;
+  }
+  
+    // Convertir a mayúsculas
+  itemt.invima = itemt.invima.toUpperCase();
+  itemt.laboratorio = itemt.laboratorio.toUpperCase();
+  itemt.lote = itemt.lote.toUpperCase();
+
+    // Formatea la fecha en formato legible para Colombia
+    const fecha = new Date(itemt.fechaVencimiento);
+    const fechaFormateada = fecha.toLocaleDateString('es-CO');
+    itemt.editing = false;
+    Swal.fire({
+      title: '¿Desea actualizar?',
+      html: `
+      <p style="margin:2px 0;"><strong>Medicamento:</strong> ${itemt.nombre}</p>
+      <p style="margin:2px 0;"><strong>Invima:</strong> ${itemt.invima}</p>
+      <p style="margin:2px 0;"><strong>Laboratorio:</strong> ${itemt.laboratorio}</p>
+      <p style="margin:2px 0;"><strong>Lote:</strong> ${itemt.lote}</p>
+      <p style="margin:2px 0;"><strong>Fecha Vencimiento:</strong> ${fechaFormateada}</p>
+    
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Actualizar!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.servicio.updateMedicamentoBodega(itemt).subscribe(
+          (resp: any) => {
+            Swal.fire({
+              icon: 'success',
+              title: `Actualización exitosa`,
+              text: `Los datos del medicamento ${itemt.nombre} de la bodega seleccionada fueron actualizados correctamente.`,
+            });
+          },
+          (error) => {
+            console.error('❌ Error actualizando el registro', error);
+            Swal.fire('Error', 'No se pudo actualizar el registro.', 'error');
+          }
+        );
+      }
+    });
+  }
+  public cancelEdicion(itemt: any) {
+    itemt.editing = false;
+  }
+
 
   public primerasmayusculas(str: string): string {
     if (!str) {

@@ -42,6 +42,8 @@ export class EditformulaComponent implements OnInit {
   mensajeErrorDx: string = '';
   fechaActual!: Date;
   dxValido: boolean = true;
+  botonActivo: boolean = false;
+  editarContacto: boolean = false;
   //@Output() formulaAgregada = new EventEmitter<void>();  
   readonly formasConCantidadHabilitada = [3, 15, 19, 20, 22, 24, 116];
   frecuencias = [
@@ -110,6 +112,12 @@ export class EditformulaComponent implements OnInit {
       pgp: [false],
       valorCM: ['0'],
       numDocumento: [''],
+      direccion: [''],
+      celularPrincipal: [''],
+      celularSecundario: [''],
+      barrio: [''],
+      email: [''],
+
 
     });
   }
@@ -121,14 +129,15 @@ export class EditformulaComponent implements OnInit {
       if (formulaId) {
         // Procesar la formula formulaService 
         this.formulaService.getFormulaId(formulaId).subscribe(reg => {
-          this.formula = reg;
-
+          this.formula = reg;         
           if (reg) {
             this.formula.items = this.formula.items.map((item: any) => ({
-              ...item,
+              ...item,              
+              editing: false,
+              fechaPqrs: this.formatearFechaISO(item.fechaPqrs), // Formatea la fecha individual
+              canalPqrs: this.formatearCanal(item.canalPqrs), // Formatea el canal de la pqrs
               habilitarCantidad: this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
             }));
-
             // Llenar existencias
             this.formula.items.forEach((item: any) => {
               const idMedicamento = item.medicamento.idMedicamento;
@@ -137,6 +146,7 @@ export class EditformulaComponent implements OnInit {
           }
 
           this.mostrarComponente = true;
+          this.botonActivo=true;
           this.pacienteActual = reg.paciente;
           this.mostrarRegistro(reg);
           this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
@@ -149,44 +159,66 @@ export class EditformulaComponent implements OnInit {
 
     });
 
-    this.facturaForm.get('medico')!.valueChanges
+     this.facturaForm.get('medico')!.valueChanges
       .pipe(
-        debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+        debounceTime(300),
+       map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
         switchMap(query => this.medicoService.filtrarMedicos(query))
       )
       .subscribe(results => {
-        this.medicosFiltrados = results
+        this.medicosFiltrados = results;
       });
 
 
     this.facturaForm.get('ips')!.valueChanges
       .pipe(
         debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+       map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
         switchMap(query => this.ipsService.filtrarIpss(query))
       )
       .subscribe(results => {
         this.ipsFiltrados = results;
       });
 
-
-    this.facturaForm.get('medicamento')!.valueChanges
-      .pipe(
-        debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir          
-        switchMap(query => {
-          if (this.pacienteActual && this.pacienteActual.eps) {
-            return this.formulaService.filtrarMedicamentosEps(query, this.pacienteActual.eps.codigo);
-          } else {
-            // Si no hay un pacienteActual o su eps es indefinido, retorna un array vacío
-            return of([]);
-          }
-        })
-      )
-
-      .subscribe(results => {
-        this.medicamentosFiltrados = results;
-      });
-
-
+this.facturaForm.get('medicamento')!.valueChanges
+  .pipe(
+    debounceTime(300),
+     map(value => {
+      if (typeof value === 'string') {
+        return value.trim().toLowerCase();
+      } else if (value && typeof value === 'object' && 'nombre' in value) {
+        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+      } else {
+        return '';
+      }
+    }),
+    switchMap(query => {
+      if (query.length >= 3 && this.pacienteActual?.eps?.codigo) {
+        return this.formulaService.filtrarMedicamentosEps(query, this.pacienteActual.eps.codigo);
+      } else {
+        return of([]);
+      }
+    })
+  )
+  .subscribe(results => {
+    this.medicamentosFiltrados = results;
+  });
 
     let bodegaString = sessionStorage.getItem("bodega");
     let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
@@ -308,13 +340,17 @@ export class EditformulaComponent implements OnInit {
     this.formula = new FormulaI();
     this.pacienteActual = {};
     this.mostrarComponente = false;
-    this.formulaService.getFormulaId(this.facturaForm.get('idFormula')!.value).subscribe(reg => {
-
-      if (reg) {
+    this.botonActivo=false;
+    this.formulaService.getFormulaId(this.facturaForm.get('idFormula')!.value).subscribe(reg => {      
+      if (reg) {       
         this.formula = reg;
+        console.log(reg);
         //this.formula = Object.assign(new FormulaI(), reg);
         this.formula.items = this.formula.items.map((item: any) => ({
           ...item,
+          editing: false,
+          fechaPqrs: this.formatearFechaISO(item.fechaPqrs), // Formatea la fecha individual
+          canalPqrs: this.formatearCanal(item.canalPqrs), // Formatea el canal de la pqrs
           habilitarCantidad: this.formasConCantidadHabilitada.includes(item.medicamento.forma.idForma),
         }));
 
@@ -325,7 +361,18 @@ export class EditformulaComponent implements OnInit {
         });
 
         this.mostrarComponente = true;
+        this.botonActivo=true;
         this.pacienteActual = reg.paciente;
+       
+        // 👉 Rellenar el formulario con los datos del paciente
+        this.facturaForm.patchValue({
+          direccion: this.pacienteActual.direccion,
+          celularPrincipal: this.pacienteActual.celularPrincipal,
+          celularSecundario: this.pacienteActual.celularSecundario,
+          barrio: this.pacienteActual.barrio,
+          email: this.pacienteActual.email
+        });
+       
         this.mostrarRegistro(reg);
         this.ValidaPaciente();
         this.facturaForm.get('cobroCM')?.setValue(this.cobroCuotaModeradora());
@@ -343,12 +390,8 @@ export class EditformulaComponent implements OnInit {
         title: `Error`,
         text: `Ocurrió un error al buscar la formula. Intente nuevamente más tarde.`,
       });
-
     });
-
-
   }
-
 
 
   convertirAMayusculasCieP(event: Event): void {
@@ -620,7 +663,7 @@ export class EditformulaComponent implements OnInit {
           confirmButtonText: 'Confirmar!',
         }).then((result) => {
           if (result.isConfirmed) {
-            this.editFormula();
+            this.editFormula();            
           }
         });
       } else {
@@ -674,7 +717,7 @@ export class EditformulaComponent implements OnInit {
       ...item,
       itemsEntrega: [], // Anular entregas
     }));
-
+    this.botonActivo=false;
     this.formulaService.update(formulaEditada).subscribe(resp => {
       Swal.fire({
         icon: 'success',
@@ -688,11 +731,16 @@ export class EditformulaComponent implements OnInit {
 
     },
       err => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error...',
-          text: 'No se pudo guardar la formula en la base de datos!',
-          footer: err.mensaje
+     //     Swal.fire({
+     //     icon: 'error',
+     //     title: 'Error...',
+     //     text: 'No se pudo guardar la formula en la base de datos!',
+     //     footer: err.mensaje
+     //       })
+      Swal.fire({
+        icon: 'success',
+        title: `Ok`,
+        text: `La formula ha sido actualizado correctamente!`      
         }).then(() => {
     if (!this.tieneAcceso(4)) {
       this.router.navigate(['/menu/formula', this.formula.paciente.idPaciente]);
@@ -700,7 +748,6 @@ export class EditformulaComponent implements OnInit {
   });
       }
     );
-
   }
 
 
@@ -901,5 +948,168 @@ export class EditformulaComponent implements OnInit {
     }
     return nivelUsuario >= nivelRequerido;
   }
+
+
+  public editarPqrs(itemt: any) {
+      this.formula.items.forEach((p: any) => p.editing = false);
+      itemt.editing = true;
+    
+
+  }
+ public cancelEdicion(itemt: any) {
+    itemt.editing = false;
+  }
+
+ formatearFechaISO(fecha: string | Date | null): string {
+  if (!fecha) {
+    return '';
+  }
+  const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
+  // Formato YYYY-MM-DD
+  return dateObj.toISOString().split('T')[0];
+}
+
+formatearCanal(valor: any): string {
+  return (typeof valor === 'string' && valor !== null) ? valor.trim() : '';
+}
+
+ aplicarPQRSATodos(itemt: any) {
+  if (!itemt.canalPqrs ||  !itemt.fechaPqrs ) {
+    Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
+    return;
+  }
+  
+ // Validar que la fecha de vencimiento no sea menor a la fecha actual
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+  const fechaPqrsDigitada = new Date(itemt.fechaPqrs);
+  fechaPqrsDigitada.setHours(0, 0, 0, 0);
+
+  if (fechaPqrsDigitada > hoy) {
+    Swal.fire('Fecha de la PQRS inválida', 'La fecha de la PQRS no puede ser mayor a la fecha actual.', 'error');
+    return;
+  }
+
+   // ✅ Actualizar directamente sobre los objetos existentes
+  this.formula.items.forEach(item => {
+    item.canalPqrs = itemt.canalPqrs;
+    item.fechaPqrs = itemt.fechaPqrs;
+  });
+itemt.editing=false;
+   Swal.fire({
+            icon: 'success',
+            title: 'PQRS ingresada a toda la Formula',
+            text: `La PQRS se asigno exitosamente a todos los medicamentos de la formula, recuerde actualizar la formula para que el cambio persista en base de datos`,
+          });
+
+}
+
+aplicarPQRS(itemt: any) {
+   if (!itemt.canalPqrs ||  !itemt.fechaPqrs ) {
+    Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
+    return;
+  }
+  
+ // Validar que la fecha de vencimiento no sea menor a la fecha actual
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+  const fechaPqrsDigitada = new Date(itemt.fechaPqrs);
+  fechaPqrsDigitada.setHours(0, 0, 0, 0);
+
+  if (fechaPqrsDigitada > hoy) {
+    Swal.fire('Fecha de la PQRS inválida', 'La fecha de la PQRS no puede ser mayor a la fecha actual.', 'error');
+    return;
+  }
+
+  itemt.editing=false;
+   Swal.fire({
+            icon: 'success',
+            title: 'PQRS ingresada',
+            text: `La PQRS se asigno exitosamente al medicamento, recuerde actualizar la formula para que el cambio persista en base de datos`,
+          });
+
+  
+}
+
+
+guardarDatosContacto() {
+    // Obtener y limpiar los valores del formulario
+    this.pacienteActual.celularPrincipal = String(this.facturaForm.get('celularPrincipal')!.value || '').trim();
+    this.pacienteActual.celularSecundario = String(this.facturaForm.get('celularSecundario')!.value || '').trim();
+    this.pacienteActual.direccion = String(this.facturaForm.get('direccion')!.value || '').trim();
+    this.pacienteActual.barrio = String(this.facturaForm.get('barrio')!.value || '').trim();
+    this.pacienteActual.email = String(this.facturaForm.get('email')!.value || '').trim().toLowerCase();
+
+    // Validar celular solo si se ingresó
+    if (this.pacienteActual.celularPrincipal && !this.validarCelular(this.pacienteActual.celularPrincipal)) {
+      Swal.fire('Celular inválido', 'Si ingresa un celular principal, debe tener un formato válido.', 'warning');
+      return;
+    }
+
+    // Validar email solo si se ingresó
+    if (this.pacienteActual.email && !this.validarEmail(this.pacienteActual.email)) {
+      Swal.fire('Correo inválido', 'Si ingresa un correo electrónico, debe tener un formato válido.', 'warning');
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Desea actualizar?',
+      html: `
+      <p style="margin:2px 0;"><strong>Teléfono Principal:</strong> ${this.pacienteActual.celularPrincipal}</p>
+      <p style="margin:2px 0;"><strong>Teléfono Secundario:</strong> ${this.pacienteActual.celularSecundario}</p>
+      <p style="margin:2px 0;"><strong>Dirección:</strong> ${this.pacienteActual.direccion}</p>
+      <p style="margin:2px 0;"><strong>Barrio:</strong> ${this.pacienteActual.barrio}</p>
+      <p style="margin:2px 0;"><strong>Correo:</strong> ${this.pacienteActual.email}</p>   
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Actualizar!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Llama al servicio para guardar los datos
+
+        this.pacienteService.update(this.pacienteActual).subscribe({
+          next: (resp: any) => {
+            Swal.fire({
+              icon: 'success',
+              title: `Actualización exitosa`,
+              text: `Los datos de contacto del paciente ${this.pacienteActual.pNombre} ${this.pacienteActual.sNombre} ${this.pacienteActual.pApellido} ${this.pacienteActual.sApellido} fueron actualizados correctamente.`,
+            });
+          },
+          error: (error) => {
+            console.error('❌ Error actualizando el registro', error);
+            Swal.fire('Error', 'No se pudo actualizar el registro.', 'error');
+          }
+        });
+
+      }
+    });
+    this.editarContacto = false;
+  }
+
+  
+  cancelarEdicionContacto() {
+    this.editarContacto = false;
+  }
+
+  enEdicionContacto() {
+    this.editarContacto = true;
+  }
+
+  validarCelular(celular: string): boolean {
+    const regex = /^[3][0-9]{9}$/; // Ej. para Colombia: empieza por 3, 10 dígitos
+    return regex.test(celular);
+  }
+
+  validarEmail(email: string): boolean {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  }
+
 
 }
