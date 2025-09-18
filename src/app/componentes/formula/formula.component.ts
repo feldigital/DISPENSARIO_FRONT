@@ -192,24 +192,7 @@ export class FormulaComponent implements OnInit {
       });
 
 
-   /* this.facturaForm.get('medicamento')!.valueChanges
-      .pipe(
-        debounceTime(300), 
-        switchMap(query => {
-          if (this.pacienteActual && this.pacienteActual.eps) {
-            return this.formulaService.filtrarMedicamentosEps(query, this.pacienteActual.eps.codigo);
-          } else {
-            // Si no hay un pacienteActual o su eps es indefinido, retorna un array vacío
-            return of([]);
-          }
-        })
-      )
-      .subscribe(results => {
-        this.medicamentosFiltrados = results;
-      });
-*/
-
-this.facturaForm.get('medicamento')!.valueChanges
+  this.facturaForm.get('medicamento')!.valueChanges
   .pipe(
     debounceTime(300),
      map(value => {

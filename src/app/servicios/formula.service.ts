@@ -324,4 +324,17 @@ getFormulasNoProcesadas(idBodega: number, fInicial: string, fFinal: string): Obs
     return this.http.post(`${this.urlEndPoint}/subir`, formData, { responseType: 'text' });
   }
 
+desprocesarFormula(idFormula: number,idBodega: number ) {
+   const params = new HttpParams()
+   .set('idFormula', idFormula)
+   .set('idBodega', idBodega);  
+   return this.http.put<any>(`${this.urlEndPoint}/entrega/desprocesar`, {params}).pipe(
+   catchError(e => {
+     return throwError(e);
+   })
+ );
+ }
+
+
+
 }

@@ -269,7 +269,7 @@
     <hr />
     <div class="d-flex justify-content-end flex-wrap gap-2">
         <!-- Botón Desprocesar -->
-        <button mat-stroked-button color="warn">
+        <button mat-stroked-button color="warn" *ngIf="tieneAcceso(4)" (click)="desprocesarFormula()">
             <mat-icon class="me-1">loop</mat-icon>
             Desprocesar
         </button>

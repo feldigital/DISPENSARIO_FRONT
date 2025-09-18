@@ -82,9 +82,10 @@
             <thead class="thead-colored">
                 <tr>
                     <th>Item</th>
-                    <th>Fecha</th>
                     <th>ID Orden</th>
+                    <th>Fecha despacho</th>                   
                     <th>Bodega Origen</th>
+                    <th>Fecha recibido</th> 
                     <th>Bodega Destino</th>
                     <th>ID Med</th>                    
                     <th>Presentación</th>
@@ -100,9 +101,10 @@
 
                         {{i+1}}
                     </td>
-                    <td>{{itemt.fechaDespacho}}</td>
                     <td>{{itemt.idDespacho}}</td>
+                    <td>{{itemt.fechaDespacho | date: 'dd/MM/YYYY' || ''}}</td>                    
                     <td>{{itemt.bodegaOrigen}}</td>
+                    <td>{{itemt.fechaEntradaDestino | date: 'dd/MM/YYYY' || ''}}</td>
                     <td>{{itemt.bodegaDestino}}</td>
                     <td>{{itemt.idMedicamento}}</td>                  
                     <td>{{itemt.presentacion}}</td>

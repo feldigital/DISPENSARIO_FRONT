@@ -27,8 +27,8 @@ export class PacientependienteComponent {
   editarContacto: boolean = false;
   pacienteActual: any;
   historialEnvio: HistorialMensajeI = new HistorialMensajeI();
-  celular:string="";
-  funcionario:string | null ="";
+  celular: string = "";
+  funcionario: string | null = "";
 
   constructor(
     private servicio: BodegaService,
@@ -41,7 +41,7 @@ export class PacientependienteComponent {
     const currentDate = new Date();
     // Calcula la fecha 30 días antes de la fecha actual
     const date30DaysAgo = new Date(currentDate);
-    date30DaysAgo.setDate(currentDate.getDate() - 90);
+    date30DaysAgo.setDate(currentDate.getDate() - 120);
 
 
     this.generalForm = this.fb.group({
@@ -65,7 +65,7 @@ export class PacientependienteComponent {
     this.idMedicamento = Number(this.activatedRoute.snapshot.paramMap.get('idMedicamento'));
     const fechaInicial = this.activatedRoute.snapshot.paramMap.get('fInicial');
     const fechaFinal = this.activatedRoute.snapshot.paramMap.get('fFinal');
-    this.funcionario= sessionStorage.getItem("nombre");
+    this.funcionario = sessionStorage.getItem("nombre");
 
 
     if (!isNaN(this.idBodega) && !isNaN(this.idMedicamento) && fechaInicial && fechaFinal) {
@@ -113,53 +113,7 @@ export class PacientependienteComponent {
   }*/
 
   public async buscarRegistro(idBodega: number, fechaInicial: string, fechaFinal: string, idMedicamento: number) {
-  this.totalCantidadPendiente = 0;
-  Swal.fire({
-    title: 'Cargando registros...',
-    html: 'Por favor espera un momento',
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-
-  try {
-    const resp: any[] = await this.servicio.getPacientePendiente(idBodega, fechaInicial, fechaFinal, idMedicamento).toPromise();
-
-    // Hacemos todas las llamadas de itemFormula en paralelo
-    const listaConMensaje = await Promise.all(
-      resp.map(async (item: any) => {
-        const  respFormula  = await this.servicioformula.getItemFormula(item.idItemFormula).toPromise();        
-        const itemsMensaje = respFormula?.itemsMensaje ?? [];  
-        return {
-          ...item,
-          editing: false,
-          itemsMensaje,
-        };
-      })
-    );
-
-    // Ordenar por fecha
-    this.listaPaciente = listaConMensaje.sort(
-      (a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime()
-    );
-    
-    // Calcular total pendiente
-    this.totalCantidadPendiente = this.listaPaciente.reduce(
-      (sum: number, item: any) => sum + (item.pendiente || 0),
-      0
-    );
-
-    Swal.close();
-  } catch (error) {
-    console.error('❌ Error cargando registros', error);
-    Swal.close();
-    Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
-  }
-}
-
-
- public async buscarPendiente() {
+    this.totalCantidadPendiente = 0;
     Swal.fire({
       title: 'Cargando registros...',
       html: 'Por favor espera un momento',
@@ -168,68 +122,114 @@ export class PacientependienteComponent {
         Swal.showLoading();
       }
     });
-      try {
-    const resp: any[] = await this.servicio.getPacientePendiente(this.idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value, this.idMedicamento).toPromise();
 
-    // Hacemos todas las llamadas de itemFormula en paralelo
-    const listaConMensaje = await Promise.all(
-      resp.map(async (item: any) => {
-        const  respFormula  = await this.servicioformula.getItemFormula(item.idItemFormula).toPromise();        
-        const itemsMensaje = respFormula?.itemsMensaje ?? [];  
-        return {
-          ...item,
-          editing: false,
-          itemsMensaje,
-        };
-      })
-    );
+    try {
+      const resp: any[] = await this.servicio.getPacientePendiente(idBodega, fechaInicial, fechaFinal, idMedicamento).toPromise();
 
-    // Ordenar por fecha
-    this.listaPaciente = listaConMensaje.sort(
-      (a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime()
-    );
-    this.listaPacientePave =  this.listaPaciente;
-    // Calcular total pendiente
-    this.totalCantidadPendiente = this.listaPaciente.reduce(
-      (sum: number, item: any) => sum + (item.pendiente || 0),
-      0
-    );
-
-    Swal.close();
-  } catch (error) {
-    console.error('❌ Error cargando registros', error);
-    Swal.close();
-    Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
-  }
-  }
-
-
-    
-/*
-  public buscarPendiente() {
-    Swal.fire({
-      title: 'Cargando registros...',
-      html: 'Por favor espera un momento',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-    this.servicio.getPacientePendiente(this.idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value, this.idMedicamento)
-      .subscribe((resp: any) => {
-        this.listaPaciente = resp;
-        this.listaPacientePave = resp;
-        this.listaPaciente.sort((a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime());
-        Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
-      },
-        (error) => {
-          console.error('❌ Error cargando registros', error);
-          Swal.close(); // 🚨 Primero cerramos el spinner
-          Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
-        }
+      // Hacemos todas las llamadas de itemFormula en paralelo
+      const listaConMensaje = await Promise.all(
+        resp.map(async (item: any) => {
+          const respFormula = await this.servicioformula.getItemFormula(item.idItemFormula).toPromise();
+          const itemsMensaje = respFormula?.itemsMensaje ?? [];
+          return {
+            ...item,
+            editing: false,
+            itemsMensaje,
+          };
+        })
       );
+
+      // Ordenar por fecha
+      this.listaPaciente = listaConMensaje.sort(
+        (a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime()
+      );
+
+      // Calcular total pendiente
+      this.totalCantidadPendiente = this.listaPaciente.reduce(
+        (sum: number, item: any) => sum + (item.pendiente || 0),
+        0
+      );
+
+      Swal.close();
+    } catch (error) {
+      console.error('❌ Error cargando registros', error);
+      Swal.close();
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
   }
-*/
+
+
+  public async buscarPendiente() {
+    Swal.fire({
+      title: 'Cargando registros...',
+      html: 'Por favor espera un momento',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    try {
+      const resp: any[] = await this.servicio.getPacientePendiente(this.idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value, this.idMedicamento).toPromise();
+
+      // Hacemos todas las llamadas de itemFormula en paralelo
+      const listaConMensaje = await Promise.all(
+        resp.map(async (item: any) => {
+          const respFormula = await this.servicioformula.getItemFormula(item.idItemFormula).toPromise();
+          const itemsMensaje = respFormula?.itemsMensaje ?? [];
+          return {
+            ...item,
+            editing: false,
+            itemsMensaje,
+          };
+        })
+      );
+
+      // Ordenar por fecha
+      this.listaPaciente = listaConMensaje.sort(
+        (a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime()
+      );
+      this.listaPacientePave = this.listaPaciente;
+      // Calcular total pendiente
+      this.totalCantidadPendiente = this.listaPaciente.reduce(
+        (sum: number, item: any) => sum + (item.pendiente || 0),
+        0
+      );
+
+      Swal.close();
+    } catch (error) {
+      console.error('❌ Error cargando registros', error);
+      Swal.close();
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+  }
+
+
+
+  /*
+    public buscarPendiente() {
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      this.servicio.getPacientePendiente(this.idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value, this.idMedicamento)
+        .subscribe((resp: any) => {
+          this.listaPaciente = resp;
+          this.listaPacientePave = resp;
+          this.listaPaciente.sort((a: any, b: any) => new Date(b.fecSolicitud).getTime() - new Date(a.fecSolicitud).getTime());
+          Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+        },
+          (error) => {
+            console.error('❌ Error cargando registros', error);
+            Swal.close(); // 🚨 Primero cerramos el spinner
+            Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+          }
+        );
+    }
+  */
 
   enviarWhatsApp(paciente: any) {
     const textomensaje = "Hola *" + paciente.pNombre + "*! \n" + paciente.bodega + " te informa que el pendiente Nro. *" + paciente.idFormula + "* de tu medicamento. \n💊" + paciente.nombreMedicamento + " \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*";
@@ -247,7 +247,7 @@ export class PacientependienteComponent {
       confirmButtonText: 'Si, enviar!'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.celular=paciente?.telefono.replace(/\s/g, '');
+        this.celular = paciente?.telefono.replace(/\s/g, '');
         this.mensajeWhat.phone = "57" + this.celular;
         this.mensajeWhat.message = textomensaje;
         if (this.celularValido(this.celular)) {
@@ -260,7 +260,10 @@ export class PacientependienteComponent {
               this.historialEnvio.funcionarioEnvio = this.funcionario!;
               this.historialEnvio.fechaEnvio = new Date();
 
-              this.servicioformula.guardarMensaje(this.historialEnvio).subscribe();
+              this.servicioformula.guardarMensaje(this.historialEnvio).subscribe(() => {
+                this.buscarPendiente();
+              });
+
             },
             (err: any) => {
               Swal.fire('❌ Error al enviar el mensaje', err.message || 'Error desconocido', 'error');
@@ -321,13 +324,16 @@ export class PacientependienteComponent {
         if (this.celularValido(formValues.telefono)) {
           this.whatsappService.enviarMensaje(this.mensajeWhat).subscribe(
             (resp: any) => {
-              Swal.fire('📤 Mensaje enviado', '', 'success');             
+              Swal.fire('📤 Mensaje enviado', '', 'success');
               this.historialEnvio.itemFormula_id = paciente.idItemFormula;
               this.historialEnvio.celularEnvio = formValues.telefono;
               this.historialEnvio.funcionarioEnvio = this.funcionario!;
               this.historialEnvio.fechaEnvio = new Date();
 
-              this.servicioformula.guardarMensaje(this.historialEnvio).subscribe();
+              this.servicioformula.guardarMensaje(this.historialEnvio).subscribe(() => {
+                this.buscarPendiente();
+              });
+
 
             },
             (err: any) => {
@@ -366,75 +372,77 @@ export class PacientependienteComponent {
     await this.enviarMensajesConRetraso();
     this.listaPaciente = this.listaPacientePave;
   }
-public async mensajesWSTodo() {
-    this.listaPaciente=this.listaPacientePave;
-     // Espera a que los mensajes se envíen antes de continuar
+  public async mensajesWSTodo() {
+    this.listaPaciente = this.listaPacientePave;
+    // Espera a que los mensajes se envíen antes de continuar
     await this.enviarMensajesConRetraso();
-   
+
   }
 
-private delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async enviarMensajesConRetraso() {
-  const confirmacion = await Swal.fire({
-    title: '¿Confirmar envío masivo?',
-    html: `Se enviarán mensajes de WhatsApp a <strong>${this.listaPaciente.length}</strong> pacientes.<br><br>¿Deseas continuar?`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, enviar',
-    cancelButtonText: 'Cancelar'
-  });
-  if (!confirmacion.isConfirmed) {
-    return; // salir si cancela
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
-  this.enviandoMensajes = true;
-  let enviadosOk = 0;
-  for (const paciente of this.listaPaciente) {
-    // Construir mensaje
-    const textomensaje = `Hola *${paciente.pNombre}*! \n${paciente.bodega} te informa que el pendiente Nro. *${paciente.idFormula}* de tu medicamento. \n💊${paciente.nombreMedicamento} \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*`;
-    this.celular = paciente?.telefono.replace(/\s/g, '');
-    const telefono = "57" + this.celular;
 
-    if (!this.celularValido(this.celular)) {
-      console.warn(`⚠️ Teléfono inválido: ${paciente.telefono}`);
-      continue;
+  async enviarMensajesConRetraso() {
+    const confirmacion = await Swal.fire({
+      title: '¿Confirmar envío masivo?',
+      html: `Se enviarán mensajes de WhatsApp a <strong>${this.listaPaciente.length}</strong> pacientes.<br><br>¿Deseas continuar?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, enviar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirmacion.isConfirmed) {
+      return; // salir si cancela
     }
-    try {
-      // Enviar mensaje y esperar respuesta
-      const respuesta: any = await this.whatsappService.enviarMensaje({
-        phone: telefono,
-        message: textomensaje
-      }).toPromise();
-      // Validar respuesta
-      if (respuesta?.responseExSave.key.id) {
-        // Registrar historial
-        this.historialEnvio.itemFormula_id = paciente.idItemFormula;
-        this.historialEnvio.celularEnvio = this.celular;
-        this.historialEnvio.funcionarioEnvio = this.funcionario!;
-        this.historialEnvio.fechaEnvio = new Date();
-        await this.servicioformula.guardarMensaje(this.historialEnvio).toPromise();
-        enviadosOk++;       
-      } else {
-        console.warn(`⚠️ Falló el envío a ${telefono}:`, respuesta);
+    this.enviandoMensajes = true;
+    let enviadosOk = 0;
+    for (const paciente of this.listaPaciente) {
+      // Construir mensaje
+      const textomensaje = `Hola *${paciente.pNombre}*! \n${paciente.bodega} te informa que el pendiente Nro. *${paciente.idFormula}* de tu medicamento. \n💊${paciente.nombreMedicamento} \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*`;
+      this.celular = paciente?.telefono.replace(/\s/g, '');
+      const telefono = "57" + this.celular;
+
+      if (!this.celularValido(this.celular)) {
+        console.warn(`⚠️ Teléfono inválido: ${paciente.telefono}`);
+        continue;
       }
-    } catch (error) {
-      console.error(`❌ Error enviando a ${telefono}`, error);
+      try {
+        // Enviar mensaje y esperar respuesta
+        const respuesta: any = await this.whatsappService.enviarMensaje({
+          phone: telefono,
+          message: textomensaje
+        }).toPromise();
+        // Validar respuesta
+        if (respuesta?.responseExSave.key.id) {
+          // Registrar historial
+          this.historialEnvio.itemFormula_id = paciente.idItemFormula;
+          this.historialEnvio.celularEnvio = this.celular;
+          this.historialEnvio.funcionarioEnvio = this.funcionario!;
+          this.historialEnvio.fechaEnvio = new Date();
+          await this.servicioformula.guardarMensaje(this.historialEnvio).toPromise();
+          enviadosOk++;
+        } else {
+          console.warn(`⚠️ Falló el envío a ${telefono}:`, respuesta);
+        }
+      } catch (error) {
+        console.error(`❌ Error enviando a ${telefono}`, error);
+      }
+
+      // Retraso antes de enviar el siguiente
+      await this.delay(3000); // 3 segundos
     }
 
-    // Retraso antes de enviar el siguiente
-    await this.delay(3000); // 3 segundos
+    this.enviandoMensajes = false;
+
+    await Swal.fire(
+      '✔️ Mensajes procesados',
+      `Se enviaron correctamente <strong>${enviadosOk}</strong> de <strong>${this.listaPaciente.length}</strong> mensajes.<br>Los demás presentaron inconvenientes en el número o en el envío.`,
+      'success'
+    );
+
+    this.buscarPendiente();
   }
-
-  this.enviandoMensajes = false;
-
-  await Swal.fire(
-    '✔️ Mensajes procesados',
-    `Se enviaron correctamente <strong>${enviadosOk}</strong> de <strong>${this.listaPaciente.length}</strong> mensajes.<br>Los demás presentaron inconvenientes en el número o en el envío.`,
-    'success'
-  );
-}
 
 
 
@@ -477,7 +485,7 @@ async enviarMensajesConRetraso() {
         });
       }
     });
-  
+
   }
 
   validarCelular(celular: string): boolean {
@@ -531,8 +539,8 @@ async enviarMensajesConRetraso() {
 
         this.pacienteService.update(this.pacienteActual).subscribe({
           next: (resp: any) => {
-          itemt.editing = false;
-          itemt.telefono=String(this.generalForm.get('celularPrincipal')!.value || '').trim();
+            itemt.editing = false;
+            itemt.telefono = String(this.generalForm.get('celularPrincipal')!.value || '').trim();
             Swal.fire({
               icon: 'success',
               title: `Actualización exitosa`,
@@ -551,19 +559,19 @@ async enviarMensajesConRetraso() {
   }
 
 
-async historialEnvios(paciente: any) { 
-    const itemFormula = await this.servicioformula.getItemFormula(paciente.idItemFormula).toPromise();  
+  async historialEnvios(paciente: any) {
+    const itemFormula = await this.servicioformula.getItemFormula(paciente.idItemFormula).toPromise();
 
-     // Validar si no hay mensajes enviados
-  if (!itemFormula.itemsMensaje || itemFormula.itemsMensaje.length === 0) {
-    await Swal.fire({
-      icon: 'info',
-      title: 'Sin mensajes enviados',
-      text: `El paciente ${paciente.pNombre ?? ''} ${ paciente.sNombre ?? ''} ${paciente.pApellido ?? ''} ${ paciente.sApellido ?? ''} no tiene mensajes enviados, asociados al pendiente Nro. ${paciente.idFormula} del medicamento 💊 ${paciente.nombreMedicamento}.`,
-      confirmButtonText: 'Entendido'
-    });
-    return; // Salir de la función
-  }
+    // Validar si no hay mensajes enviados
+    if (!itemFormula.itemsMensaje || itemFormula.itemsMensaje.length === 0) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Sin mensajes enviados',
+        text: `El paciente ${paciente.pNombre ?? ''} ${paciente.sNombre ?? ''} ${paciente.pApellido ?? ''} ${paciente.sApellido ?? ''} no tiene mensajes enviados, asociados al pendiente Nro. ${paciente.idFormula} del medicamento 💊 ${paciente.nombreMedicamento}.`,
+        confirmButtonText: 'Entendido'
+      });
+      return; // Salir de la función
+    }
 
     const textomensaje = "Hola *" + paciente.pNombre + "*! \n" + paciente.bodega + " te informa que el pendiente Nro. *" + paciente.idFormula + "* de tu medicamento. \n💊" + paciente.nombreMedicamento + " \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*";
     // Generar el HTML de la lista

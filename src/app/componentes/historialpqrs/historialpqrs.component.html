@@ -1,0 +1,236 @@
+<div class="container mt-2">
+
+    <form [formGroup]="generalForm" class="px-2">
+        <div class="row align-items-end g-2 mb-2">
+            <!-- Selector de Bodega -->
+            <div class="col-md-3">
+                <label class="form-label mb-1 fw-bold">Bodega de PQRS</label>
+                <select class="form-select form-select-sm" formControlName="idBodega">
+                    <option selected value="0">TODAS LAS BODEGAS</option>
+                    <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+                        {{ item.nombre }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Rango de Fechas -->
+            <div class="col-md-4">
+                <label class="form-label mb-1 fw-bold">Rango de fechas</label>
+                <div class="d-flex gap-1">
+                    <input type="date" formControlName="fechainicial" class="form-control form-control-sm">
+                    <span class="px-1 text-muted">al</span>
+                    <input type="date" formControlName="fechafinal" class="form-control form-control-sm">
+                </div>
+            </div>
+
+            <!-- Botón Buscar -->
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="button" class="btn btn-info w-100 d-flex align-items-center justify-content-center"
+                    (click)="buscarRegistro(parametro)">
+                    <mat-icon class="me-1">search</mat-icon> Buscar
+                </button>
+
+                <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
+                    (click)='pqrsXLSDetalldos()'>
+                    <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
+                </button>
+            </div>
+
+            <!-- Alerta: Total moléculas pendiente -->
+            <div *ngIf="listaPacientePqrsFiltro?.length > 0" class="col-md-2 d-flex align-items-end">
+                <div class="alert alert-danger d-flex align-items-center justify-content-center mb-0 w-100 py-2">
+                    <small>
+                        <strong>Nro. PQRS:</strong> {{ listaPacientePqrs?.length || 0 }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+        <mat-tab-group class="tab-custom" mat-stretch-tabs="false" mat-align-tabs="start">
+            <mat-tab label="Detalle del paciente en PQRS">
+
+                <div class="alert alert-info my-2" *ngIf="listaPacientePqrsFiltro?.length == 0">
+                    No hay PQRS, asociados a esta bodega en la fecha seleccionada!
+                </div>
+
+                <div *ngIf="listaPacientePqrsFiltro?.length > 0">
+
+                    <div class="row g-2">
+                        <div class="col-md-12">
+                            <label class="form-label mb-1 fw-bold">Buscar paciente y/o formula</label>
+                            <div class="d-flex align-items-center">
+                                <div class="input-group flex-grow-1 me-2">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <mat-icon class="text-info">search</mat-icon>
+                                    </span>
+                                    <input type="text" formControlName="paciente"
+                                        class="form-control form-control-sm border-start-0"
+                                        placeholder="Digite el nombre del paciente y/o formula" />
+                                </div>
+
+                                <!-- Checkbox ocupa 3 columnas -->
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <!-- Cantidad alineada a la izquierda -->
+                                    <div class="me-auto">
+                                        <strong>{{ listaPacientePqrsFiltro?.length || 0 }}</strong>
+                                    </div>
+
+                                    <!-- Check alineado a la derecha -->
+                                    <div class="form-check ms-auto">
+                                        <input class="form-check-input me-2" type="checkbox"
+                                            formControlName="verpendiente" (change)="pqrspacientePendiente($event)">
+                                        <label class="form-check-label">Ver PQRS sin resolver por paciente</label>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <table class="table table-striped table-hover table-sm mt-2">
+                        <thead class="thead-colored">
+                            <tr>
+                                <th>Item</th>
+                                <th>Documento</th>
+                                <th>Nombres y Apellidos del afiliado</th>
+                                <th>Nacimiento</th>
+                                <th>Sexo</th>
+                                <th>Dpto</th>
+                                <th>Municipio</th>
+                                <th>Fecha Solicitud</th>
+                                <th>Formula</th>
+                                <th>Nro. Item</th>
+                                <th>Fecha PQRS</th>
+                                <th>Canal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let itemt of listaPacientePqrsFiltro let i= index">
+                                <td>{{i+1}}</td>
+                                <td>{{itemt.tipoDoc || ''}}-{{itemt.numDocumento || ''}}</td>
+                                <td>{{itemt.pNombre || ''}} {{itemt.sNombre || ''}} {{itemt.pApellido || ''}}
+                                    {{itemt.sApellido || ''}}</td>
+                                <td>{{itemt.fecNacimiento | date: 'dd/MM/YYYY' || ''}}</td>
+                                <td>{{itemt.sexo}}</td>
+                                <td>{{itemt.departamento }}</td>
+                                <td>{{itemt.municipio}}</td>
+                                <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY' || ''}}</td>
+                                <td [ngClass]="{'text-danger fw-bold': itemt.tienePendientes}"
+                                    [routerLink]="['/menu/entrega', itemt.idFormula]" class="pointer-cursor" title="ver detalle de Entregas" >
+                                    {{itemt.idFormula}}</td>
+                                <td>
+                                    <mat-icon class="pointer-cursor" title="ver item de la PQRS"
+                                        (click)="verDetallesPQRS(itemt)"
+                                        [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
+                                    {{itemt.repeticiones}}
+                                </td>
+                                <td>{{itemt.fecEstimada| date: 'dd/MM/YYYY' || ''}}</td>
+                                <td>{{itemt.cieR3}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </mat-tab>
+            <mat-tab label="Detalle del medicamento y/o insumo en PQRS">
+
+                <div class="row g-2">
+                    <div class="col-md-12">
+                        <label class="form-label mb-1 fw-bold">Buscar medicamento y/o formula</label>
+                        <div class="row align-items-center">
+
+                            <!-- Input ocupa 9 columnas -->
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <mat-icon class="text-info">search</mat-icon>
+                                    </span>
+                                    <input type="text" formControlName="listFilter"
+                                        class="form-control form-control-sm border-start-0"
+                                        placeholder="Digite el nombre del medicamento y/o formula" />
+                                </div>
+                            </div>
+
+                            <!-- Checkbox ocupa 3 columnas -->
+                            <div class="col-md-4 d-flex align-items-center">
+                                <!-- Cantidad alineada a la izquierda -->
+                                <div class="me-auto">
+                                    <strong>{{ listaMedicamentoPqrsFiltro?.length || 0 }}</strong>
+                                </div>
+
+                                <!-- Check alineado a la derecha -->
+                                <div class="form-check ms-auto">
+                                    <input class="form-check-input me-2" type="checkbox" formControlName="pendiente"
+                                        (change)="pqrsPendiente($event)">
+                                    <label class="form-check-label">Ver PQRS sin resolver por medicamento</label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info my-2" *ngIf="listaMedicamentoPqrsFiltro?.length == 0">
+                    No hay PQRS, asociados a esta bodega en la fecha seleccionada!
+                </div>
+
+                <div *ngIf="listaMedicamentoPqrsFiltro?.length > 0">
+
+                    <table class="table table-striped table-hover table-sm mt-2">
+                        <thead class="thead-colored">
+                            <tr>
+                                <th>Item</th>
+                                <th>Nro. Formula</th>
+                                <th>F. Solicitud</th>
+                                <th>Nombre del medicamento y/o insumo</th>
+                                <th>Presentacion</th>
+                                <th>Prescrito / Entrega</th>
+                                <th>Pendiente</th>
+                                <th>Fecha Entrega</th>
+                                <th>Fecha PQRS</th>
+                                <th>Canal</th>
+                                <th>Resuelta</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let itemt of listaMedicamentoPqrsFiltro let i= index">
+                                <td>{{i+1}}</td>
+
+                                <td [ngClass]="{'text-danger fw-bold': itemt.pendiente > 0}" [routerLink]="['/menu/entrega', itemt.idFormula]"  class="pointer-cursor" title="ver detalle de Entregas">
+                                    {{itemt.idFormula}} </td>
+                                <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY' || ''}}</td>
+                                <td>{{itemt.nombreMedicamento}}</td>
+                                <td>{{itemt.forma}}</td>
+                                <td style="text-align: center;">{{itemt.cantidadPrescrita}} - {{itemt.cantidadEntrega}}
+                                </td>
+                                <td [ngClass]="{'text-danger fw-bold': itemt.pendiente > 0}">{{itemt.pendiente}}</td>
+                                <td>{{itemt.fecEntrega | date: 'dd/MM/YYYY' || ''}}</td>
+                                <td>{{itemt.fecEstimada | date: 'dd/MM/YYYY' || ''}}</td>
+                                <td>{{itemt.cieR3}}</td>
+                                <td>
+                                    <label *ngIf="itemt.pendiente == 0" class="text-success fw-bold"> ✔ SI</label>
+                                    <label *ngIf="itemt.pendiente > 0" class="text-danger fw-bold"> ✖ NO</label>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </mat-tab>
+
+            <mat-tab label="Graficas"> En construcción</mat-tab>
+        </mat-tab-group>
+
+    </form>
+</div>

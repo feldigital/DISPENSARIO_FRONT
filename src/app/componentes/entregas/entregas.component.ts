@@ -27,7 +27,7 @@ export class EntregasComponent implements OnInit, OnChanges {
   mensajeWhat: MensajeI = new MensajeI();
   historialEnvio: HistorialMensajeI = new HistorialMensajeI();
   selectedFile: File | null = null;
-  editingSoporte: boolean=false;
+  editingSoporte: boolean = false;
 
   constructor(
     private servicio: PacienteService,
@@ -70,7 +70,6 @@ export class EntregasComponent implements OnInit, OnChanges {
           fechaPqrs: this.formatearFechaISO(item.fechaPqrs), // Formatea la fecha individual
           canalPqrs: this.formatearCanal(item.canalPqrs), // Formatea el canal de la pqrs         
         }));
-
       });
   }
 
@@ -548,7 +547,7 @@ Recuerde! no los deje vencer.
 
 </pre>
 
-  `;   
+  `;
   }
 
 
@@ -748,6 +747,7 @@ Documento:___________________________
   }
 
   public editFormula(mensajeTitle: string) {
+    console.log(this.listaregistros);
     this.servicioformula.update(this.listaregistros).subscribe(resp => {
       Swal.fire({
         icon: 'success',
@@ -756,17 +756,19 @@ Documento:___________________________
       });
     },
       err => {
-        // Swal.fire({
-        //   icon: 'error',
-        //   title: 'Error...',
-        //   text: 'No se pudo guardar la formula en la base de datos!',
-        //   footer: err.mensaje
-        //      })
+       // Swal.fire({
+       //   icon: 'error',
+       //   title: 'Error...',
+       //   text: 'No se pudo guardar la PQRS  al medicamento de la formula en la base de datos!',
+       //   footer: err.mensaje
+       // });
+
         Swal.fire({
-          icon: 'success',
-          title: 'Ok',
-          text: mensajeTitle,
-        });
+        icon: 'success',
+        title: 'Ok',
+        text: mensajeTitle,
+      });
+
 
       }
     );
@@ -817,15 +819,21 @@ Documento:___________________________
       return;
     }
 
+     if (fechaPqrsDigitada < this.listaregistros.fec_solicitud) {
+      Swal.fire('Fecha de la PQRS inválida', 'La fecha de la PQRS no debe ser menor a la fecha en que el paciente solicito la formula.', 'error');
+      return;
+    }
+
     // ✅ Actualizar directamente sobre los objetos existentes
     this.listaItemsFormula.forEach((item: { canalPqrs: any; fechaPqrs: any; }) => {
       item.canalPqrs = itemt.canalPqrs;
       item.fechaPqrs = itemt.fechaPqrs;
     });
     itemt.editing = false;
-    this.listaregistros.items = this.listaregistros.items.map((item: any) => ({
+    // Actualizar lista de items en la fórmula principal
+    this.listaregistros.items = this.listaItemsFormula.map((item: any) => ({
       ...item,
-      itemsEntrega: [], // Anular entregas
+      itemsEntrega: [], // anular entregas
     }));
     this.editFormula("La PQRS se asigno exitosamente a todos los medicamentos de la formula")
     //Swal.fire({
@@ -853,18 +861,21 @@ Documento:___________________________
       return;
     }
 
+    if (fechaPqrsDigitada < this.listaregistros.fec_solicitud) {
+      Swal.fire('Fecha de la PQRS inválida', 'La fecha de la PQRS no debe ser menor a la fecha en que el paciente solicito la formula.', 'error');
+      return;
+    }
+
     itemt.editing = false;
-    this.listaregistros.items = this.listaregistros.items.map((item: any) => ({
+
+    // Actualizar lista de items en la fórmula principal
+    this.listaregistros.items = this.listaItemsFormula.map((item: any) => ({
       ...item,
-      itemsEntrega: [], // Anular entregas
+      itemsEntrega: [], // anular entregas
     }));
-    this.editFormula("La PQRS se asigno exitosamente al medicamento")
-    //Swal.fire({
-    //         icon: 'success',
-    //         title: 'PQRS ingresada',
-    //         text: `La PQRS se asigno exitosamente al medicamento, recuerde actualizar la formula para que el cambio persista en base de datos`,
-    //       });
-    //console.log(this.listaregistros);
+
+    this.editFormula("La PQRS se asigno exitosamente al medicamento");
+
 
   }
 
@@ -877,7 +888,7 @@ Documento:___________________________
       Swal.fire('Error', '❌ El número de celular principal del paciente ' + paciente?.celularPrincipal + ',  no es válido para enviar el mensaje!', 'error');
       return;
     }
-    const bodega = await this.serviciobodega.getRegistroId(this.listaregistros.idBodega).toPromise();    
+    const bodega = await this.serviciobodega.getRegistroId(this.listaregistros.idBodega).toPromise();
     let funcionario = sessionStorage.getItem("nombre");
     const textomensaje = "Hola *" + paciente.pNombre + "*! \n" + bodega?.nombre + " te informa que el pendiente Nro. *" + this.listaregistros.idFormula + "* de tu medicamento. \n💊" + itemFormula.medicamento.nombre + " \nYa se encuentra disponible para que lo puedas recoger, en tu punto de entrega. \nRecuerde que debe traer su volante de pendiente. \n\n*POR FAVOR NO RESPONDER ESTE MENSAJE*";
     Swal.fire({
@@ -895,25 +906,25 @@ Documento:___________________________
     }).then((result) => {
       if (result.isConfirmed) {
         this.mensajeWhat.phone = "57" + celular;
-        this.mensajeWhat.message = textomensaje;     
+        this.mensajeWhat.message = textomensaje;
 
-          this.whatsappService.enviarMensaje(this.mensajeWhat).subscribe(
-            (resp: any) => {
-              Swal.fire('📤 Mensaje enviado', '', 'success');
-              this.historialEnvio.itemFormula_id = itemFormula.idItem;
-              this.historialEnvio.celularEnvio = celular;
-              this.historialEnvio.funcionarioEnvio = funcionario!;
-              this.historialEnvio.fechaEnvio = new Date();
+        this.whatsappService.enviarMensaje(this.mensajeWhat).subscribe(
+          (resp: any) => {
+            Swal.fire('📤 Mensaje enviado', '', 'success');
+            this.historialEnvio.itemFormula_id = itemFormula.idItem;
+            this.historialEnvio.celularEnvio = celular;
+            this.historialEnvio.funcionarioEnvio = funcionario!;
+            this.historialEnvio.fechaEnvio = new Date();
 
-              this.servicioformula.guardarMensaje(this.historialEnvio).subscribe(() => {
-                // Aquí ya terminó guardarMensaje
-                this.buscarRegistro(this.listaregistros.idFormula);
-              });
-            },
-            (err: any) => {
-              Swal.fire('❌ Error al enviar el mensaje', err.message || 'Error desconocido', 'error');
-              console.error(err);
-            });        
+            this.servicioformula.guardarMensaje(this.historialEnvio).subscribe(() => {
+              // Aquí ya terminó guardarMensaje
+              this.buscarRegistro(this.listaregistros.idFormula);
+            });
+          },
+          (err: any) => {
+            Swal.fire('❌ Error al enviar el mensaje', err.message || 'Error desconocido', 'error');
+            console.error(err);
+          });
       }
     });
 
@@ -1125,32 +1136,32 @@ Documento:___________________________
 
 
 
-    onFileSelected(event: any) {
-      this.selectedFile = event.target.files[0];
-  
-      if (!this.selectedFile) {
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+
+    if (!this.selectedFile) {
       return;
     }
-  
+
     // Validar que sea PDF
     const isPdf = this.selectedFile.type === 'application/pdf' || this.selectedFile.name.toLowerCase().endsWith('.pdf');
-  
+
     if (!isPdf) {
-       Swal.fire({
-            icon: 'warning',
-            title: 'ERROR PDF ',
-            text: '❌ Solo se permiten archivos PDF como soporte de la formula',
-          });
-      
+      Swal.fire({
+        icon: 'warning',
+        title: 'ERROR PDF ',
+        text: '❌ Solo se permiten archivos PDF como soporte de la formula',
+      });
+
       event.target.value = ''; // Limpiar selección del input
-       this.selectedFile =null;
+      this.selectedFile = null;
       return;
     }
-  
-  
-  
-    if(this.listaregistros.urlFormula){
-    Swal.fire({
+
+
+
+    if (this.listaregistros.urlFormula) {
+      Swal.fire({
         title: 'Reemplazar el Soporte',
         text: 'Esta seguro de reemplzar el soporte existente de la formula por este otro, este cambio ya no se podra reversar',
         icon: 'question',
@@ -1160,65 +1171,108 @@ Documento:___________________________
         confirmButtonText: 'Si, reemplazar!'
       }).then((result) => {
         if (result.isConfirmed) {
-  
-         this.onUpload();
-         
-          
+          this.onUpload();
         }
       });
-  
+
     }
-    else{
-  
-    this.onUpload();
-    } 
+    else {
+
+      this.onUpload();
     }
-  
-    onUpload() {
-    if (!this.selectedFile) {
-       Swal.fire({
-            icon: 'info',
-            title: 'Pendiente',
-            text: `No se ha seleccionado el soporte en DPF de la fórmula Nro. ${this.listaregistros.idFormula}. para ser cargada a la nube`,
-          });
-          return;
-    }
-  
-       this.servicioformula.subirFormula(this.selectedFile, this.listaregistros.idFormula).subscribe({
-        next: (resp: string) => {
-          this.listaregistros.urlFormula = resp;
-          this.editingSoporte = false;
-          Swal.fire({
-            icon: 'success',
-            title: 'Ok',
-            text: `El soporte de la fórmula Nro. ${this.listaregistros.idFormula} fue cargado correctamenteen el bucket S3 ${resp}`,
-          });
-        },
-        error: (err) => {
-          console.error("❌ Error al subir:", err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: `Error al cargar el soporte de la fórmula Nro. ${this.listaregistros.idFormula}.`,
-          });
-        }
-      });
-    
   }
-  
+
+  onUpload() {
+    if (!this.selectedFile) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Pendiente',
+        text: `No se ha seleccionado el soporte en DPF de la fórmula Nro. ${this.listaregistros.idFormula}. para ser cargada a la nube`,
+      });
+      return;
+    }
+
+    this.servicioformula.subirFormula(this.selectedFile, this.listaregistros.idFormula).subscribe({
+      next: (resp: string) => {
+        this.listaregistros.urlFormula = resp;
+        this.editingSoporte = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Ok',
+          text: `El soporte de la fórmula Nro. ${this.listaregistros.idFormula} fue cargado correctamenteen el bucket S3 ${resp}`,
+        });
+      },
+      error: (err) => {
+        console.error("❌ Error al subir:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `Error al cargar el soporte de la fórmula Nro. ${this.listaregistros.idFormula}.`,
+        });
+      }
+    });
+
+  }
+
   verArchivo() {
     // Si la URL es pública o accesible, se abre en nueva pestaña
     window.open(this.listaregistros.urlFormula, '_blank');
   }
-  
-    public editarSoporte() {     
-      this.editingSoporte = true;
-  
-  
+
+  public editarSoporte() {
+    this.editingSoporte = true;
+
+
+  }
+  public cancelSoporte() {
+    this.editingSoporte = false;
+  }
+
+  public desprocesarFormula() {
+    // ✅ Validar que no haya ninguna entrega
+    const tieneEntregas = this.listaItemsFormula.some(
+      (item: any) => item.itemsEntrega && item.itemsEntrega.length > 0
+    );
+
+    if (tieneEntregas) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atención',
+        text: 'No se puede desprocesar la fórmula porque ya tiene entregas registradas.',
+        confirmButtonColor: '#f0ad4e'
+      });
+      return; // 🚫 no llamamos al backend
     }
-    public cancelSoporte() {
-       this.editingSoporte = false;
-    }
+
+    this.servicioformula.desprocesarFormula(this.listaregistros.idFormula, this.listaregistros.idBodega).subscribe({
+      next: (resp) => {
+        if (resp.status === 'success') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: resp.message,
+            confirmButtonColor: '#3085d6'
+          });
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Atención',
+            text: resp.message,
+            confirmButtonColor: '#f0ad4e'
+          });
+        }
+      },
+      error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: err.error?.message || 'Ocurrió un error inesperado',
+          confirmButtonColor: '#d33'
+        });
+      }
+    });
+  }
+
 
 
 }

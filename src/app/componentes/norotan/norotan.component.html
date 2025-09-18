@@ -3,7 +3,7 @@
     <form [formGroup]="generalForm" class="px-2">
         <div class="row align-items-end g-2 mb-2">
             <!-- Selector de Bodega -->
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label mb-1 fw-bold">Bodega seleccionada</label>
                 <select class="form-select form-select-sm" formControlName="idBodega">
                     <option selected [value]=0>TODAS LAS BODEGAS</option>
@@ -14,7 +14,7 @@
             </div>
 
             <!-- Rango de Fechas -->
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <label class="form-label mb-1 fw-bold">No rotan desde</label>
                 <div class="d-flex gap-1">
                     <input type="date" formControlName="fechainicial" class="form-control form-control-sm">
@@ -22,7 +22,7 @@
             </div>
 
             <!-- Botón Buscar -->
-            <div class="col-md-2 d-flex align-items-end">
+            <div class="col-md-1 d-flex align-items-end">
                 <button type="button" class="btn btn-info w-100 d-flex align-items-center justify-content-center"
                     (click)="buscarRegistro(parametro)">
                     <mat-icon class="me-1">search</mat-icon> Buscar
@@ -30,7 +30,7 @@
             </div>
 
             <!-- Alerta: Total moléculas pendiente -->
-            <div *ngIf="listaNorotanBodega?.length > 0" class="col-md-3 d-flex align-items-end">
+            <div *ngIf="listaNorotanBodega?.length > 0" class="col-md-4 d-flex align-items-end">
                 <div class="alert alert-danger d-flex align-items-center justify-content-center mb-0 w-100 py-2">
                     <small>
                         <strong>Moléculas que no rotan desde {{fechaFiltro| date: 'dd/MM/yyyy'}}:</strong> {{ listaNorotanBodega?.length || 0 }}

@@ -127,7 +127,8 @@ export class TrazamedicamentoComponent {
       });
       this.ordenDespachoservicio.getMedicamentoOrdenDespacho(idMedicamento, idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
         .subscribe((resp: any) => {
-          this.listaMedicamento = resp         
+          this.listaMedicamento = resp     
+          console.log(resp);
           Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
 
           const resultados = this.listaMedicamento.reduce((acc: any, item: any) => {

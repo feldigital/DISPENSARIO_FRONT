@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { BodegaService } from 'src/app/servicios/bodega.service';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import Swal from 'sweetalert2';
 
@@ -19,10 +20,13 @@ export class HistorialformulaComponent implements OnInit {
   @Input() idPaciente: number = NaN;
   generalForm!: FormGroup;
   selectedFile: File | null = null;
+  bodegaActual: any;
+
 
   constructor(
     private servicioformula: FormulaService,
     private activatedRoute: ActivatedRoute,
+    private bodegaService: BodegaService,
     private router: Router,
     private fb: FormBuilder) {
     // Calcula la fecha actual
@@ -45,8 +49,9 @@ export class HistorialformulaComponent implements OnInit {
     this.parametro = this.activatedRoute.snapshot.paramMap.get('id') || this.idPaciente;
     if (this.parametro) {
       this.buscarRegistro(this.parametro);
-
     }
+
+    
   }
 
 
@@ -92,7 +97,25 @@ export class HistorialformulaComponent implements OnInit {
   public guardarEntregaFormula(itemt: any) {
     let bodegaString = sessionStorage.getItem("bodega");
     let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
-    let funcionario = sessionStorage.getItem("nombre");
+    let funcionario = sessionStorage.getItem("nombre");    
+    this.bodegaService.getRegistroId(bodega)
+      .subscribe((resp: any) => {
+        this.bodegaActual = resp;
+      },
+        (err: any) => { console.error(err) }
+      );
+
+if (!this.bodegaActual.dispensa) {
+ Swal.fire({
+          icon: 'warning',
+          title: "!Alerta",
+          text: 'La bodega ' + this.bodegaActual.nombre + ' donde esta logueado el usuario no esta habilitada para dispensar formulas a pacientes!'
+        });
+        return;
+      }
+
+
+
     if (funcionario && bodegaString) {
       const fechaActual = new Date(); // Obtener la fecha actual
       const fechaPrescribe = new Date(itemt.fecPrescribe); // Convertir itemt.fecPrescribe a objeto Date

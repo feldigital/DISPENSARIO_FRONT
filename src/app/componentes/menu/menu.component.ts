@@ -45,7 +45,8 @@ export class MenuComponent implements OnInit {
     {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
     {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
     {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}, 
-     {name:"Captados por Dx",route:"captadosdx",icon:"list_alt",nivel:2}, 
+    {name:"Captados por Dx",route:"captadosdx",icon:"list_alt",nivel:2}, 
+     {name:"Pqrs",route:"historialpqrs",icon:"sentiment_very_dissatisfied",nivel:2}, 
     {name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1},   
     
    

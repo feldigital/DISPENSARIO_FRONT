@@ -844,7 +844,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       this.listaItemsFiltro = this.listaItems.filter((registro: any) => registro.cantidadDespacho != '');
     }
     else {
-      this.listaItemsFiltro = this.listaItems
+      this.listaItemsFiltro = this.listaItems;
     }
   }
 
@@ -853,7 +853,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       this.listaItemsFiltro = this.listaItems.filter((registro: any) => (registro.pendiente > 0 && registro.cantidad > 0 && (registro.stopMinimo < (registro.cantidadEntregada + registro.pendiente))));
     }
     else {
-      this.listaItemsFiltro = this.listaItems
+      this.listaItemsFiltro = this.listaItems;
     }
   }
 

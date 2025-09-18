@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { debounceTime, Observable, of, switchMap } from 'rxjs';
 import { BodegaService } from 'src/app/servicios/bodega.service';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-vencidos',
@@ -18,6 +19,10 @@ export class VencidosComponent {
   @Input() datoRecibido: number = NaN;
   generalForm!: FormGroup;
   listaregistros: any;
+  lista: any = [];
+  contador: number = NaN;
+
+
 
   constructor(
     private servicio: BodegaService,
@@ -240,6 +245,136 @@ get todasBodega(): boolean {
     itemt.editing = false;
   }
 
+
+
+
+async exportarVencidosxlsx(idBodega: number): Promise<void> {
+    const fInicial = this.generalForm.get('fechainicial')?.value;
+
+    // Validar que la fecha inicial no sea 
+    if (!fInicial) {
+      Swal.fire({
+        icon: 'error',
+        title: `Pendiente!`,
+        text: `Falta la informacion de la  fecha de corte inicial para generar el informe solicitado!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+
+    try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      const resp: any = await this.servicio.getMedicamentosVencidos(idBodega, fInicial).toPromise();
+      this.lista = resp;
+      //this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));  
+      if (Array.isArray(resp)) {
+        Swal.close(); // 🚨 Primero cerramos el spinner
+        this.exportarVencidosXlsx('VENCIDOS'); // Exportar solo si la lista es válida
+      } else {
+        Swal.close(); // 🚨 Primero cerramos el spinner
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+      } catch (error) {
+      console.error("Error al obtener los datos de medicamentos vencidos de manera detallada", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+
+  }
+
+
+  exportarVencidosXlsx(fileName: string) {  // Crea un array con los datos de la orden de despacho que deseas exportar
+    // Crea un array con los datos de la orden de despacho que deseas exportar
+    const datos: any[] = [];
+
+    // Encabezados de la tabla
+    const encabezado = [
+      'CONSECUTIVO',
+      'NOMBRE DE LA BODEGA',
+      'ID MEDICAMENTO',
+      'NOMBRE DEL MEDICAMENTO',
+      'PRESENTACION',
+      'VALOR UNITARIO',
+      'CANTIDAD ACTUAL',
+      'CANTIDAD DE REFERENCIA',
+      'ULTIMA FECHA DE DOTACION',
+      'PENDIENTE',
+      'INVIMA',
+      'LABORATORIO',
+      'LOTE',
+      'FECHA_VENCIMIENTO',
+    ];
+
+    datos.push(encabezado);
+    // Agrega los items de despacho al array
+
+    this.contador = 0;
+    this.lista.forEach((item: any) => {
+      this.contador++;
+      //const valorFormateado = (item.stopMinimo || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP' });      
+
+      datos.push([
+        this.contador.toString(), // Validación si es null o undefined
+        item.nombreBodega || "",
+        item.idMedicamento,
+        item.nombre?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
+        item.forma?.toUpperCase() || "",  // Validación para evitar errores si es null o undefined
+        item.stopMinimo || 0,
+        item.cantidad,
+        item.cantidadReferencia,
+        item.ultFecIngreso ? new Date(item.ultFecIngreso).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",
+        item.pendiente,
+        item.invima ? item.invima.toUpperCase() : "", // Validación adicional
+        item.laboratorio ? item.laboratorio.toUpperCase() : "", // Validación adicional
+        item.lote ? item.lote.toUpperCase() : "", // Validación adicional
+        item.fechaVencimiento ? new Date(item.fechaVencimiento).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",
+      ]);
+
+    });
+
+    // Crea la hoja de trabajo de Excel (worksheet)
+    const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+
+    // Aplicar formato al encabezado
+    const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+    for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+      const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+      if (celda) {
+        celda.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+          alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+          fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+        };
+      }
+    }
+
+    // Crea el libro de trabajo (workbook)
+    const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
+    // Genera y descarga el archivo Excel
+    XLSX.writeFile(libroDeTrabajo, fileName + '_' + new Date().getTime() + '.xlsx');
+    Swal.fire({
+      icon: 'success',
+      title: `Ok`,
+      text: 'Los medicamentos ' + fileName + ' a la fecha seleccionada fueron exportadas en su carpeta de descargas en formato xlsx',
+
+    });
+  }
 
   public primerasmayusculas(str: string): string {
     if (!str) {

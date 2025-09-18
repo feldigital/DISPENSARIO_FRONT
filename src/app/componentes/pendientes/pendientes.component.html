@@ -3,7 +3,7 @@
   <form [formGroup]="generalForm" class="px-2">
     <div class="row align-items-end g-2 mb-2">
       <!-- Selector de Bodega -->
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label class="form-label mb-1 fw-bold">Bodega de pendiente</label>
         <select class="form-select form-select-sm" formControlName="idBodega">
           <option selected value="0">TODAS LAS BODEGAS</option>
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Rango de Fechas -->
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label mb-1 fw-bold">Rango de fechas</label>
         <div class="d-flex gap-1">
           <input type="date" formControlName="fechainicial" class="form-control form-control-sm">
@@ -29,6 +29,11 @@
           (click)="buscarRegistro(parametro)">
           <mat-icon class="me-1">search</mat-icon> Buscar
         </button>
+        <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
+          (click)='reportePendientesDetalldos(parametro)'>
+          <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
+        </button>
+        
       </div>
 
       <!-- Alerta: Total moléculas pendiente -->
@@ -41,33 +46,32 @@
       </div>
     </div>
 
-   <!-- Buscador de Medicamento -->
-<div class="row g-2">
-  <div class="col-md-12">
-    <label class="form-label mb-1 fw-bold">Buscar medicamento</label>
-    <div class="d-flex align-items-center">
-      
-      <!-- Campo de búsqueda con ícono -->
-      <div class="input-group flex-grow-1 me-2">
-        <span class="input-group-text bg-white border-end-0">
-          <mat-icon class="text-info">search</mat-icon>
-        </span>
-        <input type="text" formControlName="listFilter"
-               class="form-control form-control-sm border-start-0"
-               placeholder="Digite el nombre del medicamento" />
-      </div>
+    <!-- Buscador de Medicamento -->
+    <div class="row g-2">
+      <div class="col-md-12">
+        <label class="form-label mb-1 fw-bold">Buscar medicamento</label>
+        <div class="d-flex align-items-center">
 
-      <!-- Checkbox al lado derecho -->
-      <div class="form-check d-flex align-items-center ms-auto">
-        <input class="form-check-input me-1" type="checkbox" formControlName="existenciaPendiente"
-        (change)="onMayorExistencia($event)">
-        <label for="portabilidad" class="form-check-label small">
-          Ver medicamentos con existencias mayor que pendientes <strong>{{mayorExistencia}}</strong>
-        </label>
+          <!-- Campo de búsqueda con ícono -->
+          <div class="input-group flex-grow-1 me-2">
+            <span class="input-group-text bg-white border-end-0">
+              <mat-icon class="text-info">search</mat-icon>
+            </span>
+            <input type="text" formControlName="listFilter" class="form-control form-control-sm border-start-0"
+              placeholder="Digite el nombre del medicamento" />
+          </div>
+
+          <!-- Checkbox al lado derecho -->
+          <div class="form-check d-flex align-items-center ms-auto">
+            <input class="form-check-input me-1" type="checkbox" formControlName="existenciaPendiente"
+              (change)="onMayorExistencia($event)">
+            <label for="portabilidad" class="form-check-label small">
+              Ver medicamentos con existencias mayor que pendientes <strong>{{mayorExistencia}}</strong>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
   </form>
 
@@ -114,8 +118,8 @@
                 people_outline
               </mat-icon>
 
-              <mat-icon *ngIf="tieneAcceso(2) && itemt.cantidad > 0" class="puntero" [matMenuTriggerFor]="menu" title="Enviar mensaje"
-                style="font-size: 20px; color: #25D366;">
+              <mat-icon *ngIf="tieneAcceso(2) && itemt.cantidad > 0" class="puntero" [matMenuTriggerFor]="menu"
+                title="Enviar mensaje" style="font-size: 20px; color: #25D366;">
                 <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 448 512" fill="currentColor">
                   <path d="M380.9 97.1C339 55.1 283.2 32 224.2 32c-115 0-208 93-208 208 
                                         0 36.7 9.7 72.4 28.1 103.9L2.5 470.1c-2.2 6.5-.4 13.7 4.5 

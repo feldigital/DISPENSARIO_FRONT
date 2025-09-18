@@ -35,8 +35,8 @@
                         <input type="date" formControlName="fFinal" class="form-control form-control-sm">
                     </div>
                 </div>
-                 <!-- Checkbox -->
-                 <div *ngIf="medicamentoIds?.length == 1"  class="mt-2">
+                <!-- Checkbox -->
+                <div *ngIf="medicamentoIds?.length == 1" class="mt-2">
                     <label class="form-label d-flex align-items-center">
                         <input class="form-check-input me-2" type="checkbox" formControlName="vista">
                         Vista por bodega
@@ -54,14 +54,16 @@
                         (click)="buscarRegistro(parametro)">
                         <mat-icon class="me-1">search</mat-icon> Buscar
                     </button>
-                    <button type="button" class="btn w-100 d-flex align-items-center justify-content-center"
+
+                    <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
                         (click)="exportarExcelPrescritos()">
-                        <mat-icon class="me-1">file_download</mat-icon> Exportar a XLSX
+                        <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
                     </button>
                 </div>
-              
-                <div *ngIf="listaentregas?.length > 0"class="card shadow-sm text-center flex-fill border-0 bg-success-subtle d-flex align-items-center justify-content-center py-2">
-                    <div >
+
+                <div *ngIf="listaentregas?.length > 0"
+                    class="card shadow-sm text-center flex-fill border-0 bg-success-subtle d-flex align-items-center justify-content-center py-2">
+                    <div>
                         <small class="text-success">Total Moléculas Prescritas:</small>
                         <div class="fw-bold text-success fs-6">{{ listaentregas?.length || 0 }}</div>
                     </div>
@@ -122,18 +124,30 @@
                         </tr>
                         <tr>
                             <td class="fw-bold text-success text-start">Entregados</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.eneroEntregado !== itemt.enero}">{{ itemt.eneroEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.febreroEntregado !== itemt.febrero}">{{ itemt.febreroEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.marzoEntregado !== itemt.marzo}" >{{ itemt.marzoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.abrilEntregado !== itemt.abril}">{{ itemt.abrilEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.mayoEntregado !== itemt.mayo}">{{ itemt.mayoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.junioEntregado !== itemt.junio}">{{ itemt.junioEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.julioEntregado !== itemt.julio}">{{ itemt.julioEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.agostoEntregado !== itemt.agosto}">{{ itemt.agostoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.septiembreEntregado !== itemt.septiembre}">{{ itemt.septiembreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.octubreEntregado !== itemt.octubre}">{{ itemt.octubreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.noviembreEntregado !== itemt.noviembre}">{{ itemt.noviembreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.diciembreEntregado !== itemt.diciembre}">{{ itemt.diciembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.eneroEntregado !== itemt.enero}">{{
+                                itemt.eneroEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.febreroEntregado !== itemt.febrero}">{{
+                                itemt.febreroEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.marzoEntregado !== itemt.marzo}">{{
+                                itemt.marzoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.abrilEntregado !== itemt.abril}">{{
+                                itemt.abrilEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.mayoEntregado !== itemt.mayo}">{{
+                                itemt.mayoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.junioEntregado !== itemt.junio}">{{
+                                itemt.junioEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.julioEntregado !== itemt.julio}">{{
+                                itemt.julioEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.agostoEntregado !== itemt.agosto}">{{
+                                itemt.agostoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.septiembreEntregado !== itemt.septiembre}">{{
+                                itemt.septiembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.octubreEntregado !== itemt.octubre}">{{
+                                itemt.octubreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.noviembreEntregado !== itemt.noviembre}">{{
+                                itemt.noviembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.diciembreEntregado !== itemt.diciembre}">{{
+                                itemt.diciembreEntregado }}</td>
                         </tr>
                     </ng-container>
                 </tbody>
@@ -147,8 +161,8 @@
                 <thead class="thead-colored">
                     <tr>
                         <th class="text-start">#</th>
-                        <th class="text-start">Nombre de la bodega</th> 
-                      
+                        <th class="text-start">Nombre de la bodega</th>
+
                         <th>P/E</th>
                         <th>Ene</th>
                         <th>Feb</th>
@@ -169,7 +183,7 @@
                         <tr>
                             <td [attr.rowspan]="2" class="fw-bold text-start">{{ i + 1 }}</td>
                             <td [attr.rowspan]="2" class="text-start">{{ itemt.bodega }}</td>
-                             <td class="fw-bold text-primary text-start">Prescritos</td>
+                            <td class="fw-bold text-primary text-start">Prescritos</td>
                             <td>{{ itemt.enero }}</td>
                             <td>{{ itemt.febrero }}</td>
                             <td>{{ itemt.marzo }}</td>
@@ -185,18 +199,30 @@
                         </tr>
                         <tr>
                             <td class="fw-bold text-success text-start">Entregados</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.eneroEntregado !== itemt.enero}">{{ itemt.eneroEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.febreroEntregado !== itemt.febrero}">{{ itemt.febreroEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.marzoEntregado !== itemt.marzo}" >{{ itemt.marzoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.abrilEntregado !== itemt.abril}">{{ itemt.abrilEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.mayoEntregado !== itemt.mayo}">{{ itemt.mayoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.junioEntregado !== itemt.junio}">{{ itemt.junioEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.julioEntregado !== itemt.julio}">{{ itemt.julioEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.agostoEntregado !== itemt.agosto}">{{ itemt.agostoEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.septiembreEntregado !== itemt.septiembre}">{{ itemt.septiembreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.octubreEntregado !== itemt.octubre}">{{ itemt.octubreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.noviembreEntregado !== itemt.noviembre}">{{ itemt.noviembreEntregado }}</td>
-                            <td [ngClass]="{'text-danger fw-bold': itemt.diciembreEntregado !== itemt.diciembre}">{{ itemt.diciembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.eneroEntregado !== itemt.enero}">{{
+                                itemt.eneroEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.febreroEntregado !== itemt.febrero}">{{
+                                itemt.febreroEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.marzoEntregado !== itemt.marzo}">{{
+                                itemt.marzoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.abrilEntregado !== itemt.abril}">{{
+                                itemt.abrilEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.mayoEntregado !== itemt.mayo}">{{
+                                itemt.mayoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.junioEntregado !== itemt.junio}">{{
+                                itemt.junioEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.julioEntregado !== itemt.julio}">{{
+                                itemt.julioEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.agostoEntregado !== itemt.agosto}">{{
+                                itemt.agostoEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.septiembreEntregado !== itemt.septiembre}">{{
+                                itemt.septiembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.octubreEntregado !== itemt.octubre}">{{
+                                itemt.octubreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.noviembreEntregado !== itemt.noviembre}">{{
+                                itemt.noviembreEntregado }}</td>
+                            <td [ngClass]="{'text-danger fw-bold': itemt.diciembreEntregado !== itemt.diciembre}">{{
+                                itemt.diciembreEntregado }}</td>
                         </tr>
                     </ng-container>
                 </tbody>

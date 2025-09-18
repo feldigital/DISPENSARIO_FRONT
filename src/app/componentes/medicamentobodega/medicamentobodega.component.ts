@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Observable, debounceTime, of, switchMap } from 'rxjs';
 import { BodegaService } from 'src/app/servicios/bodega.service';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-medicamentobodega',
@@ -18,7 +19,7 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
   @Input() datoRecibido: number = NaN;
   listaregistros: any;
   parametroInicializado: boolean = false; // ⭐ para controlar si ya cargaste una vez
-
+  contador: number = NaN;
 
   constructor(
     private servicio: BodegaService,
@@ -113,6 +114,7 @@ export class MedicamentobodegaComponent implements OnInit { //, OnChanges{
         this.listaItemBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
         this.listaItemBodegaFiltro = this.listaItemBodega
         Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
+       
       },
         (error) => {
           console.error('❌ Error cargando registros', error);
@@ -244,10 +246,115 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         title: `Falta de permisos`,
         text: `No tienes permisos para eliminar un medicamento de la bodega  ${itemt.nombreBodega} comunicate con el área de sistemas para el proceso.`,
       });
-
     }
   }
 
+   exportarXlxs() {
+    const bodegaSeleccionada = this.generalForm.get('idBodega')?.value;
+    const bodega = this.listaregistros.find((b: { idBodega: number; }) => b.idBodega === bodegaSeleccionada);
+    
+    if (!bodegaSeleccionada) {
+       Swal.fire({
+         icon: 'error',
+         title: `No hay bodega!`,
+         text: `Falta la informacion de la bodega que desea exportar!`,
+       });
+       return;  
+     }
+        
+       // Asegurarse de que resp sea un array antes de asignarlo
+       if (this.listaItemBodegaFiltro) {        
+          this.exportarExcelMEdicamentos(bodega.nombre); // Exportar solo si la lista es válida
+       } else {
+         console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+       }
+       
+     
+   }
+ 
+   exportarExcelMEdicamentos(bodegaSeleccionada:String) {  // Crea un array con los datos de la orden de despacho que deseas exportar
+     // Crea un array con los datos de la orden de despacho que deseas exportar
+     const datos: any[] = [];
+ 
+     // Encabezados de la tabla
+     const encabezado = [
+      'CONSECUTIVO',
+      'NOMBRE DE LA BODEGA',
+      'CUM',
+      'ID MEDICAMENTO',      
+      'NOMBRE DEL MEDICAMENTO',
+      'PRESENTACION',
+      'INVIMA',
+      'LABORATORIO',
+      'LOTE',
+      'FECHA_VENCIMIENTO',
+      'STOCK MINIMO',
+      'CANTIDAD ACTUAL',
+      'ULTIMA FECHA DE DOTACION',
+      'PROMEDIO DE PRESCRIPCION MES',      
+      'PENDIENTE'      
+     ];
+ 
+     datos.push(encabezado);
+      this.contador = 0;
+     this.listaItemBodegaFiltro.forEach((item: any) => {
+        this.contador++; 
+       datos.push([
+        this.contador.toString(), // Validación si es null o undefined
+        bodegaSeleccionada,
+        item.cum?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
+        item.idMedicamento,       
+        item.nombre?.toUpperCase() || "", // Validación para evitar errores si es null o undefined
+        item.forma?.toUpperCase() || "",  // Validación para evitar errores si es null o undefined
+        item.invima ? item.invima.toUpperCase() : "", // Validación adicional
+        item.laboratorio ? item.laboratorio.toUpperCase() : "", // Validación adicional
+        item.lote ? item.lote.toUpperCase() : "", // Validación adicional
+        item.fechaVencimiento ? new Date(item.fechaVencimiento).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",  
+        item.stopMinimo || 0,         
+        item.cantidad,        
+        item.ultFecIngreso ? new Date(item.ultFecIngreso).toLocaleDateString("es-ES", {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : "",        
+        item.cantidadEntregada,      
+        item.pendiente,
+          
+       ]);
+     });
+ 
+     // Crea la hoja de trabajo de Excel (worksheet)
+     const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+ 
+     // Aplicar formato al encabezado
+     const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+     for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+       const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+       if (celda) {
+         celda.s = {
+           font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+           alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+           fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+         };
+       }
+     }
+ 
+     // Crea el libro de trabajo (workbook)
+     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+     XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'MEDICAMENTOS');
+     // Genera y descarga el archivo Excel
+     XLSX.writeFile(libroDeTrabajo, 'Medicamentos_Bodega_' + bodegaSeleccionada + '_' + new Date().getTime() + '.xlsx');
+     Swal.fire({
+       icon: 'success',
+       title: `Ok`,
+       text: `Los medicamentos inscritos en la bodega ${bodegaSeleccionada} fue exportado correctamente!`,
+ 
+     });
+   }
   
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));  

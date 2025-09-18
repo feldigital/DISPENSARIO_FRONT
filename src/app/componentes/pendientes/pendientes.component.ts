@@ -7,6 +7,7 @@ import { BodegaService } from 'src/app/servicios/bodega.service';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { WhatsappService } from 'src/app/servicios/whatsapp.service';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 
 @Component({
@@ -27,6 +28,7 @@ export class PendientesComponent {
   historialEnvio: HistorialMensajeI = new HistorialMensajeI();
   celular:string="";
   funcionario:string | null ="";
+  lista: any = [];
   
 
   constructor(
@@ -39,7 +41,7 @@ export class PendientesComponent {
     const currentDate = new Date();
     // Calcula la fecha 30 días antes de la fecha actual
     const date30DaysAgo = new Date(currentDate);
-    date30DaysAgo.setDate(currentDate.getDate() - 90);
+    date30DaysAgo.setDate(currentDate.getDate() - 120);
     //  this.spinner.show();
     // Inicializa el formulario y define los FormControl para fechainicial y fechafinal
     this.generalForm = this.fb.group({
@@ -296,6 +298,179 @@ async enviarMensajesConRetraso() {
       this.mayorExistencia="";
     }
   }
+
+
+
+  async reportePendientesDetalldos(idBodega: number): Promise<void> {
+    const fInicial = this.generalForm.get('fechainicial')?.value;
+    const fFinal = this.generalForm.get('fechafinal')?.value;
+    // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
+    if (!fInicial || !fFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Pendiente!`,
+        text: `Falta la informacion de las fechas del periodo que desea generar!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+    const fechaInicial = new Date(fInicial);
+    const fechaFinal = new Date(fFinal);
+
+    if (fechaInicial > fechaFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Invertidas!`,
+        text: `La fecha inicial del periodo no puede ser mayor que la fecha final!`,
+      });
+      return;  // Detener la ejecución si las fechas no son válidas
+    }
+    try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Esperar la promesa con await       
+      const parametrobodega = Number(idBodega);
+      const resp: any = await this.servicio.getMedicamentosPendienteDetallada(parametrobodega, fInicial, fFinal).toPromise();
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      // Asegurarse de que resp sea un array antes de asignarlo
+      if (Array.isArray(resp)) {
+        this.lista = resp;
+         
+        this.exportarExcelPendientes(); // Exportar solo si la lista es válida
+      } else {
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+      
+    } catch (error) {
+      console.error("Error al obtener los datos de medicamentos pendientes detallados:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+  }
+
+  exportarExcelPendientes() {  // Crea un array con los datos de la orden de despacho que deseas exportar
+    // Crea un array con los datos de la orden de despacho que deseas exportar
+    const datos: any[] = [];
+
+    // Encabezados de la tabla
+    const encabezado = [
+      'TIPO DE ID',
+      'NUMERO DE ID',
+      'PRIMER APELLIDO',
+      'SEGUNDO APELLIDO',
+      'PRIMER NOMBRE',
+      'SEGUNDO NOMBRE',
+      'NACIMIENTO',
+      'SEXO',
+      'TÉLEFONO',
+      'DIRECCIÓN',
+      'DEPARTAMENTO',
+      'MUNICIPIO',
+      'EPS',
+      'REGIMEN',
+      'NOMBRE DE LA FARMACIA',
+      'NRO. FORMULA',
+      'FECHA DE LA FORMULA',
+      'NOMBRE DE LA IPS QUE PRESCRIBE',
+      'CUM',
+      'NOMBRE DEL MEDICAMENTO',
+      'VIA DE ADMINISTRACION',
+      'FORMA FARMACEUTICA',
+      'CANTIDAD PRESCRITA',
+      'CANTIDAD ENTREGADA',
+      'CANTIDAD PENDIENTE',
+      'FECHA DE SOLICITUD',
+      'FECHA DE ENTREGA',
+      'FUNCIONARIO QUE ENTREGA',
+      'PACIENTE PAVE',
+      'ID MEDICAMENTO'
+    ];
+
+    datos.push(encabezado);
+    let fecReal = "";
+    let medicamentoPendiente = "";
+    // Agrega los items de despacho al array
+    this.lista.forEach((item: any) => {
+      fecReal = "";
+      medicamentoPendiente = "";
+      if (item.fecEntrega != item.fecSolicitud)
+        fecReal = item.fecEntrega;
+
+      if (item.pendiente > 0)
+        medicamentoPendiente = item.nombreMedicamento;
+
+      datos.push([
+        item.tipoDoc || '',  // Validación si es null o undefined
+        item.numDocumento || '',
+        item.pApellido || '',
+        item.sApellido || '',
+        item.pNombre || '',
+        item.sNombre || '',
+        item.fecNacimiento || '',
+        item.sexo || '',
+        item.telefono || '',
+        item.direccion || '',
+        item.departamento || '',
+        item.municipio || '',
+        item.codEps || '',
+        item.regimen || '',
+        item.bodega || '',  // nombre de la farmacia
+        item.idFormula || '',
+        item.fecPrescribe || '',
+        item.ips || '',
+        item.cum || '',
+        item.nombreMedicamento || '',
+        item.via || '',
+        item.forma || '',
+        item.cantidadPrescrita || 0,
+        item.cantidadEntrega || 0,
+        item.pendiente || 0,
+        item.fecSolicitud || '',
+        item.fecEntrega || '',
+        item.funcionario || '',  // Validación para campos que podrían ser nulos       
+        item.pave || '',  // Validación para campos que podrían ser nulos    
+        item.idMedicamento || ''   
+      ]);
+    });
+
+    // Crea la hoja de trabajo de Excel (worksheet)
+    const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+
+    // Aplicar formato al encabezado
+    const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+    for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+      const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+      if (celda) {
+        celda.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+          alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+          fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+        };
+      }
+    }
+
+    // Crea el libro de trabajo (workbook)
+    const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'Pendientes');
+    // Genera y descarga el archivo Excel
+    XLSX.writeFile(libroDeTrabajo, 'Medicamentos_Pendientes_' + new Date().getTime() + '.xlsx');
+    Swal.fire({
+      icon: 'success',
+      title: `Ok`,
+      text: `Su reporte fue exportado en su carpeta de descargas en formato xslx`,
+
+    });
+  }
+
+
+
 
     tieneAcceso(nivelRequerido: number): boolean {
       const nivelUsuario = Number(sessionStorage.getItem("nivel"));    

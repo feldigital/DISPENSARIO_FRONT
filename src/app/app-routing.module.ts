@@ -33,6 +33,7 @@ import { MedicamentoepsComponent } from './componentes/medicamentoeps/medicament
 import { PrescritosComponent } from './componentes/prescritos/prescritos.component';
 import { VencidosComponent } from './componentes/vencidos/vencidos.component';
 import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
+import { HistorialpqrsComponent } from './componentes/historialpqrs/historialpqrs.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -75,6 +76,7 @@ const routes: Routes = [
       { path: 'verajusteinventario', component: VerajusteinventarioComponent },
       { path: 'ordendespachoedit/:id', component: OrdendespachoeditComponent },  
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
+      { path: 'historialpqrs', component: HistorialpqrsComponent },
       { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto 
     ]
   }, 

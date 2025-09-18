@@ -40,13 +40,15 @@
                         (click)="buscarRegistro(parametro)">
                         <mat-icon class="me-1">search</mat-icon> Buscar
                     </button>
-                    <button type="button" class="btn w-100 d-flex align-items-center justify-content-center"
+
+
+                    <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
                         (click)="exportarExcelCaptados()">
-                        <mat-icon class="me-1">file_download</mat-icon> Exportar a XLSX
+                        <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
                     </button>
                 </div>
 
-               <div *ngIf="listaentregas?.length > 0" class="d-flex flex-column flex-md-row gap-3 mb-3">
+                <div *ngIf="listaentregas?.length > 0" class="d-flex flex-column flex-md-row gap-3 mb-3">
                     <!-- CARD 1 -->
                     <div
                         class="card shadow-sm text-center flex-fill border-0 bg-success-subtle d-flex align-items-center justify-content-center py-2">

@@ -242,6 +242,20 @@ export class BodegaService {
       }));
   }
 
+  getMedicamentosBodegaEntregaDetalladaConsolidadaPqrs(id: number,fInicial: string, fFinal: string): Observable<any> {
+    const params = new HttpParams()
+    .set('idBodega', id)
+    .set('fInicial', fInicial)
+    .set('fFinal', fFinal);
+    return this.http.get<any>(`${this.urlEndPoint}/entrega/detalladaconsolidadapqrs`,{params}).pipe(
+      catchError(e => {
+        if (e.status != 401 && e.error.mensaje) {        
+          console.error(e.error.mensaje);
+        }
+        return throwError(e);
+      }));
+  }
+
   getMedicamentosPendienteDetallada(id: number,fInicial: string, fFinal: string): Observable<any> {
     const params = new HttpParams()
     .set('idBodega', id)

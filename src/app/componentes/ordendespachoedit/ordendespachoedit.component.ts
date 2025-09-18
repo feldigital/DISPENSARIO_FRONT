@@ -142,7 +142,7 @@ export class OrdendespachoeditComponent implements OnInit {
     const cantidadSolicitada = this.generalForm.get('cantidad')?.value;
     const idMedicamento = Number(this.itemNuevo.id);
 
-    if(!this.existeItem(idMedicamento)){
+  if(!this.existeItem(idMedicamento)){
     // Validación de campos requeridos
     if (!this.generalForm.get('invima')?.value ||
       !this.generalForm.get('lote')?.value ||
@@ -156,6 +156,22 @@ export class OrdendespachoeditComponent implements OnInit {
       });
       return;
     }
+  // Validación de campos requeridos
+  const fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;
+  const fechaIngresada = new Date(fechaVencimiento);
+  const fechaHoy = new Date();
+  // Normalizamos fechaHoy para que solo cuente la parte de la fecha (sin horas)
+  fechaHoy.setHours(0, 0, 0, 0);
+
+  if (fechaIngresada <= fechaHoy) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fecha de Vencimiento',
+        text: 'La fecha de vencimiento del medicamento no puede ser anterior o igual a la fecha actual.',
+      });
+      return;
+    }
+
     try {
       this.medicamentoSeleccionado = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaOrigen.idBodega);
       if (!this.medicamentoSeleccionado){
