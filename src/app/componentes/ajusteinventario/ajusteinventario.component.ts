@@ -345,12 +345,13 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
   procesarAjusteInventario(): void {
     let funcionario = sessionStorage.getItem("nombre");
 
+    console.log(this.listaItems);
     const tieneErrores = this.listaItems.some((itemAjuste: { cantidadAjuste: number; cantidad: number; }) => {
 
       const cantidad = Number(itemAjuste.cantidad) || 0;
       const cantidadAjuste = Number(itemAjuste.cantidadAjuste) || 0;
       const diferencia = cantidad + cantidadAjuste; // Aquí calculamos la diferencia correctamente
-    
+      console.log("Cantidad actual:", cantidad, "| Ajuste:", cantidadAjuste);
       if (diferencia < 0) {
         console.log("Cantidad actual:", cantidad, "| Ajuste:", cantidadAjuste);
         console.log("Diferencia calculada:", diferencia);

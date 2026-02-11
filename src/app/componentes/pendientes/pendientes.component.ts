@@ -109,10 +109,8 @@ export class PendientesComponent {
         this.buscarRegistro(nuevoIdBodega);
       }
     });
-
     this.generalForm.patchValue({ idBodega: this.datoRecibido });
     this.funcionario= sessionStorage.getItem("nombre");
-
   }
 
 
@@ -269,7 +267,7 @@ async enviarMensajesConRetraso() {
     }
 
     // Retraso antes de enviar el siguiente
-    await this.delay(3000); // 3 segundos
+    await this.delay(5000); // 3 segundos
   }
 
   this.enviandoMensajes = false;
@@ -390,6 +388,7 @@ async enviarMensajesConRetraso() {
       'FECHA DE ENTREGA',
       'FUNCIONARIO QUE ENTREGA',
       'PACIENTE PAVE',
+      'MEDICAMENTO EN SEGUIMIENTO',
       'ID MEDICAMENTO'
     ];
 
@@ -435,7 +434,8 @@ async enviarMensajesConRetraso() {
         item.fecSolicitud || '',
         item.fecEntrega || '',
         item.funcionario || '',  // Validación para campos que podrían ser nulos       
-        item.pave || '',  // Validación para campos que podrían ser nulos    
+        item.pave || '',  // Validación para campos que podrían ser nulos  
+        item.enseguimiento || '',  // Validación para campos que podrían ser nulos    
         item.idMedicamento || ''   
       ]);
     });

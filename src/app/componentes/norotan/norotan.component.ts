@@ -119,7 +119,7 @@ export class NorotanComponent {
         });
 
     this.servicio.getMedicamentosNorotan(id, this.generalForm.get('fechainicial')?.value)
-      .subscribe((resp: any) => {       
+      .subscribe((resp: any) => {        
         this.listaNorotanBodega = resp
         this.listaNorotanBodega.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));        
         this.listaNorotanBodegaFiltro = this.listaNorotanBodega

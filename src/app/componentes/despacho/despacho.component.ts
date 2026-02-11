@@ -37,7 +37,7 @@ export class DespachoComponent implements OnInit {
   isCompra: boolean = false;
   itemParaEliminar: any;
   proveedorFiltrados: any[] = [];
-  
+
 
 
   constructor(
@@ -46,7 +46,7 @@ export class DespachoComponent implements OnInit {
     private proveedorService: ProveedorService,
     private ordenDespachoservicio: OrdendespachoService,
     private activatedRoute: ActivatedRoute,
-     public dialog: MatDialog
+    public dialog: MatDialog
   ) {
     this.nombrebtn = "Crear orden"
   }
@@ -78,33 +78,47 @@ export class DespachoComponent implements OnInit {
 
     this.fechaActual = new Date();
     this.hoy = this.fechaActual.toISOString().split('T')[0];  // Formato YYYY-MM-DD
-    this.onTipoChange();
 
- this.generalForm.get('nomProvedor')!.valueChanges
+
+    this.generalForm.get('nomProvedor')!.valueChanges
       .pipe(
         debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
-       map(value => {
-      if (typeof value === 'string') {
-        return value.trim().toLowerCase();
-      } else if (value && typeof value === 'object' && 'nombre' in value) {
-        return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
-      } else {
-        return '';
-      }
-    }),
+        map(value => {
+          if (typeof value === 'string') {
+            return value.trim().toLowerCase();
+          } else if (value && typeof value === 'object' && 'nombre' in value) {
+            return value.nombre.toLowerCase(); // si ya seleccionó un medicamento
+          } else {
+            return '';
+          }
+        }),
         switchMap(query => this.proveedorService.filtrarProveedores(query))
       )
       .subscribe(results => {
-        this.proveedorFiltrados = results;    
+        this.proveedorFiltrados = results;
       });
 
+    this.generalForm.get('tipo')?.valueChanges.subscribe((tipo) => {
+      this.isCompra = tipo === 'ORDEN DE COMPRA';
+    });
 
+    this.generalForm.get('tipoIngreso')?.valueChanges.subscribe(valor => {
+      if (valor && valor !== 'COMPRA') {
+        this.generalForm.patchValue({
+          numFactura: 'NO APLICA',
+          valor: 0
+        });
+      } else {
+        // Si vuelve a COMPRA
+        this.generalForm.patchValue({
+          numFactura: '',
+          valor: null
+        });
+      }
+    });
 
   }
-  onTipoChange(): void {
-    const tipo = this.generalForm.get('tipo')?.value;
-    this.isCompra = tipo === 'ORDEN DE COMPRA';
-  }
+
   public buscarRegistro(id: number) {
     this.ordenDespachoservicio.getOrdenDespachoId(id)
       .subscribe((resp: any) => {
@@ -114,37 +128,37 @@ export class DespachoComponent implements OnInit {
       });
   }
 
-   
-buscarMedicamentos(filterValue: string): Observable<any[]> {
-  if (filterValue && filterValue.trim().length > 3) {
-    const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
-    const filteredResults = this.listaItems.filter((item: any) => {
-      const nombre = item.nombre.toLowerCase();
-      // Verificar que todas las palabras estén en el nombre
-      return palabras.every(palabra => nombre.includes(palabra));
-    });
-    return of(filteredResults);
-  }
-  // Si no hay filtro, devolver la lista completa
-  return of(this.listaItems);
-}
-  
 
-   openDialogProveedor(): void {
-      const dialogRef = this.dialog.open(ProveedorComponent, {
-        width: '400px',
-        data: { /* puedes pasar datos iniciales aquí */ }
+  buscarMedicamentos(filterValue: string): Observable<any[]> {
+    if (filterValue && filterValue.trim().length > 3) {
+      const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+      const filteredResults = this.listaItems.filter((item: any) => {
+        const nombre = item.nombre.toLowerCase();
+        // Verificar que todas las palabras estén en el nombre
+        return palabras.every(palabra => nombre.includes(palabra));
       });
-  
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          // Aquí puedes manejar los datos devueltos, por ejemplo, seleccionar la IPS recién creada
-          this.generalForm.get('nomProvedor')!.setValue(result.nombre);
-        }
-      });
+      return of(filteredResults);
     }
+    // Si no hay filtro, devolver la lista completa
+    return of(this.listaItems);
+  }
 
-    
+
+  openDialogProveedor(): void {
+    const dialogRef = this.dialog.open(ProveedorComponent, {
+      width: '400px',
+      data: { /* puedes pasar datos iniciales aquí */ }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Aquí puedes manejar los datos devueltos, por ejemplo, seleccionar la IPS recién creada
+        this.generalForm.get('nomProvedor')!.setValue(result.nombre);
+      }
+    });
+  }
+
+
   onOptionSelectedProveedor(option: any) {
     this.generalForm.get('nomProvedor')?.setValue(option);
     this.generalForm.get('nitProvedor')?.setValue(option.nit);
@@ -165,11 +179,12 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         fechaDespacho: ['', [Validators.required]],
         observacion: ['', [Validators.required]],
         estado: [false, [Validators.required]],
-        tipo: ['ORDEN DE DESPACHO'],
+        tipo: [{ value: 'ORDEN DE DESPACHO', disabled: true }],
         nitProvedor: [{ value: '', disabled: true }],
         nomProvedor: [''],
         numFactura: [''],
         valor: [''],
+        tipoIngreso: [''],
         itemsDespacho: this.fb.array([]),
         listFilter: [''],
         soloajuste: [''],
@@ -190,6 +205,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       nomProvedor: this.registroUpdate.nomProvedor,
       numFactura: this.registroUpdate.numFactura,
       valor: this.registroUpdate.valor,
+      tipoIngreso: this.registroUpdate.tipoIngreso,
       itemsDespacho: this.registroUpdate.itemsDespacho,
     });
     if (this.registroUpdate.tipo === 'ORDEN DE COMPRA') {
@@ -225,10 +241,10 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       );
     this.generalForm.get('idBodegaOrigen')?.disable();
     this.generalForm.get('idBodegaDestino')?.disable();
-    this.generalForm.get('nitProvedor')?.disable();
-    this.generalForm.get('nomProvedor')?.disable();
-    this.generalForm.get('numFactura')?.disable();
-    this.generalForm.get('valor')?.disable();
+    //this.generalForm.get('nitProvedor')?.disable();
+    //this.generalForm.get('nomProvedor')?.disable();
+    //this.generalForm.get('numFactura')?.disable();
+    //this.generalForm.get('valor')?.disable();
     //this.generalForm.get('soloajuste')?.setValue(true);
     this.importar = false;
     this.procesar = true;
@@ -237,6 +253,11 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
   onBodegaChange() {
     const idBodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
     const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+
+    this.generalForm.get('tipo')?.setValue(
+      idBodegaOrigen == 105 ? 'ORDEN DE COMPRA' : 'ORDEN DE DESPACHO'
+    );
+
     if (idBodegaOrigen === idBodegaDestino) {
       Swal.fire({
         icon: 'error',
@@ -539,12 +560,48 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
 
 
   /*FUNCION DE CREACION DEL FORMULARIO*/
-
-
   create() {
     if (this.generalForm.valid) {
       if (this.ordenDespacho.itemsDespacho.length > 0) {
         const idBodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
+        const nitProvedor = this.generalForm.get('nitProvedor')?.value;
+        const nomProvedor = this.generalForm.get('nomProvedor')?.value?.nombre;
+        const numFactura = this.generalForm.get('numFactura')?.value;
+        const tipoIngreso = this.generalForm.get('tipoIngreso')?.value;
+
+
+        // Si la bodega es 105 (orden de compra)
+        if (idBodegaOrigen == 105) {
+
+          // Verifica si alguno de los campos está vacío o nulo
+          if (!nitProvedor || !nomProvedor || !numFactura || !tipoIngreso) { //|| !valor
+            Swal.fire({
+              icon: 'error',
+              title: '¡Faltan datos de la factura!',
+              text: 'No se puede crear la orden de compra porque faltan los datos de la factura (proveedor, nit, factura, tipo ingreso o valor).',
+            });
+            return; // Detiene la ejecución del método
+          }
+
+
+          // 🔵 VALIDACIONES SOLO PARA COMPRA
+          if (tipoIngreso === 'COMPRA') {
+
+            const valorRaw = this.generalForm.get('valor')?.value;
+            const valor = Number(valorRaw);
+
+            if (isNaN(valor) || !isFinite(valor) || valor <= 0) {
+              Swal.fire({
+                icon: 'error',
+                title: '¡Valor inválido!',
+                text: 'El valor de la factura debe ser un numero mayor que 0.',
+              });
+              return;
+            }
+          }
+
+        }
+
         const bodegaSeleccionadaOrigen = this.listaregistrosOrigen.find((item: { idBodega: any; }) => item.idBodega === idBodegaOrigen);
         const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
         // Encuentra el objeto en `listaregistros` que tiene el id igual a `idBodegaDestino`
@@ -579,7 +636,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       }
 
       else {
-       Swal.fire({
+        Swal.fire({
           icon: 'warning',
           title: 'Verificar!',
           text: 'No se ha agregado ningún medicamento a la orden que intenta guardar!',
@@ -615,17 +672,17 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
     this.ordenDespacho.nomProvedor = this.generalForm.get('nomProvedor')?.value?.nombre;
     this.ordenDespacho.numFactura = this.generalForm.get('numFactura')?.value;
     this.ordenDespacho.valor = this.generalForm.get('valor')?.value;
-    
+    this.ordenDespacho.tipoIngreso = this.generalForm.get('tipoIngreso')?.value;
+
     this.ordenDespacho.funcionarioDespacho = funcionario!;
-    console.log(this.generalForm.get('nomProvedor')?.value);
     this.ordenDespachoservicio.create(this.ordenDespacho).subscribe(resp => {
-      // this.buscarRegistro(resp.idDespacho);
+
       this.generalForm.get('idBodegaOrigen')?.enable();
       this.generalForm.get('idBodegaDestino')?.enable();
-      this.generalForm.get('nitProvedor')?.enable();
-      this.generalForm.get('nomProvedor')?.enable();
-      this.generalForm.get('numFactura')?.enable();
-      this.generalForm.get('valor')?.enable();
+      //this.generalForm.get('nitProvedor')?.enable();
+      //this.generalForm.get('nomProvedor')?.enable();
+      //this.generalForm.get('numFactura')?.enable();
+      //this.generalForm.get('valor')?.enable();
       this.buscarRegistro(resp.idDespacho);
       Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
       this.parametro = resp.idDespacho;
@@ -656,6 +713,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       nomProvedor: '',
       numFactura: '',
       nitProvedor: '',
+      tipoIngreso: '',
       tipo: 'ORDEN DE DESPACHO',
       valor: '',
       estado: false,
@@ -669,10 +727,11 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
     // Habilitar los selects de Bodega Origen y Destino
     this.generalForm.get('idBodegaOrigen')?.enable();
     this.generalForm.get('idBodegaDestino')?.enable();
-    this.generalForm.get('nitProvedor')?.enable();
-    this.generalForm.get('nomProvedor')?.enable();
-    this.generalForm.get('numFactura')?.enable();
-    this.generalForm.get('valor')?.enable();
+    //this.generalForm.get('nitProvedor')?.enable();
+    //this.generalForm.get('nomProvedor')?.enable();
+    //this.generalForm.get('numFactura')?.enable();
+    //this.generalForm.get('tipoIngreso')?.enable();
+    //this.generalForm.get('valor')?.enable();
     // Limpiar el parámetro (si es necesario)
     this.parametro = null;
   }

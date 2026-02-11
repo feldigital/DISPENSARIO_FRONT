@@ -21,6 +21,7 @@ export class HistorialformulaComponent implements OnInit {
   generalForm!: FormGroup;
   selectedFile: File | null = null;
   bodegaActual: any;
+  procesando: boolean = false;
 
 
   constructor(
@@ -51,7 +52,7 @@ export class HistorialformulaComponent implements OnInit {
       this.buscarRegistro(this.parametro);
     }
 
-    
+
   }
 
 
@@ -64,16 +65,13 @@ export class HistorialformulaComponent implements OnInit {
     this.servicioformula.getFormulaIdPaciente(id, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
       .subscribe((resp: any) => {
         this.pacienteActual = resp[0]?.paciente;
-        // console.log(this.pacienteActual);    
         this.listaFormula = resp //.formulas;
         this.listaFormula = this.listaFormula.map((item: any) => ({
           ...item,
-          // estado: false, // O cualquier lógica que determine el estado
           editing: false,
           editingSoporte: false,
         }));
         this.listaFormula.sort((a: any, b: any) => b.idFormula - a.idFormula);
-        console.log(this.listaFormula);
 
       });
 
@@ -95,106 +93,115 @@ export class HistorialformulaComponent implements OnInit {
 
 
   public guardarEntregaFormula(itemt: any) {
-    let bodegaString = sessionStorage.getItem("bodega");
-    let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
-    let funcionario = sessionStorage.getItem("nombre");    
-    this.bodegaService.getRegistroId(bodega)
-      .subscribe((resp: any) => {
+    this.procesando = true;
+
+    const bodegaString = sessionStorage.getItem("bodega");
+    const bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
+    const funcionario = sessionStorage.getItem("nombre");
+
+    this.bodegaService.getRegistroId(bodega).subscribe({
+      next: (resp: any) => {
         this.bodegaActual = resp;
-      },
-        (err: any) => { console.error(err) }
-      );
 
-if (!this.bodegaActual.dispensa) {
- Swal.fire({
-          icon: 'warning',
-          title: "!Alerta",
-          text: 'La bodega ' + this.bodegaActual.nombre + ' donde esta logueado el usuario no esta habilitada para dispensar formulas a pacientes!'
-        });
-        return;
-      }
+        // ✅ Verificar si la bodega está habilitada para dispensar
+        if (!this.bodegaActual.dispensa) {
+          Swal.fire({
+            icon: 'warning',
+            title: '¡Alerta!',
+            text: `La bodega ${this.bodegaActual.nombre} donde está logueado el usuario no está habilitada para dispensar fórmulas a pacientes.`
+          });
+          this.procesando = false;
+          return;
+        }
 
-
-
-    if (funcionario && bodegaString) {
-      const fechaActual = new Date(); // Obtener la fecha actual
-      const fechaPrescribe = new Date(itemt.fecPrescribe); // Convertir itemt.fecPrescribe a objeto Date
-      // Formatear la fecha a 'dd/MM/yyyy'
-
-      const resetHora = (fecha: Date): Date => {
-        return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
-      };
-
-      // Reseteamos las horas
-      const fechaActualSinHora = resetHora(fechaActual);
-      const fechaPrescribeSinHora = resetHora(fechaPrescribe);
-
-
-      if (fechaPrescribeSinHora <= fechaActualSinHora) {
-        const controlPrescribe = new Date(fechaActual);
-        controlPrescribe.setDate(fechaActual.getDate() - 30);
-        if (fechaPrescribe >= controlPrescribe) {
-
-          if (itemt.tipoRecibe && itemt.documentoRecibe) {
-
-            Swal.fire({
-              title: 'Confirma la entrega',
-              text: `Se procedera a hacer el proceso de descargue de los medicamentos del inventario de la bodega al que esta suscrito el funcionario ` + funcionario!,
-              icon: 'question',
-              showCancelButton: true,
-              confirmButtonColor: '#3085d6',
-              cancelButtonColor: '#d33',
-              confirmButtonText: 'Si, Entregar!'
-            }).then((result) => {
-              if (result.isConfirmed) {
-
-                this.servicioformula.saveEntregaFormula(itemt.idFormula, bodega, funcionario!, "Presencial", itemt.tipoRecibe, itemt.documentoRecibe)
-                  .subscribe({
-                    next: (data: any) => {
-                      this.router.navigate(['/menu/entrega', itemt.idFormula]);
-                    },
-                    error: (err) => {
-                      console.error('Error al guardar la entrega', err);
-                    }
-                  });
+        // ✅ Verificar si el usuario está logueado
+        if (funcionario && bodegaString) {
+          const fechaActual = new Date();
+          const fechaPrescribe = new Date(itemt.fecPrescribe);
+          const resetHora = (fecha: Date): Date =>
+            new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+          const fechaActualSinHora = resetHora(fechaActual);
+          const fechaPrescribeSinHora = resetHora(fechaPrescribe);
+          if (fechaPrescribeSinHora <= fechaActualSinHora) {
+            const controlPrescribe = new Date(fechaActual);
+            controlPrescribe.setDate(fechaActual.getDate() - 30);
+            if (fechaPrescribe >= controlPrescribe) {
+              if (itemt.tipoRecibe && itemt.documentoRecibe) {
+                Swal.fire({
+                  title: 'Confirma la entrega',
+                  text: `Se procederá a hacer el descargue de los medicamentos del inventario de la bodega al funcionario ${funcionario}.`,
+                  icon: 'question',
+                  showCancelButton: true,
+                  confirmButtonColor: '#3085d6',
+                  cancelButtonColor: '#d33',
+                  confirmButtonText: 'Sí, entregar'
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    this.servicioformula
+                      .saveEntregaFormula(
+                        itemt.idFormula,
+                        bodega,
+                        funcionario!,
+                        "Presencial",
+                        itemt.tipoRecibe,
+                        itemt.documentoRecibe
+                      )
+                      .subscribe({
+                        next: () => {
+                          this.procesando = false;
+                          this.router.navigate(['/menu/entrega', itemt.idFormula], {
+                            queryParams: { origen: 'procesar' }
+                          });
+                        },
+                        error: (err) => {
+                          console.error('Error al guardar la entrega', err);
+                          this.procesando = false;
+                        }
+                      });
+                  }
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: '¡Falta información!',
+                  text: `No ha diligenciado los datos de quien recibe los medicamentos de la fórmula ${itemt.idFormula}. Debe ser un mayor de edad.`
+                });
               }
-            });
-          }
-          else {
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Fórmula expirada',
+                text: `La fórmula ya expiró; solo puede ser reclamada hasta 30 días después de su fecha de prescripción.`
+              });
+            }
+          } else {
             Swal.fire({
               icon: 'error',
-              title: `Quien recibe!`,
-              text: 'No ha diligenciado los datos de quien recibe los medicamentos prescritos en la formula número ' + itemt.idFormula + ' recuerde debe ser un mayor de edad',
+              title: 'Verificar fecha',
+              text: `La fórmula aún no está habilitada para entrega. Estará disponible a partir del ${fechaActualSinHora.toLocaleDateString()}.`
             });
           }
-
-
         } else {
           Swal.fire({
             icon: 'error',
-            title: `Formula expiró!`,
-            text: `La fórmula expiró, ya no puede ser entregada debio ser reclamada hasta 30 dias despues de su fecha de prescripción ${fechaActualSinHora}`,
-
+            title: 'Verificar sesión',
+            text: 'El usuario no está logueado para dispensar medicamentos. Inicie sesión nuevamente.'
           });
         }
-      } else {
+
+        this.procesando = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.procesando = false;
         Swal.fire({
           icon: 'error',
-          title: `Verificar!`,
-          text: `La fórmula aún no está habilitada para la entrega, estará disponible a partir del ${fechaActualSinHora}`,
+          title: 'Error',
+          text: 'No fue posible obtener la información de la bodega.'
         });
       }
-    }
-    else {
-      Swal.fire({
-        icon: 'error',
-        title: `Verificar!`,
-        text: "Usuario no esta  logueado para realizar la dispensación de medicamentos, por favor inicie sesión!",
-      });
-    }
+    });
   }
-
-
 
   public anularFormula(itemt: any) {
     let funcionario = sessionStorage.getItem("nombre");
@@ -305,66 +312,63 @@ if (!this.bodegaActual.dispensa) {
 
 
 
-  onFileSelected(event: any, itemt:any) {
+  onFileSelected(event: any, itemt: any) {
     this.selectedFile = event.target.files[0];
 
     if (!this.selectedFile) {
-    return;
-  }
+      return;
+    }
 
-  // Validar que sea PDF
-  const isPdf = this.selectedFile.type === 'application/pdf' || this.selectedFile.name.toLowerCase().endsWith('.pdf');
+    // Validar que sea PDF
+    const isPdf = this.selectedFile.type === 'application/pdf' || this.selectedFile.name.toLowerCase().endsWith('.pdf');
 
-  if (!isPdf) {
-     Swal.fire({
-          icon: 'warning',
-          title: 'ERROR PDF ',
-          text: '❌ Solo se permiten archivos PDF como soporte de la formula',
-        });
-    
-    event.target.value = ''; // Limpiar selección del input
-     this.selectedFile =null;
-    return;
-  }
+    if (!isPdf) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ERROR PDF ',
+        text: '❌ Solo se permiten archivos PDF como soporte de la formula',
+      });
+
+      event.target.value = ''; // Limpiar selección del input
+      this.selectedFile = null;
+      return;
+    }
 
 
 
-  if(itemt.urlFormula){
-  Swal.fire({
-      title: 'Reemplazar el Soporte',
-      text: 'Esta seguro de reemplzar el soporte existente de la formula por este otro, este cambio ya no se podra reversar',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Si, reemplazar!'
-    }).then((result) => {
-      if (result.isConfirmed) {
+    if (itemt.urlFormula) {
+      Swal.fire({
+        title: 'Reemplazar el Soporte',
+        text: 'Esta seguro de reemplzar el soporte existente de la formula por este otro, este cambio ya no se podra reversar',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, reemplazar!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.onUpload(itemt);
+        }
+      });
 
-       this.onUpload(itemt);
-       
-        
-      }
-    });
+    }
+    else {
 
-  }
-  else{
-
-  this.onUpload(itemt);
-  } 
+      this.onUpload(itemt);
+    }
   }
 
   onUpload(item: any) {
-  if (!this.selectedFile) {
-     Swal.fire({
-          icon: 'info',
-          title: 'Pendiente',
-          text: `No se ha seleccionado el soporte en DPF de la fórmula Nro. ${item.idFormula}. para ser cargada a la nube`,
-        });
-        return;
-  }
+    if (!this.selectedFile) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Pendiente',
+        text: `No se ha seleccionado el soporte en DPF de la fórmula Nro. ${item.idFormula}. para ser cargada a la nube`,
+      });
+      return;
+    }
 
-     this.servicioformula.subirFormula(this.selectedFile, item.idFormula).subscribe({
+    this.servicioformula.subirFormula(this.selectedFile, item.idFormula).subscribe({
       next: (resp: string) => {
         item.urlFormula = resp;
         item.editingSoporte = false;
@@ -383,13 +387,13 @@ if (!this.bodegaActual.dispensa) {
         });
       }
     });
-  
-}
 
-verArchivo(url: string) {
-  // Si la URL es pública o accesible, se abre en nueva pestaña
-  window.open(url, '_blank');
-}
+  }
+
+  verArchivo(url: string) {
+    // Si la URL es pública o accesible, se abre en nueva pestaña
+    window.open(url, '_blank');
+  }
 
   public editarSoporte(itemt: any) {
     this.listaFormula.forEach((p: any) => p.editingSoporte = false);

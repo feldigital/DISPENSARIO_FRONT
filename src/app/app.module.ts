@@ -65,6 +65,8 @@ import { VencidosComponent } from './componentes/vencidos/vencidos.component';
 import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
 import { ProveedorComponent } from './componentes/proveedor/proveedor.component';
 import { HistorialpqrsComponent } from './componentes/historialpqrs/historialpqrs.component';
+import { InicioComponent } from './componentes/inicio/inicio.component';
+
 
 
 export function initPermisos(permisosService: PermisosService) {
@@ -111,6 +113,7 @@ export function initPermisos(permisosService: PermisosService) {
     FormulasdxComponent,
     ProveedorComponent,
     HistorialpqrsComponent,
+    InicioComponent,    
 
   ],
   imports: [

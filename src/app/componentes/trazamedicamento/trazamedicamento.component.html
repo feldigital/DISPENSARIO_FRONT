@@ -102,9 +102,9 @@
                         {{i+1}}
                     </td>
                     <td>{{itemt.idDespacho}}</td>
-                    <td>{{itemt.fechaDespacho | date: 'dd/MM/YYYY' || ''}}</td>                    
+                    <td>{{itemt.fechaDespacho | date: 'dd/MM/yyyy' || ''}}</td>                    
                     <td>{{itemt.bodegaOrigen}}</td>
-                    <td>{{itemt.fechaEntradaDestino | date: 'dd/MM/YYYY' || ''}}</td>
+                    <td>{{itemt.fechaEntradaDestino | date: 'dd/MM/yyyy' || ''}}</td>
                     <td>{{itemt.bodegaDestino}}</td>
                     <td>{{itemt.idMedicamento}}</td>                  
                     <td>{{itemt.presentacion}}</td>
@@ -120,4 +120,37 @@
             </tbody>
         </table>
 
+    </div>
+    <div *ngIf="listaItemAjuste?.length > 0">
+        <div class="col-12 text-center">
+            <span class="text-green">
+                <strong> AJUSTE DEL MEDICAMENTO POR INVENTARIO </strong>
+            </span>
+        </div>
+
+        <table class="table table-striped table-hover table-sm mt-2">
+            <thead class="thead-gradient-d">
+                <tr>
+                    <th>Item</th>
+                    <th>Orden de Ajuste</th>
+                    <th>Fecha de Ajuste </th>
+                    <th>Nombre Medicamento</th>
+                    <th>Presentacion</th>
+                    <th>Cantidad Ajustada +/-</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let itemt of listaItemAjuste let i= index" 
+                [ngStyle]="{'color': itemt.cantidadAjuste>0 ? 'black' : 'red' }">
+                    <td>{{i+1}}</td>
+                    <td class="text-center">{{itemt.idAjuste}}</td>
+                    <td>{{itemt.fechaAjuste | date: 'dd/MM/yyyy'}}</td>                    
+                    <td>{{itemt.medicamentoNombre}}</td>
+                    <td>{{itemt.presentacion}}</td>
+                    <td class="text-end"><strong>{{itemt.cantidadAjuste}}</strong></td>
+
+                </tr>
+            </tbody>
+        </table>
     </div>

@@ -321,8 +321,8 @@ export class VerajusteinventarioComponent {
   }
 
 
-  mostrarItemAjuste(item: any): void {
-    
+  mostrarItemAjuste(item: any): void {    
+    console.log(item);
     this.listaItemAjuste = item.itemsAjuste.sort((a: any, b: any) => {
       return a.medicamento.nombre.localeCompare(b.medicamento.nombre);
     });

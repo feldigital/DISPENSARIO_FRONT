@@ -335,6 +335,18 @@ desprocesarFormula(idFormula: number,idBodega: number ) {
  );
  }
 
+ guardarCodigoVerificado(idFormula: number,codigoVerificado: string ) {
+   const params = new HttpParams()
+   .set('idFormula', idFormula)
+   .set('codigoVerificado', codigoVerificado);  
+   console.log("Formula: " + idFormula + " Codigo Verificado: " + codigoVerificado);
+   return this.http.get<any>(`${this.urlEndPoint}/codigoverificado`, {params}).pipe(
+   catchError(e => {
+     return throwError(e);
+   })
+ );
+ }
+
 
 
 }

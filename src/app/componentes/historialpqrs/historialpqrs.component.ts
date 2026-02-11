@@ -25,6 +25,9 @@ export class HistorialpqrsComponent {
   lista: any = [];
   listaMedicamentoPqrsFiltro: any = [];
   listaPacientePqrsFiltro: any = [];
+  medicamentosPqrs: any = [];
+  canalesPqrs: any = [];
+  tablaPqrs: any = [];
 
 
   constructor(
@@ -131,7 +134,9 @@ export class HistorialpqrsComponent {
     this.listaPacientePqrs = [];
     this.listaPacientePqrsFiltro = [];
     this.listaMedicamentoPqrs = [];
-    this.listaMedicamentoPqrsFiltro = [];
+    this.listaMedicamentoPqrsFiltro = [];   
+    this.canalesPqrs = [];
+    this.tablaPqrs = [];
     const fInicial = this.generalForm.get('fechainicial')?.value;
     const fFinal = this.generalForm.get('fechafinal')?.value;
     // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
@@ -175,10 +180,8 @@ export class HistorialpqrsComponent {
         this.lista = resp;
         this.listaMedicamentoPqrsFiltro = resp;
 
-
         // 🔹 Agrupar pacientes únicos por fórmula con cantidad de repeticiones
         const pacientesMap = new Map<string, any>();
-
         resp.forEach((item: any) => {
           if (!pacientesMap.has(item.idFormula)) {
             pacientesMap.set(item.idFormula, {
@@ -200,6 +203,93 @@ export class HistorialpqrsComponent {
         // Convertir a arreglo
         this.listaPacientePqrs = Array.from(pacientesMap.values());
         this.listaPacientePqrsFiltro = this.listaPacientePqrs;
+
+
+        // 🔹 Agrupar por mes y canal (solo meses con PQRS)
+        const canalPorMesMap = new Map<string, any>();
+
+        this.listaPacientePqrs.forEach((item: any) => {
+          const fecha = new Date(item.fecEstimada); // 👈 ajusta al campo de fecha real
+          if (isNaN(fecha.getTime())) return;
+
+          // Validar que la fecha esté dentro del rango seleccionado
+          if (fecha < fechaInicial || fecha > fechaFinal) return;
+
+          const mes = fecha.toLocaleString('es-ES', { month: 'long' }).toUpperCase(); // "ENERO"
+          const año = fecha.getFullYear();
+          const mesAnio = `${mes} ${año}`; // Ejemplo: "ENERO 2025"
+          const canal = item.cieR3 ? item.cieR3.trim() : 'SIN CANAL';
+
+          const key = `${mesAnio}-${canal}`;
+          if (!canalPorMesMap.has(key)) {
+            canalPorMesMap.set(key, { mesAnio, canal, cantidad: 1, ordenMes: fecha.getMonth(), año });
+          } else {
+            canalPorMesMap.get(key).cantidad++;
+          }
+        });
+
+        // 🔹 Obtener solo los meses donde hubo PQRS
+        const mesesUnicos = Array.from(
+          new Map(
+            Array.from(canalPorMesMap.values()).map((d: any) => [`${d.año}-${d.ordenMes}`, d])
+          ).values()
+        )
+          .sort((a, b) => a.año - b.año || a.ordenMes - b.ordenMes) // ordenar por año y mes
+          .map((d: any) => d.mesAnio);
+
+        const canales = Array.from(
+          new Set(Array.from(canalPorMesMap.values()).map((d: any) => d.canal))
+        );
+
+        // 🔹 Construir la tabla solo con los meses que tienen PQRS
+        const tabla = mesesUnicos.map(mesAnio => {
+          const fila: any = { mes: mesAnio };
+          let totalMes = 0;
+
+          canales.forEach(canal => {
+            const key = `${mesAnio}-${canal}`;
+            const cantidad = canalPorMesMap.get(key)?.cantidad || 0;
+            fila[canal] = cantidad;
+            totalMes += cantidad;
+          });
+
+          fila.totalMes = totalMes;
+          return fila;
+        });
+
+        // 🔹 Calcular totales por canal
+        const totalPorCanal: any = { mes: 'TOTAL' };
+        let totalGeneral = 0;
+
+        canales.forEach(canal => {
+          const suma = tabla.reduce((acc, fila) => acc + (fila[canal] || 0), 0);
+          totalPorCanal[canal] = suma;
+          totalGeneral += suma;
+        });
+        totalPorCanal.totalMes = totalGeneral;
+
+        // 🔹 Guardar resultados para la vista
+        this.tablaPqrs = [...tabla, totalPorCanal];
+        this.canalesPqrs = canales;
+
+
+        const medicamentosMap = new Map<string, any>();
+        resp.forEach((item: any) => {
+          // Asegurar que el canal tenga un valor válido         
+          const medicamento = item.nombreMedicamento ? item.nombreMedicamento.trim() : 'SIN NOMBRE DE MEDICAMENTO';
+          if (!medicamentosMap.has(medicamento)) {
+            medicamentosMap.set(medicamento, {
+              medicamento,
+              repeticiones: 1,
+            });
+          } else {
+            medicamentosMap.get(medicamento).repeticiones++;
+          }
+        });
+
+        // Convertir el Map a un arreglo
+        this.medicamentosPqrs = Array.from(medicamentosMap.values());
+        this.medicamentosPqrs.sort((a: { repeticiones: number; }, b: { repeticiones: number; }) => b.repeticiones - a.repeticiones);
 
 
         //this.exportarExcel(); // Exportar solo si la lista es válida
@@ -450,26 +540,26 @@ export class HistorialpqrsComponent {
     }
   }
 
-   public verDetallesPQRS(itemt: any) {
-  // Filtrar todos los medicamentos de esa fórmula
-  const medicamentosFormula = this.lista.filter(
-    (registro: any) => registro.idFormula === itemt.idFormula
-  );
+  public verDetallesPQRS(itemt: any) {
+    // Filtrar todos los medicamentos de esa fórmula
+    const medicamentosFormula = this.lista.filter(
+      (registro: any) => registro.idFormula === itemt.idFormula
+    );
 
-   // Construir el mensaje
-  let mensaje = itemt.tienePendientes ? 'Estado general ⏳ Pendiente <br><br>' : ' Estado general ✅ Resuelta <br><br>'; 
-  medicamentosFormula.forEach((med: any, index: number) => {
-    const estado = med.pendiente > 0 ? '⏳ Pendiente' : '✅ Entregado';
-    mensaje += `${index + 1} - ${med.nombreMedicamento} - Cantidad prescrita/entrega: ${med.cantidadPrescrita} / ${med.cantidadEntrega} (${estado})<br>`;
-  });
+    // Construir el mensaje
+    let mensaje = itemt.tienePendientes ? 'Estado general ⏳ Pendiente <br><br>' : ' Estado general ✅ Resuelta <br><br>';
+    medicamentosFormula.forEach((med: any, index: number) => {
+      const estado = med.pendiente > 0 ? '⏳ Pendiente' : '✅ Entregado';
+      mensaje += `${index + 1} - ${med.nombreMedicamento} - Cantidad prescrita/entrega: ${med.cantidadPrescrita} / ${med.cantidadEntrega} (${estado})<br>`;
+    });
 
-  Swal.fire({
-    icon: 'info',
-    title: `Medicamentos en PQRS fórmula Nro. <b>${itemt.idFormula}</b>`,
-    html: mensaje,
-    width: 600,
-  });
-}
+    Swal.fire({
+      icon: 'info',
+      title: `Medicamentos en PQRS fórmula Nro. <b>${itemt.idFormula}</b>`,
+      html: mensaje,
+      width: 600,
+    });
+  }
 
 
 

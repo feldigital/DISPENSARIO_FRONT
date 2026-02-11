@@ -53,3 +53,40 @@ pre {
   line-height: 10px;      /* Centrado vertical del texto */
   padding: 0;
 }
+
+.botones-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  justify-content: flex-start;
+}
+
+/* Estilo de botón compacto */
+.botones-acciones button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+  min-width: 120px;
+  padding: 2px 10px;        /* 👈 más compacto */
+  height: 32px;             /* 👈 altura reducida */
+  font-size: 13px;          /* texto más fino */
+}
+
+.botones-acciones mat-icon {
+  font-size: 16px;          /* ícono más pequeño */
+}
+
+.botones-acciones button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.botones-acciones button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

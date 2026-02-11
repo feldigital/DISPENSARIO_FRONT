@@ -76,8 +76,11 @@
                         <td><input type="number" formControlName="cantidad" class="form-control border-end-0 search-input"
                             placeholder="Digite cantidad"> </td>                      
                         <td>
-                            <button class="btn btn-outline-primary" title="Agregar item de la orden"  (click)="validarYGuardarMedicamento()">
+                            <button *ngIf = "listaregistros?.estado=== 'Envío'" class="btn btn-outline-primary" title="Agregar item de la orden"  (click)="validarYGuardarMedicamento()">
                                Agregar</button>
+
+                             <button *ngIf = "listaregistros?.estado=== 'Recepción'" class="btn btn-outline-primary" title="Agregar item a la orden y a la bodega destino"  (click)="validarYGuardarMedicamentoBodegaDestino()">
+                               Agregar</button>   
                            
                         </td>
                     </tr>
@@ -115,11 +118,13 @@
                     <td>{{ item.lote }}</td>
                     <td>{{ item.fechaVencimiento }}</td>                    
                     <td style="color: green; text-align: right;"><strong>{{item.cantidad}}</strong></td>
-                    <td>
-                       
-                        <mat-icon  class="pointer-cursor" title="Eliminar item de la orden" [ngStyle]="{'color':'red'}"
+                    <td>                       
+                        <mat-icon *ngIf = "listaregistros?.estado=== 'Envío'" class="pointer-cursor" title="Eliminar item de la orden" [ngStyle]="{'color':'red'}"
                             (click)="eliminarItemOrden(item)">
                             delete_sweep</mat-icon>
+                         <mat-icon *ngIf = "listaregistros?.estado=== 'Recepción'" class="pointer-cursor" title="Eliminar item de la orden" [ngStyle]="{'color':'orange'}"
+                            (click)="eliminarItemOrdenProcesada(item)">
+                            delete_sweep</mat-icon>    
                     </td>
                 </tr>
             </tbody>

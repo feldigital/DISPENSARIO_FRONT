@@ -143,12 +143,11 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         fecCreacion: [''],
         via: ['', [Validators.required]],
         forma: ['', [Validators.required]],
-        estado: [true, [Validators.required]],
-        desabastecido: [false, [Validators.required]],
-        agotado: [false, [Validators.required]],
-        controlado: [false, [Validators.required]],
-        //     listFilter:[''],
-
+        estado: [true],
+        desabastecido: [false],
+        agotado: [false],
+        controlado: [false],
+        enseguimiento: [false],        
 
       });
   }
@@ -174,6 +173,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       desabastecido: itemt.desabastecido,
       agotado: itemt.agotado,
       controlado: itemt.controlado,
+      enseguimiento: itemt.enseguimiento,
       // listFilter: '',      
     })
   }
@@ -473,8 +473,8 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
 
   }
 
-  reporteMedicamentosFiltrados(agotado: boolean, desabastecido: boolean, controlado: boolean, estado: boolean, reporte: string): void {
-    this.datosMedicamentosFiltrados(agotado, desabastecido, controlado, estado).then((bodyData) => {
+  reporteMedicamentosFiltrados(agotado: boolean, desabastecido: boolean, controlado: boolean, estado: boolean, enseguimiento: boolean, reporte: string): void {
+    this.datosMedicamentosFiltrados(agotado, desabastecido, controlado, estado,enseguimiento).then((bodyData) => {
       const doc = new jsPDF({
         orientation: 'p',
         unit: 'mm',
@@ -546,7 +546,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
   }
 
 
-  private async datosMedicamentosFiltrados(agotado: boolean, desabastecido: boolean, controlado: boolean, estado: boolean): Promise<RowInput[] | undefined> {
+  private async datosMedicamentosFiltrados(agotado: boolean, desabastecido: boolean, controlado: boolean, estado: boolean, enseguimiento: boolean): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];
     let resp: any;
     try {
@@ -554,7 +554,7 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         resp = await this.servicio.getMedicamentoNovigente().toPromise();
       }
       else {
-        resp = await this.servicio.getMedicamentoFiltrados(agotado, desabastecido, controlado).toPromise();
+        resp = await this.servicio.getMedicamentoFiltrados(agotado, desabastecido, controlado,enseguimiento).toPromise();
       }
       this.lista = resp;
       this.lista.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));

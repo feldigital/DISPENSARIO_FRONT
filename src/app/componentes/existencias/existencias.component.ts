@@ -79,8 +79,7 @@ export class ExistenciasComponent {
      this.totalCantidadPendiente=0;
     if(idMedicamento){
         this.servicio.getExistenciasMedicamentoPuntual(idMedicamento)
-          .subscribe((resp: any) => {
-            
+          .subscribe((resp: any) => {            
             this.listaItemBodega = resp.sort((a: any, b: any) => a.dato_5.localeCompare(b.dato_5));    
             this.listaExistencia=  this.listaItemBodega;
             // Calcular totales

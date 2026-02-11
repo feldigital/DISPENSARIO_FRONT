@@ -17,59 +17,134 @@
                     <p><strong>Eps:</strong> {{listaregistros?.paciente?.eps.nombre}} <strong>Regimen:</strong>
                         {{listaregistros?.paciente?.regimen}} <strong>Categoria:</strong>
                         {{listaregistros?.paciente?.categoria?.nombre}}</p>
-                    <p><strong>Dirección:</strong> {{listaregistros?.paciente?.direccion}}</p>
-                    <p><strong>Teléfono:</strong> {{listaregistros?.paciente?.celularPrincipal}}
+                    <form [formGroup]="facturaForm">
+                        <div>
+                            <ng-container *ngIf="!editarContacto; else modoEdicion">
+                                <p>
+                                    <strong>Dirección:</strong> {{ pacienteActual?.direccion }}
+                                    <strong>Teléfono:</strong> {{ pacienteActual?.celularPrincipal }} - {{
+                                    pacienteActual?.celularSecundario }}
+                                </p>
+                                <div class="botones-acciones">
+                                    <!-- Botón Editar -->
+                                    <button mat-raised-button color="primary" (click)="enEdicion()">
+                                        <mat-icon>edit</mat-icon>
+                                        Editar contacto
+                                    </button>
+
+                                    <!-- Botón Enviar WhatsApp -->
+                                    <button mat-raised-button color="accent"
+                                        *ngIf="tieneAcceso(2) && listaregistros?.entregaCompleta && !listaregistros?.codigoVerificado"
+                                        (click)="enviarWhatsAppPendiente()" [disabled]="enviandoMensajes || listaregistros?.codigoVerificado">
+                                        <mat-icon>send</mat-icon>
+                                       {{ enviandoMensajes ? 'Enviando...' : 'Enviar código' }}
+                                    </button>
+
+                                    <!-- Botón Verificar código -->
+                                    <button mat-raised-button color="warn"
+                                        *ngIf="tieneAcceso(2) && listaregistros?.entregaCompleta && !listaregistros?.codigoVerificado"
+                                        (click)="verificarCodigoPendiente()" [disabled]="!codigoGenerado">
+                                        <mat-icon>verified_user</mat-icon>
+                                        Verificar código
+                                    </button>
+                                </div>
+
+
+
+                            </ng-container>
+
+                            <ng-template #modoEdicion>
+                                <div class="contacto-edicion-container">
+                                    <div>
+                                        <mat-label>Datos de contacto</mat-label>
+                                        <input class="form-control" type="number" formControlName="celularPrincipal"
+                                            placeholder="Digite teléfono principal" />
+                                        <input class="form-control" type="number" formControlName="celularSecundario"
+                                            placeholder="Digite teléfono secundario" />
+                                        <input class="form-control" type="text" formControlName="direccion"
+                                            placeholder="Digite dirección" />
+                                        <input class="form-control" type="text" formControlName="barrio"
+                                            placeholder="Digite barrio" />
+                                        <input class="form-control" type="text" formControlName="email"
+                                            placeholder="Digite correo electrónico" />
+                                    </div>
+
+                                    <div class="acciones">
+                                        <button mat-icon-button color="primary" (click)="guardarDatosContacto()"
+                                            matTooltip="Guardar">
+                                            <mat-icon>check</mat-icon>
+                                        </button>
+                                        <button mat-icon-button color="warn" (click)="cancelarEdicion()"
+                                            matTooltip="Cancelar">
+                                            <mat-icon>close</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </div>
+                    </form>
+
+                    <p>
                         <strong>Municipio:</strong> {{listaregistros?.paciente?.municipio?.nombre}} -
                         {{listaregistros?.paciente?.municipio?.departamento?.nombre}}
                     </p>
+
+
                     <p><strong>¿PGP?:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }} <strong>¿Servicio de
-                            Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}</p>
+                            Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}
                     <div>
-                            <p>
-                                <strong>Soporte escaneado: </strong> 
-                             <mat-icon *ngIf="!this.listaregistros.urlFormula && !editingSoporte" class="pointer-cursor"
-                        title="Adicionar pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
-                        (click)="editarSoporte()">
-                        add_circle
-                    </mat-icon>
-                    <mat-icon *ngIf="this.listaregistros.urlFormula && !editingSoporte" title="Gestión pdf de la formula"
-                        class="pointer-cursor" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
-                        [matMenuTriggerFor]="menu">attach_file</mat-icon>
-                    </p>
+                        <p>
+                            <strong>Soporte escaneado: </strong>
+                            <mat-icon *ngIf="!this.listaregistros.urlFormula && !editingSoporte" class="pointer-cursor"
+                                title="Adicionar pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                                (click)="editarSoporte()">
+                                add_circle
+                            </mat-icon>
+                            <mat-icon *ngIf="this.listaregistros.urlFormula && !editingSoporte"
+                                title="Gestión pdf de la formula" class="pointer-cursor"
+                                [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                                [matMenuTriggerFor]="menu">attach_file</mat-icon>
+                        </p>
 
-                    <div *ngIf="editingSoporte">
-                        <input type="file" (change)="onFileSelected($event)" />
+                        <div *ngIf="editingSoporte">
+                            <input type="file" (change)="onFileSelected($event)" />
+                        </div>
+
+
+
+                        <mat-icon *ngIf="editingSoporte" title="Cancelar" class="pointer-cursor"
+                            title="Cancelar edición" [ngStyle]="{'color':'orange'}"
+                            (click)="cancelSoporte()">clear</mat-icon>
+
+                        <mat-menu #menu="matMenu">
+                            <button (click)="verArchivo()" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">attach_file</mat-icon>
+                                <span>Ver soporte</span>
+                            </button>
+                            <button (click)="editarSoporte()" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">repeat</mat-icon>
+                                <span>Reemplazar soporte</span>
+                            </button>
+                        </mat-menu>
                     </div>
-
-                   
-
-                    <mat-icon *ngIf="editingSoporte" title="Cancelar" class="pointer-cursor" title="Cancelar edición"
-                        [ngStyle]="{'color':'orange'}" (click)="cancelSoporte()">clear</mat-icon>
-
-                    <mat-menu #menu="matMenu">
-                        <button (click)="verArchivo()" mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'#2BB6D7'}">attach_file</mat-icon>
-                            <span>Ver soporte</span>
-                        </button>
-                        <button (click)="editarSoporte()" mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'orange'}">repeat</mat-icon>
-                            <span>Reemplazar soporte</span>
-                        </button>
-                    </mat-menu>
-</div>
 
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="card-header">
-                    Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong>
+                    Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong> 
+                      <!-- Botón Desprocesar -->
+        <button mat-stroked-button color="black" *ngIf="tieneAcceso(4)" (click)="desprocesarFormula()">
+            <mat-icon class="me-1">loop</mat-icon>
+            Desprocesar
+        </button>
                 </div>
                 <div class="card-body">
                     <p><strong>IPS que prescribe:</strong> {{listaregistros?.ips?.nombre}}</p>
                     <p><strong>Medico que prescribe:</strong> {{listaregistros?.medico?.nombre}}</p>
-                    <p><strong>Fecha de prescripción:</strong> {{listaregistros?.fecPrescribe | date: 'dd/MM/YYYY'}}
-                        <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/YYYY :
+                    <p><strong>Fecha de prescripción:</strong> {{listaregistros?.fecPrescribe | date: 'dd/MM/yyyy'}}
+                        <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/yyyy :
                         hh:mm'}}
                     </p>
                     <p><strong>Continuidad:</strong> {{listaregistros?.continuidad }} <strong>Programa:</strong>
@@ -268,11 +343,7 @@
 
     <hr />
     <div class="d-flex justify-content-end flex-wrap gap-2">
-        <!-- Botón Desprocesar -->
-        <button mat-stroked-button color="warn" *ngIf="tieneAcceso(4)" (click)="desprocesarFormula()">
-            <mat-icon class="me-1">loop</mat-icon>
-            Desprocesar
-        </button>
+      
 
         <!-- Botón Regresar -->
         <button mat-stroked-button color="primary" [routerLink]="['/menu/formula']">
@@ -293,6 +364,12 @@
             <mat-icon class="me-1">receipt_long</mat-icon>
             Imprimir pendiente
         </button>
+
+          <!-- Botón Recibo de Caja -->
+         <button *ngIf = "listaregistros?.cobroCM" mat-stroked-button color="primary" (click)="imprimirRecibo()">
+                <mat-icon class="me-1">local_printshop</mat-icon>
+                Recibo de Caja CM
+            </button>
 
         <!-- Botón Imprimir entrega (verde personalizado) -->
         <button mat-stroked-button class="btn-success" (click)="imprimir(0)">

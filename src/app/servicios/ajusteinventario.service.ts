@@ -86,41 +86,20 @@ export class AjusteinventarioService {
      }));
  } 
  
- /*
- 
- getDetalleOrdenDespacho( idBodega: number,fInicial: string, fFinal: string, tipoReporte: number): Observable<any> {
-   const params = new HttpParams()
-   .set('idBodega', idBodega)
-   .set('fInicial', fInicial)
-   .set('fFinal', fFinal)
-   .set('tipoReporte', tipoReporte);     
-   return this.http.get<OrdenDespachoI>(`${this.urlEndPoint}/detallesalida`,{params}).pipe(
-     catchError(e => {
-       if (e.status != 401 && e.error.mensaje) {        
-         console.error(e.error.mensaje);
-       }
- 
-       return throwError(e);
-     }));
- } 
- 
- 
- getMedicamentoOrdenDespacho( idMedicamento: number,idBodega: number,fInicial: string, fFinal: string): Observable<any> {
-   const params = new HttpParams()
-   .set('idMedicamento', idMedicamento)
-   .set('idBodega', idBodega)
-   .set('fInicial', fInicial)
-   .set('fFinal', fFinal);     
-   return this.http.get<any>(`${this.urlEndPoint}/medicamento`,{params}).pipe(
-     catchError(e => {
-       if (e.status != 401 && e.error.mensaje) {        
-         console.error(e.error.mensaje);
-       }
- 
-       return throwError(e);
-     }));
- } 
- */
+ getMedicamentoAjusteBodega(idMedicamento: number, idBodega: number,fInicial: string, fFinal: string): Observable<any> {
+     const params = new HttpParams()
+    .set('idMedicamento', idMedicamento)
+     .set('idBodega', idBodega)
+     .set('fInicial', fInicial)
+     .set('fFinal', fFinal);     
+     return this.http.get<AjusteInventarioI>(`${this.urlEndPoint}/medicamento`,{params}).pipe(
+       catchError(e => {
+         if (e.status != 401 && e.error.mensaje) {        
+           console.error(e.error.mensaje);
+         } 
+         return throwError(e);
+       }));
+   }   
  
  }
  

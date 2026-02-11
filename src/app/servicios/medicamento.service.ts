@@ -172,11 +172,12 @@ export class MedicamentoService {
       }));
   } 
 
-  getMedicamentoFiltrados(agotado: boolean,desabastecido: boolean,controlado:boolean): Observable<any> {
+  getMedicamentoFiltrados(agotado: boolean,desabastecido: boolean,controlado:boolean, enseguimiento:boolean): Observable<any> {
     const params = new HttpParams()
     .set('agotado', agotado)
     .set('desabastecido', desabastecido)
-    .set('controlado', controlado);     
+    .set('controlado', controlado)
+    .set('enseguimiento', enseguimiento);     
     return this.http.get<any>(`${this.urlEndPoint}/filtro`,{params}).pipe(
       catchError(e => {
         if (e.status != 401 && e.error.mensaje) {        

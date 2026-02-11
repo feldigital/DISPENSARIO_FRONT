@@ -94,10 +94,10 @@
                         </mat-menu>
 
                     </td>
-                    <td>{{itemt.fecPrescribe | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.fecPrescribe | date: 'dd/MM/yyyy'}}</td>
                     <td>{{primerasmayusculas(itemt.ips.nombre)}}</td>
                     <!-- <td>{{itemt.nroFormula}}</td> -->
-                    <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY : hh:mm'}}</td>
+                    <td>{{itemt.fecSolicitud | date: 'dd/MM/yyyy : hh:mm'}}</td>
                     <td>{{itemt.continuidad}}</td>
                     <td>
                         <div *ngIf="itemt.cobroCM">
@@ -141,7 +141,7 @@
                         <mat-icon *ngIf="itemt.estadoanulada" title="Formula anulada" class="pointer-cursor"
                             [ngStyle]="{'color':'red'}" (click)="informeAnulacion(itemt)">block</mat-icon>
 
-                        <button *ngIf="!itemt.estado && !itemt.estadoanulada" title="generar la entrega de medicamentos"
+                        <button [disabled]="procesando" *ngIf="!itemt.estado && !itemt.estadoanulada" title="generar la entrega de medicamentos"
                             type="button" class="btn btn-success btn-sm btn-custom-gradient-d"
                             (click)="guardarEntregaFormula(itemt)">
                             Generar entrega </button>

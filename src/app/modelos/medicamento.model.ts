@@ -16,6 +16,7 @@ export class MedicamentoI {
     forma: number;
     agotado: Boolean;
     controlado: Boolean;
+    enseguimiento: Boolean;
 
 
 
@@ -37,7 +38,7 @@ export class MedicamentoI {
         this.estado = true;
         this.agotado=false;
         this.controlado=false;
-
+        this.enseguimiento=false;
     }
 
 }

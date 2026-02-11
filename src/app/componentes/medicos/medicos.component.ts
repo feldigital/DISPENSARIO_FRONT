@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MedicoService } from 'src/app/servicios/medico.service';
 import { MedicoI } from 'src/app/modelos/medico.model';
-import { debounceTime, map, Observable, of, switchMap } from 'rxjs';
+import { debounceTime, map, Observable, of, startWith, switchMap } from 'rxjs';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -15,6 +15,8 @@ export class MedicosComponent {
   generalForm!: FormGroup;
   nombrebtn!: string;
   listaregistrosFiltrados: any;
+  listaEspecialidad: any[] = []; // aquí se cargan todas las especialidades 
+  especialidadesFiltradas!: Observable<any[]>;
  
   constructor(
     private fb: FormBuilder,
@@ -28,6 +30,23 @@ export class MedicosComponent {
   }
 
   ngOnInit(): void {
+   this.servicio.getRegistrosEspecialidad().subscribe(
+  (resp: any) => {
+    this.listaEspecialidad = resp.sort((a: any, b: any) =>   a.nombre.localeCompare(b.nombre) );
+    console.log(this.listaEspecialidad);
+     // configuramos el filtrado reactivo
+      this.especialidadesFiltradas = this.generalForm.get('especialidad')!.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filtrar(value || ''))
+      );
+  },
+  (err: any) => {
+    console.error(err);
+  }
+);
+
+
+
     this.crearFormulario();
 
     this.generalForm.get('nombre')!.valueChanges
@@ -41,6 +60,15 @@ export class MedicosComponent {
             });
  
   }
+
+
+ private _filtrar(valor: string): any[] {
+    const valorFiltrado = valor.toLowerCase();
+    return this.listaEspecialidad.filter(e =>
+      e.nombre.toLowerCase().includes(valorFiltrado)
+    );
+  }
+
 
   onNoClick(): void {
     this.dialogRef.close();

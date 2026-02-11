@@ -59,30 +59,30 @@
 
                 <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
                     <label class="d-flex align-items-center">
-                      <input class="form-check-input me-2" type="checkbox" formControlName="estado">
-                      Activa
+                        <input class="form-check-input me-2" type="checkbox" formControlName="estado">
+                        Activa
                     </label>
-                  
+
                     <label class="d-flex align-items-center">
-                      <input class="form-check-input me-2" type="checkbox" formControlName="dispensa">
-                      Habilitada para dispensar
+                        <input class="form-check-input me-2" type="checkbox" formControlName="dispensa">
+                        Habilitada para dispensar
                     </label>
-                  
+
                     <label class="d-flex align-items-center">
-                      <input class="form-check-input me-2" type="checkbox" formControlName="entrada">
-                      Habilitada para ingresos
+                        <input class="form-check-input me-2" type="checkbox" formControlName="entrada">
+                        Habilitada para ingresos
                     </label>
-                  
+
                     <label class="d-flex align-items-center">
-                      <input class="form-check-input me-2" type="checkbox" formControlName="salida">
-                      Habilitada para salidas
+                        <input class="form-check-input me-2" type="checkbox" formControlName="salida">
+                        Habilitada para salidas
                     </label>
-                  
+
                     <label class="d-flex align-items-center">
-                      <input class="form-check-input me-2" type="checkbox" formControlName="inventario">
-                      Habilitada para inventario
+                        <input class="form-check-input me-2" type="checkbox" formControlName="inventario">
+                        Habilitada para inventario
                     </label>
-                  </div>
+                </div>
 
 
                 <hr>
@@ -92,8 +92,8 @@
                             {{this.nombrebtn}}</button>
                     </div>
                     <div class="col-sm">
-                        <button  *ngIf="!banderaRegistro && tieneAcceso(3)" type="button" class="btn btn-outline-primary w-100"
-                            (click)="mostrarInactivos()">
+                        <button *ngIf="!banderaRegistro && tieneAcceso(3)" type="button"
+                            class="btn btn-outline-primary w-100" (click)="mostrarInactivos()">
                             Bodegas Inactivas
                         </button>
                         <button *ngIf="banderaRegistro" type="button" class="btn btn-outline-primary w-100"
@@ -107,10 +107,11 @@
                 <div class="date-inputs">
                     <input type="date" formControlName="fInicial" class="form-control border-end-0 date-input">
                     al
-                    <input type="date" formControlName="fFinal" class="form-control border-end-0 date-input"  [max]="hoy"> <!---->
+                    <input type="date" formControlName="fFinal" class="form-control border-end-0 date-input"
+                        [max]="hoy"> <!---->
 
                     <button class="btn btn-outline-primary w-100" [matMenuTriggerFor]="menuC">
-                        Generar reportes consolidados 
+                        Generar reportes consolidados
                     </button>
 
 
@@ -118,30 +119,35 @@
                     <mat-menu #menuC="matMenu">
 
                         <button (click)='reporteBodegaEntregasDetalldasTodasConsoloidada()' mat-menu-item>
-                                <mat-icon [ngStyle]="{'color':'orange'}">vertical_split</mat-icon>
-                                <span>Entregas det. item formula</span>
-                            </button>
-                        <button *ngIf ="tieneAcceso(3)" (click)='reporteBodegaEntregasDetalldasTodas()' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'orange'}">vertical_split</mat-icon>
+                            <span>Entregas det. item formula</span>
+                        </button>
+                        <button *ngIf="tieneAcceso(3)" (click)='reporteBodegaEntregasDetalldasTodas()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
                             <span>Entregas det. item entrega</span>
                         </button>
 
-                         
 
-                        <button *ngIf ="tieneAcceso(3)" (click)='reporteExistenciasActualestotal()' mat-menu-item>
+
+                        <button *ngIf="tieneAcceso(3)" (click)='reporteExistenciasActualestotal()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
                             <span>Existencias actuales</span>
                         </button>
 
-                        <button *ngIf ="tieneAcceso(3)" (click)='reportePendientesTodos()' mat-menu-item>
+                        <button *ngIf="tieneAcceso(3)" (click)='reportePendientesTodos()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'orange'}">remove_circle_outline</mat-icon>
                             <span>Consolidado de pendientes</span>
                         </button>
 
-                        <button *ngIf ="tieneAcceso(3)" (click)='reportePendientesDetalldos(0)' mat-menu-item>
+                        <button *ngIf="tieneAcceso(3)" (click)='reportePendientesDetalldos(0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'#2BB6D7'}">blur_linear</mat-icon>
                             <span>Detallado de pendientes</span>
-                        </button>                       
+                        </button>
+
+                        <button *ngIf="tieneAcceso(2)" (click)='reportePendientesDetalldosFuturos(0)' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'orange'}">blur_linear</mat-icon>
+                            <span>Continuidades Futuras</span>
+                        </button>
 
                         <button (click)='reporteCuotasModeradoras(0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'black'}">monetization_on</mat-icon>
@@ -157,7 +163,7 @@
                             <span>Formulas por meses</span>
                         </button>
 
-                        <button *ngIf ="tieneAcceso(3)" (click)='reporteFormulasDetalldas(0,0)' mat-menu-item>
+                        <button *ngIf="tieneAcceso(3)" (click)='reporteFormulasDetalldas(0,0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">low_priority</mat-icon>
                             <span>Detalle de formulas</span>
                         </button>
@@ -170,21 +176,21 @@
                         <button (click)='reporteFormulasNoProcesadas(0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'red'}"> live_help</mat-icon>
                             <span>Formulas no procesadas</span>
-                        </button>                 
+                        </button>
 
-                        <button *ngIf ="tieneAcceso(3)" (click)='exportarMedicamentosNorotanxlsx(0)' mat-menu-item>
+                        <button *ngIf="tieneAcceso(3)" (click)='exportarMedicamentosNorotanxlsx(0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'orange'}">gps_off</mat-icon>
                             <span>Medicamentos que no rotan</span>
                         </button>
-                        <button *ngIf ="tieneAcceso(3)" (click)='exportarVencidosxlsx(0)' mat-menu-item>
+                        <button *ngIf="tieneAcceso(3)" (click)='exportarVencidosxlsx(0)' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'red'}">report</mat-icon>
                             <span>Medicamentos vencidos</span>
-                        </button>     
+                        </button>
                         <button (click)='reporteEnConstruccion()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
                             <span>Prescritos por meses</span>
-                        </button>                  
-<!--
+                        </button>
+                        <!--
                         <button (click)='reporteEnConstruccion()' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">monetization_on</mat-icon>
                             <span>Costo formulación</span>
@@ -220,7 +226,7 @@
                     <th>Nombre</th>
                     <th>Punto de entrega</th>
                     <th>Dirección</th>
-                    <th>Teléfono</th>                    
+                    <th>Teléfono</th>
                     <th>Ver</th>
                     <th>Gestión</th>
 
@@ -236,7 +242,7 @@
                     <td>{{primerasmayusculas(itemt.puntoEntrega)}}</td>
                     <td>{{primerasmayusculas(itemt.direccion)}}</td>
                     <td>{{primerasmayusculas(itemt.telefono)}}</td>
-                    
+
                     <td>
 
                         <mat-icon title="Mdicamentos bodega" class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
@@ -254,24 +260,24 @@
                         <mat-icon title="Listar en PDF" class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
                             [matMenuTriggerFor]="menu">print</mat-icon>
 
-                        <mat-icon *ngIf ="tieneAcceso(4)" title="Actualizar datos de la bodega" class="pointer-cursor"
+                        <mat-icon *ngIf="tieneAcceso(4)" title="Actualizar datos de la bodega" class="pointer-cursor"
                             [ngStyle]="{'color':'#009A94'}" (click)="mostrarRegistro(itemt)">edit</mat-icon>
 
-                        <mat-icon *ngIf ="tieneAcceso(4)" title="Eliminar la bodega" class="pointer-cursor" [ngStyle]="{'color':'red'}"
-                            (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+                        <mat-icon *ngIf="tieneAcceso(4)" title="Eliminar la bodega" class="pointer-cursor"
+                            [ngStyle]="{'color':'red'}" (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
 
                         <mat-menu #menu="matMenu">
                             <button (click)='reporteBodegaEntregasDetalldasConsolidada(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'orange'}">vertical_split</mat-icon>
                                 <span>Entregas det. item formula</span>
                             </button>
-                            
+
                             <button (click)='reporteBodegaEntregasDetalldas(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
                                 <span>Entregas det. item entrega</span>
                             </button>
 
-                          
+
 
                             <button (click)='reporteExistenciasActuales(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'#2BB6D7'}">playlist_add_check</mat-icon>
@@ -293,6 +299,12 @@
                                 <span>Detallado de pendientes</span>
                             </button>
 
+                            <button *ngIf="tieneAcceso(2)" (click)='reportePendientesDetalldosFuturos(itemt.idBodega)'
+                                mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">blur_linear</mat-icon>
+                                <span>Continuidades Futuras</span>
+                            </button>
+
                             <button (click)='reporteStopMinimo(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'black'}">vertical_align_bottom</mat-icon>
                                 <span>Por debajo de stock mínimo</span>
@@ -304,13 +316,13 @@
                             <button (click)='reporteBodegaEntregasMeses(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
                                 <span>Ent. consolidadas por meses</span>
-                            </button>         
+                            </button>
 
                             <button (click)='reporteFormulasDetalldas(itemt.idBodega,0)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'green'}">low_priority</mat-icon>
                                 <span>Detalle de formulas</span>
                             </button>
-    
+
                             <button (click)='reporteFormulasDetalldas(itemt.idBodega,1)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'red'}">block</mat-icon>
                                 <span>Formulas Anuladas</span>
@@ -320,7 +332,7 @@
                                 <mat-icon [ngStyle]="{'color':'red'}"> live_help</mat-icon>
                                 <span>Formulas no procesadas</span>
                             </button>
-                            
+
 
                             <button (click)='exportarMedicamentosNorotanxlsx(itemt.idBodega)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'orange'}">gps_off</mat-icon>
@@ -330,7 +342,7 @@
                                 <mat-icon [ngStyle]="{'color':'red'}">report</mat-icon>
                                 <span>Medicamentos vencidos</span>
                             </button>
-<!--
+                            <!--
                             <button (click)='reporteEnConstruccion()' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
                                 <span>Prescritos por meses</span>
@@ -340,7 +352,7 @@
                                 <mat-icon [ngStyle]="{'color':'blue'}">event_note</mat-icon>
                                 <span>Entregados por meses</span>
                             </button>
-  -->                          
+  -->
                         </mat-menu>
                     </td>
                 </tr>

@@ -8,6 +8,7 @@ import { BodegaService } from 'src/app/servicios/bodega.service';
 import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import Swal from 'sweetalert2';
 import { FormulaService } from 'src/app/servicios/formula.service';
+import { AjusteinventarioService } from 'src/app/servicios/ajusteinventario.service';
 
 @Component({
   selector: 'app-trazamedicamento',
@@ -23,12 +24,14 @@ export class TrazamedicamentoComponent {
   medicamentosFiltrados: any[] = [];
   medicamentoActual: any = NaN;
   bodegaSeleccionada: string = "";
-  totalCantidadIngreso:number =0;
-  totalCantidadEgreso:number =0;
+  totalCantidadIngreso: number = 0;
+  totalCantidadEgreso: number = 0;
+  listaItemAjuste: any;
 
   constructor(
     private servicio: BodegaService,
     private ordenDespachoservicio: OrdendespachoService,
+    private ajusteInventarioservicio: AjusteinventarioService,
     private formulaService: FormulaService,
 
     private fb: FormBuilder) {
@@ -64,8 +67,8 @@ export class TrazamedicamentoComponent {
         });
         // Establecer el valor del select después de que se cargan los registros
         if (this.parametro) {
-          this.generalForm.patchValue({ idBodega: +this.parametro });    
-       
+          this.generalForm.patchValue({ idBodega: +this.parametro });
+
         }
       },
       (err: any) => {
@@ -78,7 +81,7 @@ export class TrazamedicamentoComponent {
     // Escuchar cambios en el select de bodegas
     this.generalForm.get('idBodega')!.valueChanges.subscribe((nuevoIdBodega: number) => {
       if (nuevoIdBodega) {
-        this.parametro = nuevoIdBodega;       
+        this.parametro = nuevoIdBodega;
         if (this.medicamentoActual) {
           this.buscarRegistro(this.medicamentoActual, this.parametro);
         }
@@ -105,17 +108,18 @@ export class TrazamedicamentoComponent {
     this.medicamentoActual = event.option.value.idMedicamento;
     this.generalForm.get('medicamento')?.setValue(event.option.value.nombre);
     this.buscarRegistro(this.medicamentoActual, this.parametro);
+
   }
 
-  public buscarRegistro(idMedicamento: number, idBodega: number) { 
-     const bodega = this.listaregistros.find((b: any) => b.idBodega === idBodega);
-     this.bodegaSeleccionada = bodega ? bodega.nombre : '';
-   
-     if (idMedicamento) {
+  public buscarRegistro(idMedicamento: number, idBodega: number) {
+    const bodega = this.listaregistros.find((b: any) => b.idBodega === idBodega);
+    this.bodegaSeleccionada = bodega ? bodega.nombre : '';
+
+    if (idMedicamento) {
       // Limpiar listas antes de cargar nueva data
       this.listaMedicamento = [];
-      this.totalCantidadIngreso =0;
-      this.totalCantidadEgreso =0;
+      this.totalCantidadIngreso = 0;
+      this.totalCantidadEgreso = 0;
       // Mostrar spinner mientras carga
       Swal.fire({
         title: 'Cargando registros...',
@@ -127,8 +131,8 @@ export class TrazamedicamentoComponent {
       });
       this.ordenDespachoservicio.getMedicamentoOrdenDespacho(idMedicamento, idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
         .subscribe((resp: any) => {
-          this.listaMedicamento = resp     
-          console.log(resp);
+          this.listaMedicamento = resp
+          
           Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
 
           const resultados = this.listaMedicamento.reduce((acc: any, item: any) => {
@@ -139,9 +143,9 @@ export class TrazamedicamentoComponent {
             }
             return acc;
           }, { coincidente: 0, noCoincidente: 0 });
-          
-          this.totalCantidadIngreso =  resultados.noCoincidente;
-          this.totalCantidadEgreso =resultados.coincidente;
+
+          this.totalCantidadIngreso = this.totalCantidadIngreso +resultados.noCoincidente;
+          this.totalCantidadEgreso = this.totalCantidadEgreso + resultados.coincidente;
         },
           (error) => {
             console.error('❌ Error cargando registros', error);
@@ -149,7 +153,7 @@ export class TrazamedicamentoComponent {
             Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
           }
         );
-
+      this.buscarRegistroAjuste(this.medicamentoActual, this.parametro);
     }
     else {
       Swal.fire({
@@ -157,8 +161,32 @@ export class TrazamedicamentoComponent {
         title: `Verificar`,
         text: `No ha seleccionado el medicamento sobre el cual va a realizar la busqueda!.`,
       });
-
     }
+  }
+
+  public buscarRegistroAjuste(idMedicamento: number, idBodega: number) {
+    this.ajusteInventarioservicio.getMedicamentoAjusteBodega(idMedicamento, idBodega, this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
+      .subscribe((resp: any) => {
+        this.listaItemAjuste = resp;
+      
+        const resultados = this.listaItemAjuste.reduce((acc: any, item: any) => {
+          if (item.cantidadAjuste > 0) {
+            acc.ingreso += item.cantidadAjuste || 0;
+          } else {
+            acc.egreso += item.cantidadAjuste || 0;
+          }
+          return acc;
+        }, { ingreso: 0, egreso: 0 });
+
+        this.totalCantidadIngreso = this.totalCantidadIngreso + resultados.ingreso;
+        this.totalCantidadEgreso = this.totalCantidadEgreso + (resultados.egreso * -1);
+
+      },
+        (error) => {
+          console.error('❌ Error cargando registros', error);
+          Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+        }
+      );
   }
 
 

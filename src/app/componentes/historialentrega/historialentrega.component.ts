@@ -94,6 +94,10 @@ export class HistorialentregaComponent {
     }
   }
 
+  public cancelEdicion(itemt: any) {
+    itemt.editing = false;
+  }
+
   public primerasmayusculas(str: string): string {
   if (!str) {
     return str;

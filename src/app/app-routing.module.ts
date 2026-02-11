@@ -34,11 +34,14 @@ import { PrescritosComponent } from './componentes/prescritos/prescritos.compone
 import { VencidosComponent } from './componentes/vencidos/vencidos.component';
 import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
 import { HistorialpqrsComponent } from './componentes/historialpqrs/historialpqrs.component';
+import { InicioComponent } from './componentes/inicio/inicio.component';
+
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'menu', component: MenuComponent, canActivate: [AuthGuard],
     children: [
+      { path: 'inicio', component: InicioComponent },
       { path: 'bodega', component: BodegaComponent },
       { path: 'medicamento', component: MedicamentoComponent },
       { path: 'ffarmaceutica', component: FfarmaceuticaComponent },

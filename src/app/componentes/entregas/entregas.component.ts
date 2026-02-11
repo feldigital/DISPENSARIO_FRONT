@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { HistorialMensajeI } from 'src/app/modelos/historialMensaje';
 import { MensajeI } from 'src/app/modelos/mensaje.model';
@@ -8,7 +9,7 @@ import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { WhatsappService } from 'src/app/servicios/whatsapp.service';
 import Swal from 'sweetalert2';
-//import * as QRCode from 'qrcode';
+
 
 @Component({
   selector: 'app-entregas',
@@ -20,7 +21,8 @@ export class EntregasComponent implements OnInit, OnChanges {
   listaItemsFormula: any;
   listaregistros: any = {};
   parametro: any;
-  @Input() formulaRecibida: number = NaN;
+  //@Input() formulaRecibida: number = NaN;
+  @Input() formulaRecibida: number | null = null;
   existencias: { [key: number]: number } = {};
   hoy!: string;
   enProceso: boolean = false;
@@ -28,35 +30,57 @@ export class EntregasComponent implements OnInit, OnChanges {
   historialEnvio: HistorialMensajeI = new HistorialMensajeI();
   selectedFile: File | null = null;
   editingSoporte: boolean = false;
+  pacienteActual: any;
+  editarContacto: boolean = false;
+  facturaForm!: FormGroup;
+  codigoGenerado: string | null = null; // almacena temporalmente el código generado
+  enviandoMensajes: boolean = false;
+  origen!: string;
 
   constructor(
-    private servicio: PacienteService,
+    private pacienteService: PacienteService,
     private medicamentoService: MedicamentoService,
     private servicioformula: FormulaService,
     private serviciobodega: BodegaService,
+    private formBuilder: FormBuilder,
     private whatsappService: WhatsappService,
-    private activatedRoute: ActivatedRoute) { }
+    private activatedRoute: ActivatedRoute) {
+    this.facturaForm = this.formBuilder.group({
+      direccion: [''],
+      celularPrincipal: [''],
+      celularSecundario: [''],
+      barrio: [''],
+      email: [''],
+    });
+  }
 
   ngOnInit(): void {
-    this.parametro = this.formulaRecibida
+    // Fecha actual formateada
+    this.hoy = new Date().toISOString().split('T')[0];
+    // Leer query params (origen)
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      this.origen = params.get('origen') ?? 'normal';
+    });
+    // Leer ID desde la ruta
     this.activatedRoute.paramMap.subscribe(params => {
-      this.parametro = params.get('id');
+      const idRuta = params.get('id');
+      // Prioridad 1: ID recibido directamente (formulaRecibida)
+      // Prioridad 2: ID de la ruta
+      this.parametro = this.formulaRecibida ?? idRuta;
+
       if (this.parametro) {
         this.buscarRegistro(this.parametro);
       }
     });
-    if (this.formulaRecibida) {
-      this.buscarRegistro(this.formulaRecibida);
-      this.parametro = this.formulaRecibida;
-    }
 
-    this.hoy = new Date().toISOString().split('T')[0];
   }
+
 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['datoRecibido'] && !changes['datoRecibido'].isFirstChange()) {
-      this.buscarRegistro(this.formulaRecibida);
+      //this.buscarRegistro(this.formulaRecibida);
+      this.buscarRegistro(this.parametro);
     }
   }
 
@@ -64,14 +88,85 @@ export class EntregasComponent implements OnInit, OnChanges {
     this.servicioformula.getFormulaId(id)
       .subscribe((resp: any) => {
         this.listaregistros = resp;
+        this.pacienteActual = resp.paciente;
         this.listaItemsFormula = resp.items.map((item: any) => ({
           ...item,
           editing: false,
           fechaPqrs: this.formatearFechaISO(item.fechaPqrs), // Formatea la fecha individual
           canalPqrs: this.formatearCanal(item.canalPqrs), // Formatea el canal de la pqrs         
         }));
+
+        // 👉 Rellenar el formulario con los datos del paciente
+        this.facturaForm.patchValue({
+          direccion: this.pacienteActual.direccion,
+          celularPrincipal: this.pacienteActual.celularPrincipal,
+          celularSecundario: this.pacienteActual.celularSecundario,
+          barrio: this.pacienteActual.barrio,
+          email: this.pacienteActual.email
+        });
+        console.log(this.origen);
+
+        // this.enviarMensajeAlertaCodigo()
+        (this.origen === 'procesar')
+          ? this.chequearMostrarAlertaCodigo()
+          : this.chequearMostrarAlertaCodigo();
+
       });
   }
+
+
+  // Método que centraliza la lógica de cuándo mostrar la alerta
+  chequearMostrarAlertaCodigo() {
+    const tienePermiso = this.tieneAcceso(2) === true;
+
+    // Asegurarnos de que listaregistros existe y la propiedad entregaCompleta esté definida
+    const entregaCompleta = !this.listaregistros?.entregaCompleta; // true/false coerced
+    // Normalizamos codigoVerificado: consideramos 'no tiene' si es null, undefined, '', false o la cadena 'null'
+    const codigo = this.listaregistros?.codigoVerificado;
+    const tieneCodigoVerificado = !(codigo === null || codigo === undefined || codigo === '' || String(codigo).toLowerCase() === 'null');
+    // Condición requerida: permiso, NO entrega completa, y NO tiene código verificado
+    if (tienePermiso && !entregaCompleta && !tieneCodigoVerificado) {
+      Swal.fire({
+        title: '⚠️ Código no verificado',
+        html: `
+    <div style="text-align: left; font-size: 15px; line-height: 1.6;">
+      <p>Esta fórmula presenta un <b>pendiente</b> y aún no cuenta con un <b>código de verificación</b> confirmado por el paciente</p>
+      <p>Antes de continuar, por favor:</p>
+      <ul style="margin-left: 20px; text-align: left;">
+        <li>📱 <b>Confirme que el número celular del paciente sea correcto.</b>   
+         <span style="font-size: 20px; color: red; font-weight: bold;">
+            WhatsApp ${this.pacienteActual?.celularPrincipal}
+          </span></li>
+        <li>✉️ De clic en el boton <b>Enviar código</b> para validar la comunicación.</li>
+      </ul>
+      <p style="margin-top: 10px; color: #555;">
+        Si el número no es correcto, actualícelo antes de enviar el mensaje, boton <b>Editar Contacto</b>.
+      </p>
+    </div>
+  `,
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6',
+      });
+
+
+    }
+  }
+
+  // Método que centraliza la lógica de cuándo mostrar la alerta
+  enviarMensajeAlertaCodigo() {
+    const tienePermiso = this.tieneAcceso(2) === true;
+    // Asegurarnos de que listaregistros existe y la propiedad entregaCompleta esté definida
+    const entregaCompleta = !this.listaregistros?.entregaCompleta; // true/false coerced
+    // Normalizamos codigoVerificado: consideramos 'no tiene' si es null, undefined, '', false o la cadena 'null'
+    const codigo = this.listaregistros?.codigoVerificado;
+    const tieneCodigoVerificado = !(codigo === null || codigo === undefined || codigo === '' || String(codigo).toLowerCase() === 'null');
+    // Condición requerida: permiso, NO entrega completa, y NO tiene código verificado
+    if (tienePermiso && !entregaCompleta && !tieneCodigoVerificado) {
+      this.enviarWhatsAppPendiente();
+    }
+  }
+
 
 
 
@@ -79,7 +174,6 @@ export class EntregasComponent implements OnInit, OnChanges {
     if (this.enProceso) {
       return; // ❌ Evita doble clic si ya está en proceso
     }
-
     try {
       let bodegaString = sessionStorage.getItem("bodega");
       let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
@@ -117,7 +211,6 @@ export class EntregasComponent implements OnInit, OnChanges {
           let selectElementdate = document.getElementById('fechaentrega') as HTMLInputElement;
           const selectedValueDate = selectElementdate.value;
 
-
           if (selectedValue !== '-1' && selectedValueDate !== '') {
             let selectElementinput = document.getElementById('cantidadentregada') as HTMLInputElement;
             const cantidadAentregar = parseInt(selectElementinput.value);
@@ -135,8 +228,38 @@ export class EntregasComponent implements OnInit, OnChanges {
                     const selectedValuedocumento = selectElementdocumento.value;
                     if (selectedValuetipo !== '' && selectedValuedocumento !== '') {
 
-                      this.enProceso = true;
 
+                      // ⬇️ PEGAR ESTE IF AQUÍ
+                      const fechaSolicitud = this.convertirFechaSinDesfase(this.listaregistros.fecSolicitud);
+                      const fechaEntrega = this.convertirFechaSinDesfase(selectedValueDate);
+                      const hoy = new Date();
+
+                      fechaSolicitud.setHours(0, 0, 0, 0);
+                      fechaEntrega.setHours(0, 0, 0, 0);
+                      hoy.setHours(0, 0, 0, 0);
+
+                      if (fechaEntrega < fechaSolicitud || fechaEntrega > hoy) {
+                        Swal.fire({
+                          icon: 'warning',
+                          title: 'Fecha de entrega no válida',
+                          html: `
+    La fecha de entrega seleccionada: <b>${this.formatFecha(selectedValueDate)}</b> no es válida.<br><br>
+
+    <ul style="text-align: left;">
+      <li>No puede ser anterior a la fecha de solicitud de la fórmula: <b>${this.formatFecha(fechaSolicitud)}</b>.</li>
+      <li>No puede ser posterior a la fecha actual: <b>${this.formatFecha(hoy)}</b>.</li>
+    </ul>
+
+    <br>Por favor seleccione una fecha de entrega correcta.
+  `,
+                        });
+
+                        return;
+                      }
+                      // ⬆️ FIN VALIDACIÓN
+
+
+                      this.enProceso = true;
                       this.servicioformula.saveItemEntregaFormula(itemt.idItem, bodega, funcionario, selectedValue, cantidadAentregar, selectedValuetipo, selectedValuedocumento, selectedValueDate, this.listaregistros.idBodega)
                         .subscribe({
                           next: (data: any) => {
@@ -189,6 +312,21 @@ export class EntregasComponent implements OnInit, OnChanges {
     }
   }
 
+
+  formatFecha(fecha: string | Date): string {
+  const d = new Date(fecha);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const anio = d.getFullYear();
+  return `${dia}/${mes}/${anio}`;
+}
+
+// Función para evitar desfase de fechas
+ convertirFechaSinDesfase(fechaStr: string): Date {
+  const [anio, mes, dia] = fechaStr.split('-').map(Number);
+  return new Date(anio, mes - 1, dia);
+}
+
   onRecibeChange(event: Event, itemt: any): void {
     const isChecked = (event.target as HTMLInputElement).checked;
     const tipoRecibeInput = document.getElementById('tipoRecibe') as HTMLInputElement;
@@ -206,7 +344,7 @@ export class EntregasComponent implements OnInit, OnChanges {
         Swal.fire({
           icon: 'error',
           title: `Edad no permitida!`,
-          text: 'El paciente no tiene la edad para recibir los medicamentos de la formula número ' + itemt.idFormula + ' por favor agregue los datos del tutor responsable',
+          text: 'El paciente no tiene la edad para recibir los medicamentos de la formula número ' + this.listaregistros.idFormula + ' por favor agregue los datos del tutor responsable',
         });
       }
     } else {
@@ -499,14 +637,14 @@ através de WhatsApp ${bodega?.telefono}
 
     // Genera contenido QR: puedes cambiar esto a lo que desees codificar
     //const qrTexto = `Entrega fórmula N° ${formula.idFormula} - Paciente: ${formula.paciente.numDocumento}`;
-    //const qrBase64 = await QRCode.toDataURL(qrTexto);
+    //const qrBase64 = await QRCode.toDataURL(qrTexto); 
 
     return `
     <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
       FORMATO DE ENTREGA
-      SISM - SUPLYMEDICAL
+      SISM - SUPLYMEDICAL     
 ${bodega?.direccion}
-Nro: ${formula.idFormula}
+Nro: ${formula.idFormula} 
 Impresión: ${fechaimpresionFormateada}
 
 -------------------------------------
@@ -551,6 +689,110 @@ Recuerde! no los deje vencer.
   }
 
 
+
+  async imprimirRecibo(): Promise<void> {
+    const contenido = await this.generarContenidoPOSRecibo(this.listaregistros);
+    // Crear un iframe oculto
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(`
+      <html>
+      <head>
+        <style>
+          @media print {
+            body {
+              font-family: 'Courier New', Courier, monospace;
+              font-size: 20px;
+              font-weight: bold;
+              margin: 2mm;
+              padding: 0;
+            }
+            pre {
+              font-size: 20px;
+              line-height: 1.5;
+              margin: 2mm;
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body onload="window.print(); window.onafterprint = function() { window.close(); }">
+        ${contenido}
+      </body>
+      </html>
+    `);
+      doc.close();
+    }
+
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 3000); // Se elimina el iframe después de imprimir
+  }
+
+
+
+  async generarContenidoPOSRecibo(formula: any): Promise<string> {
+    const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+    const fechaSolicitud = new Date(formula.fecSolicitud);
+    const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+      hour12: true
+    }).format(fechaSolicitud);
+
+    const fechaimpresion = new Date();
+    const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+      hour12: true
+    }).format(fechaimpresion);
+
+
+    const valorCuota = formula.valorCM.toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 2
+    });
+
+    // Genera contenido QR: puedes cambiar esto a lo que desees codificar
+    //const qrTexto = `Entrega fórmula N° ${formula.idFormula} - Paciente: ${formula.paciente.numDocumento}`;
+    //const qrBase64 = await QRCode.toDataURL(qrTexto); FORMATO DE ENTREGA
+
+    return `
+    <pre style="font-family: Courier, monospace; font-size: 20px; font-weight: bold;">
+        RECIBO DE CAJA  
+      SISM - SUPLYMEDICAL
+Nro: ${formula.idFormula}      
+${bodega?.direccion}
+Impresión: ${fechaimpresionFormateada}
+-------------------------------------
+Documento:${formula.paciente.numDocumento}  
+Paciente: ${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''}
+          ${formula.paciente?.pApellido ?? ''} ${formula.paciente?.sApellido ?? ''}
+-------------------------------------
+Dispensario:${bodega?.puntoEntrega}
+Funcionario:${formula.funcionariocreaformula}
+Fecha: ${fechaFormateada}
+Convenio:${formula.paciente.eps.nombre}
+-------------------------------------
+
+Valor Cuota Moderadora  
+Recaudada:   ${valorCuota}
+       
+-------------------------------------
+
+</pre>
+
+  `;
+  }
 
 
   async imprimirTirilla(): Promise<void> {
@@ -756,18 +998,11 @@ Documento:___________________________
       });
     },
       err => {
-       // Swal.fire({
-       //   icon: 'error',
-       //   title: 'Error...',
-       //   text: 'No se pudo guardar la PQRS  al medicamento de la formula en la base de datos!',
-       //   footer: err.mensaje
-       // });
-
         Swal.fire({
-        icon: 'success',
-        title: 'Ok',
-        text: mensajeTitle,
-      });
+          icon: 'success',
+          title: 'Ok',
+          text: mensajeTitle,
+        });
 
 
       }
@@ -819,7 +1054,7 @@ Documento:___________________________
       return;
     }
 
-     if (fechaPqrsDigitada < this.listaregistros.fec_solicitud) {
+    if (fechaPqrsDigitada < this.listaregistros.fec_solicitud) {
       Swal.fire('Fecha de la PQRS inválida', 'La fecha de la PQRS no debe ser menor a la fecha en que el paciente solicito la formula.', 'error');
       return;
     }
@@ -836,12 +1071,6 @@ Documento:___________________________
       itemsEntrega: [], // anular entregas
     }));
     this.editFormula("La PQRS se asigno exitosamente a todos los medicamentos de la formula")
-    //Swal.fire({
-    //         icon: 'success',
-    //         title: 'PQRS ingresada a toda la Formula',
-    //         text: `La PQRS se asigno exitosamente a todos los medicamentos de la formula, recuerde actualizar la formula para que el cambio persista en base de datos`,
-    //       });
-
   }
 
   aplicarPQRS(itemt: any) {
@@ -1271,6 +1500,177 @@ Documento:___________________________
         });
       }
     });
+  }
+
+  cancelarEdicion() {
+    this.editarContacto = false;
+  }
+
+  enEdicion() {
+    this.editarContacto = true;
+  }
+
+  validarCelular(celular: string): boolean {
+    const regex = /^[3][0-9]{9}$/; // Ej. para Colombia: empieza por 3, 10 dígitos
+    return regex.test(celular);
+  }
+
+  validarEmail(email: string): boolean {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  }
+
+  guardarDatosContacto() {
+    // Obtener y limpiar los valores del formulario
+    this.pacienteActual.celularPrincipal = String(this.facturaForm.get('celularPrincipal')!.value || '').trim();
+    this.pacienteActual.celularSecundario = String(this.facturaForm.get('celularSecundario')!.value || '').trim();
+    this.pacienteActual.direccion = String(this.facturaForm.get('direccion')!.value || '').trim();
+    this.pacienteActual.barrio = String(this.facturaForm.get('barrio')!.value || '').trim();
+    this.pacienteActual.email = String(this.facturaForm.get('email')!.value || '').trim().toLowerCase();
+
+
+    // Validar celular solo si se ingresó
+    if (this.pacienteActual.celularPrincipal && !this.validarCelular(this.pacienteActual.celularPrincipal)) {
+      Swal.fire('Celular inválido', 'Si ingresa un celular principal, debe tener un formato válido.', 'warning');
+      return;
+    }
+
+    // Validar email solo si se ingresó
+    if (this.pacienteActual.email && !this.validarEmail(this.pacienteActual.email)) {
+      Swal.fire('Correo inválido', 'Si ingresa un correo electrónico, debe tener un formato válido.', 'warning');
+      return;
+    }
+
+
+    Swal.fire({
+      title: '¿Desea actualizar?',
+      html: `
+        <p style="margin:2px 0;"><strong>Teléfono Principal:</strong> ${this.pacienteActual.celularPrincipal}</p>
+        <p style="margin:2px 0;"><strong>Teléfono Secundario:</strong> ${this.pacienteActual.celularSecundario}</p>
+        <p style="margin:2px 0;"><strong>Dirección:</strong> ${this.pacienteActual.direccion}</p>
+        <p style="margin:2px 0;"><strong>Barrio:</strong> ${this.pacienteActual.barrio}</p>
+        <p style="margin:2px 0;"><strong>Correo:</strong> ${this.pacienteActual.email}</p>   
+        `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Actualizar!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Llama al servicio para guardar los datos
+
+        this.pacienteService.update(this.pacienteActual).subscribe({
+          next: (resp: any) => {
+
+            Swal.fire({
+              icon: 'success',
+              title: `Actualización exitosa`,
+              text: `Los datos de contacto del paciente ${this.pacienteActual.pNombre} ${this.pacienteActual.sNombre} ${this.pacienteActual.pApellido} ${this.pacienteActual.sApellido} fueron actualizados correctamente.`,
+            });
+          },
+          error: (error) => {
+            console.error('❌ Error actualizando el registro', error);
+            Swal.fire('Error', 'No se pudo actualizar el registro.', 'error');
+          }
+        });
+
+      }
+    });
+    this.editarContacto = false;
+  }
+
+
+  async enviarWhatsAppPendiente() {
+    if (this.enviandoMensajes) {
+      return; // Evita doble clic mientras se envía
+    }
+
+    this.enviandoMensajes = true;
+
+    const paciente = this.pacienteActual;
+    let celular = (paciente?.celularPrincipal || '').replace(/\s/g, '');
+    if (!this.celularValido(celular)) {
+      this.enviandoMensajes = false;
+      Swal.fire('Error', '❌ El número de celular principal del paciente ' + paciente?.celularPrincipal + ',  no es válido para enviar el mensaje!', 'error');
+      return;
+    }
+    // Generar número aleatorio de 4 dígitos
+    const nuevoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
+    const bodega = await this.serviciobodega.getRegistroId(this.listaregistros.idBodega).toPromise();
+    const textomensaje = "Hola *" + paciente.pNombre + "*! \n" + bodega?.nombre
+      + " te informa que se genero un pendiente en esta entrega, su Nro. es: *" + this.listaregistros.idFormula
+      + "*  \nEstar atento te estaremos informando apenas este disponible. \nRecuerde que debe traer su volante de pendiente. "
+      + "\n\nCODIGO DE COMPROBACIÓN *" + nuevoCodigo + "*";
+
+    this.mensajeWhat.phone = "57" + celular;
+    this.mensajeWhat.message = textomensaje;
+
+    this.whatsappService.enviarMensaje(this.mensajeWhat).subscribe(
+      (resp: any) => {
+        this.codigoGenerado = nuevoCodigo;
+        //Swal.fire('📤 Mensaje enviado', '', 'success');
+        this.enviandoMensajes = false; // ✅ Reactiva el botón solo si fue exitoso
+        this.verificarCodigoPendiente();
+
+      },
+      (err: any) => {
+
+        Swal.fire('❌ Error al enviar el mensaje', err.message || 'Error desconocido', 'error');
+        console.error(err);
+        this.enviandoMensajes = false; // ✅ Reactiva el botón solo si falla
+      });
+  }
+
+
+  async verificarCodigoPendiente() {
+    if (!this.codigoGenerado) {
+      Swal.fire('⚠️ Sin código', 'Primero debe enviar el mensaje al paciente para generar un código.', 'warning');
+      return;
+    }
+    const result = await Swal.fire({
+      title: 'Código de comprobación de mensaje',
+      input: 'text',
+      inputLabel: 'Ingrese el código que comunicó el paciente',
+      inputPlaceholder: 'Ejemplo: 1234',
+      inputAttributes: {
+        maxlength: '4',
+        inputmode: 'numeric'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Verificar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: (value) => {
+        if (!value || value.trim() === '') {
+          Swal.showValidationMessage('❌ Debe ingresar el código antes de continuar');
+          return; // NO devolver true; simplemente no devolver nada para que Swal no cierre
+        }
+        // devolver el valor ingresado (sin espacios) para que lo reciba result.value
+        return value.trim();
+      }
+    });
+    // Si el usuario canceló o cerró, result.value será undefined
+    const codigoIngresado = result?.value;
+    if (!codigoIngresado) return;
+    // Asegurarnos de comparar strings y sin espacios
+    const codigoGeneradoStr = String(this.codigoGenerado).trim();
+    if (codigoIngresado === codigoGeneradoStr) {
+      //actualizar en la base de datos el codigo
+      console.log("Formula: " + this.listaregistros.idFormula + " Codigo Verificado: " + codigoGeneradoStr);
+      this.servicioformula.guardarCodigoVerificado(this.listaregistros.idFormula, codigoGeneradoStr)
+        .subscribe(
+          (resp) => {
+            Swal.fire('✅ Código verificado correctamente', '', 'success');
+          },
+          (err) => {
+            Swal.fire('❌ Error de guardado', 'El código no se pudo guardar en la base de datos.', 'error');
+          }
+        );
+
+      this.codigoGenerado = null; // limpiar después de verificar
+    } else {
+      Swal.fire('❌ Código incorrecto', 'El código ingresado no coincide con el enviado al paciente.', 'error');
+    }
   }
 
 

@@ -15,6 +15,7 @@ export class OrdenDespachoI {
     nomProvedor: string;
     numFactura: string;
     valor: number;
+    tipoIngreso: string;
     itemsDespacho: Array<ItemOrdenDespachoI> = [];
 
     constructor() {
@@ -32,6 +33,7 @@ export class OrdenDespachoI {
         this.nomProvedor= "";
         this.numFactura= "";
         this.valor= NaN;   
+        this.tipoIngreso="";
     }
 
 }

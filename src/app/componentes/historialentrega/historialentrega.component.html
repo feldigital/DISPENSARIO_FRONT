@@ -2,43 +2,45 @@
 
     <div class="mb-3" [formGroup]="generalForm">
         <div class="row g-2 align-items-end">
-      
-          <!-- Documento -->
-          <div class="col-md-3">
-            <label class="form-label mb-1 fw-bold">Documento</label>
-            <div class="input-group input-group-sm">
-              <input type="text" class="form-control border-end-0" formControlName="documento" placeholder="Número de documento">
-              <span class="input-group-text bg-white border-start-0">
-                <mat-icon class="text-info">zoom_in</mat-icon>
-              </span>
+
+            <!-- Documento -->
+            <div class="col-md-3">
+                <label class="form-label mb-1 fw-bold">Documento</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control border-end-0" formControlName="documento"
+                        placeholder="Número de documento">
+                    <span class="input-group-text bg-white border-start-0">
+                        <mat-icon class="text-info">zoom_in</mat-icon>
+                    </span>
+                </div>
             </div>
-          </div>
-      
-          <!-- Fecha inicial -->
-          <div class="col-md-3">
-            <label class="form-label mb-1 fw-bold">Fecha inicial</label>
-            <input type="date" class="form-control form-control-sm" formControlName="fechainicial">
-          </div>
-      
-          <!-- Fecha final -->
-          <div class="col-md-3">
-            <label class="form-label mb-1 fw-bold">Fecha final</label>
-            <input type="date" class="form-control form-control-sm" formControlName="fechafinal">
-          </div>
-      
-          <!-- Botón Buscar -->
-          <div class="col-md-3">
-            <button type="button" class="btn btn-info btn-sm btn-custom-gradient w-100 d-flex align-items-center justify-content-center"
-              (click)="buscarRegistro()">
-              <mat-icon class="me-1">search</mat-icon>
-              <span>Buscar</span>
-            </button>
-          </div>
-          
-      
+
+            <!-- Fecha inicial -->
+            <div class="col-md-3">
+                <label class="form-label mb-1 fw-bold">Fecha inicial</label>
+                <input type="date" class="form-control form-control-sm" formControlName="fechainicial">
+            </div>
+
+            <!-- Fecha final -->
+            <div class="col-md-3">
+                <label class="form-label mb-1 fw-bold">Fecha final</label>
+                <input type="date" class="form-control form-control-sm" formControlName="fechafinal">
+            </div>
+
+            <!-- Botón Buscar -->
+            <div class="col-md-3">
+                <button type="button"
+                    class="btn btn-info btn-sm btn-custom-gradient w-100 d-flex align-items-center justify-content-center"
+                    (click)="buscarRegistro()">
+                    <mat-icon class="me-1">search</mat-icon>
+                    <span>Buscar</span>
+                </button>
+            </div>
+
+
         </div>
-      </div>
-      
+    </div>
+
 
 
     <div class="alert alert-info my-4" *ngIf="listaregistros?.length == 0">
@@ -71,9 +73,12 @@
                     <td>{{itemt.idPaciente}}</td>
                     <td>{{itemt.tipoDoc}}</td>
                     <td>{{itemt.numDocumento}}</td>
-                    <td>{{primerasmayusculas(itemt.pNombre + ' ' + itemt.sNombre +' '+ itemt.pApellido +' '+
-                        itemt.sApellido
-                        )}}</td>
+                    <td> {{ primerasmayusculas(
+                        (itemt.pNombre || '') + ' ' +
+                        (itemt.sNombre || '') + ' ' +
+                        (itemt.pApellido || '') + ' ' +
+                        (itemt.sApellido || '')
+                        ) }}</td>
                     <td>{{ itemt.fecNacimiento | date:'dd/MM/yyyy' }} </td>
                     <td>{{itemt.municipio.nombre}} </td>
                     <td>{{itemt.eps.codigo}}</td>
@@ -114,11 +119,11 @@
                 <tr *ngFor="let itemt of listaformulas let i= index" (click)="mostrarItemformula(itemt)"
                     [ngClass]="{'selected-row': ajusteActual?.idFormula === itemt.idFormula}">
                     <td>{{i+1}}</td>
-                    <td>{{itemt.fecPrescribe | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.fecPrescribe | date: 'dd/MM/yyyy'}}</td>
                     <td>{{itemt.idFormula}}</td>
                     <td>{{itemt.ips.nombre}}</td>
                     <td>{{itemt.medico.nombre}}</td>
-                    <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.fecSolicitud | date: 'dd/MM/yyyy'}}</td>
                     <td>{{itemt.continuidad}}</td>
                     <td>{{itemt.items.length}}
                         <mat-icon class="pointer-cursor" title="Ver medicamentos" [ngStyle]="{'color':'#009A94'}"
@@ -160,8 +165,18 @@
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{
                             item.medicamento.idMedicamento
                             }}</td>
-                        <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{ item.medicamento.nombre
-                            }}</td>
+
+
+
+                        <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">
+                            <mat-icon *ngIf="(item.canalPqrs && item.canalPqrs.trim() !== '') "
+                                [title]="item.canalPqrs + ' - ' + (item.fechaPqrs | date:'dd/MM/yyyy')"
+                                [ngStyle]="{'font-size': '18px', 'color':'red'}">
+                                record_voice_over
+                            </mat-icon>
+                            {{ item.medicamento.nombre
+                            }}
+                        </td>
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centercelda">{{
                             item.medicamento.forma.nombre }}</td>
                         <td [attr.rowspan]="item.itemsEntrega.length + 1" class="centered">{{ item.cantidad }}</td>

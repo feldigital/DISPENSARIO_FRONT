@@ -1,40 +1,25 @@
-
-
 <div class="container mt-4">
   <form [formGroup]="generalForm" class="w-100">
-      <h5 class="mb-3">Registro del Profesional</h5>
+    <h5 class="mb-3">Registro del Profesional</h5>
     <div class="row g-3">
 
       <!-- Nombre del médico -->
       <div class="col-md-12">
         <label for="nombre" class="form-label">Nombre del médico</label>
-        <input
-          type="text"
-          id="nombre"
-          formControlName="nombre"
-          (input)="toUpperCase($event, 'nombre')"
-          placeholder="Ej: JUAN PEREZ"
-          class="form-control"
-          required
-        />
+        <input type="text" id="nombre" formControlName="nombre" (input)="toUpperCase($event, 'nombre')"
+          placeholder="Ej: JUAN PEREZ" class="form-control" required />
       </div>
 
       <!-- Registro médico -->
       <div class="col-md-4">
         <label for="registroMedico" class="form-label">Reg. médico</label>
-        <input
-          type="text"
-          id="registroMedico"
-          formControlName="registroMedico"
-          (blur)="buscarRegistro()"
-          placeholder="Ej: 123456"
-          class="form-control"
-          required
-        />
+        <input type="text" id="registroMedico" formControlName="registroMedico" (blur)="buscarRegistro()"
+          placeholder="Ej: 123456" class="form-control" required />
       </div>
 
       <!-- Especialidad -->
       <div class="col-md-8">
+        <!--
         <label for="especialidad" class="form-label">Especialidad</label>
         <input
           type="text"
@@ -45,45 +30,44 @@
           class="form-control"
           required
         />
+-->
+
+        <!-- <mat-form-field appearance="outline" class="w-100"> -->
+        <mat-form-field appearance="legacy" class="w-100">
+
+          <mat-label>Especialidad</mat-label>
+          <input type="text" matInput formControlName="especialidad" [matAutocomplete]="auto">
+
+          <mat-autocomplete #auto="matAutocomplete">
+            <mat-option *ngFor="let esp of especialidadesFiltradas | async" [value]="esp.nombre">
+              {{ esp.nombre }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
       </div>
+
 
       <!-- Tipo de documento -->
       <div class="col-md-4">
         <label for="tipoDoc" class="form-label">Tipo</label>
-        <input
-          type="text"
-          id="tipoDoc"
-          formControlName="tipoDoc"
-          (input)="toUpperCase($event, 'tipoDoc')"
-          placeholder="Ej: CC, TI, CE"
-          class="form-control"
-        />
+        <input type="text" id="tipoDoc" formControlName="tipoDoc" (input)="toUpperCase($event, 'tipoDoc')"
+          placeholder="Ej: CC, TI, CE" class="form-control" />
       </div>
 
       <!-- Número de documento -->
       <div class="col-md-8">
         <label for="numDocumento" class="form-label">Nro de documento</label>
-        <input
-          type="number"
-          id="numDocumento"
-          formControlName="numDocumento"
-          placeholder="Ej: 1234567890"
-          class="form-control"
-        />
+        <input type="number" id="numDocumento" formControlName="numDocumento" placeholder="Ej: 1234567890"
+          class="form-control" />
       </div>
 
       <!-- Estado -->
       <div class="col-md-6 d-flex align-items-center">
-        <input
-          class="form-check-input me-2"
-          type="checkbox"
-          id="estado"
-          formControlName="estado"
-        />
+        <input class="form-check-input me-2" type="checkbox" id="estado" formControlName="estado" />
         <label for="estado" class="form-check-label">Activo</label>
       </div>
-      </div>
-  <div class="row g-3">
+    </div>
+    <div class="row g-3">
       <!-- Botones -->
       <div class="col-md-6">
         <button type="button" class="btn btn-success w-100" (click)="create()">
@@ -116,10 +100,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let item of listaregistrosFiltrados; let i = index"
-          [style.color]="item.estado ? 'black' : 'red'"
-        >
+        <tr *ngFor="let item of listaregistrosFiltrados; let i = index" [style.color]="item.estado ? 'black' : 'red'">
           <td>{{ i + 1 }}</td>
           <td>{{ item.registroMedico }}</td>
           <td>{{ primerasmayusculas(item.nombre) }}</td>

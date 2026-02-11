@@ -47,9 +47,9 @@
               [ngClass]="{'selected-row': ajusteActual?.idAjuste === itemt.idAjuste}">              
                   <td>    
                     {{itemt.idAjuste}}</td>
-                  <td>{{itemt.fechaAjuste | date: 'dd/MM/YYYY'}}</td>
+                  <td>{{itemt.fechaAjuste | date: 'dd/MM/yyyy'}}</td>
                   <td>{{itemt.funcionarioAjuste}}</td>   
-                  <td>{{itemt.fechaInventario | date: 'dd/MM/YYYY'}}</td>          
+                  <td>{{itemt.fechaInventario | date: 'dd/MM/yyyy'}}</td>          
                   <td>{{itemt.funcionarioInventario}}</td>                               
                   <td>{{itemt.itemsAjuste.length}}                   
                   </td>
@@ -108,7 +108,8 @@
                 <th>Presentación</th>
                 <th>Existencia en el sistema durante el inventario</th>
                 <th>Existencia física en el inventario</th>
-                <th>Cantidad a ajustar +/-</th>                             
+                <th>Cantidad a ajustar +/-</th>    
+                <th>Admin</th>                          
                
             </tr>
         </thead>
@@ -121,7 +122,24 @@
                     <td class="text-center">  {{item.cantidadSistema}}</td>  
                     <td class="text-center">  {{item.cantidadFisica}}</td>  
                     <td class="text-center" [ngClass]="{'text-danger': item.cantidadAjuste < 0, 'text-success': item.cantidadAjuste > 0}">  {{item.cantidadAjuste}}</td>        
-                     
+                      <td>
+                    <mat-icon *ngIf="!item.estado && !item.editing" title="Editar cantidad"
+                        class="pointer-cursor" title="Editar cantidad" [ngStyle]="{'color':'#009A94'}"
+                        (click)="reporteEnConstruccion()">edit</mat-icon>
+                    
+                        <mat-icon *ngIf="!item.estado  && item.cantidadAjuste != 0" title="Eliminar cantidad"
+                            class="pointer-cursor" title="Eliminar cantidad a ajustar" [ngStyle]="{'color':'red'}"  
+                        (click)="reporteEnConstruccion()">delete_sweep</mat-icon>
+
+                    <mat-icon *ngIf="!item.estado && item.editing" title="Cancelar" class="pointer-cursor"
+                        title="Cancelar edición" [ngStyle]="{'color':'orange'}"
+                        (click)="reporteEnConstruccion()">clear</mat-icon>
+
+                    <mat-icon *ngIf="!item.estado && item.editing" title="Guardar cantidad" class="pointer-cursor"
+                        title="Fijar cantidad" [ngStyle]="{'color':'#009A94'}"
+                        (click)="reporteEnConstruccion()">check</mat-icon>
+
+                </td>
                  </tr>
         </tbody>
     </table>

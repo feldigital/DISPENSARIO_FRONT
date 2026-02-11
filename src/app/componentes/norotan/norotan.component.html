@@ -69,7 +69,7 @@
 
 
     <div class="alert alert-info my-2" *ngIf="listaNorotanBodega?.length == 0">
-        No hay medicamentos penidientes, asociados a esta bodega en la fecha seleccionada!
+        No hay medicamentos identificados que no rotan, en esta bodega en la fecha seleccionada!
     </div>
 
 
@@ -103,14 +103,14 @@
                     <td>{{itemt.nombre}}</td>
                     <td>{{itemt.forma}}</td>
                     <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
-                    <td>{{itemt.ultFecIngreso | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.ultFecIngreso | date: 'dd/MM/yyyy'}}</td>
                     <td style="color: rgb(228, 16, 16); text-align: center;"><strong>{{itemt.pendiente}}</strong></td>
                     <td style="text-align: center;"><strong>{{itemt.cantidadEntregada}}</strong></td>
                     <td>{{itemt.invima}}</td>
                     <td>{{itemt.laboratorio}}</td>
                     <td>{{itemt.lote}}</td>
                     <td [ngStyle]="{ color: esFechaVencimientoProxima(itemt.fechaVencimiento) ? 'red' : 'inherit' }">
-                        {{itemt.fechaVencimiento | date: 'dd/MM/YYYY'}}
+                        {{itemt.fechaVencimiento | date: 'dd/MM/yyyy'}}
                     </td>
 
                 </tr>

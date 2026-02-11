@@ -19,6 +19,7 @@ export class MenuComponent implements OnInit {
 
   fillerNav=[
   //  {name:"Inicio",route:"login",icon:"home"},
+    {name:"inicio",route:"inicio",icon:"home",nivel:2},
     {name:"Paciente",route:"paciente",icon:"perm_identity",nivel:3},
     { name:"Medicamentos",
       route:"medicamento",
@@ -41,7 +42,7 @@ export class MenuComponent implements OnInit {
     {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2}, 
     {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3}, 
   
-    {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:3}, 
+    {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:2}, 
     {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
     {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
     {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}, 

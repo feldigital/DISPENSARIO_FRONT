@@ -27,6 +27,7 @@ export class HistorialordendespachoComponent {
   contador: number = 0;
   lista: any = [];
   parametro: any;
+  filaExpandida: number | null = null;
 
 
   constructor(
@@ -198,6 +199,7 @@ export class HistorialordendespachoComponent {
         return fechaComparacion;
       });
       this.listaOrdendespachofiltrada = this.listaOrdendespacho;
+     
       this.generalForm.patchValue({ soloajuste: + false });
       Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
     },
@@ -585,6 +587,110 @@ export class HistorialordendespachoComponent {
       });
     }
   }
+
+  toggleDetalles(index: number) {
+    // Si ya está abierta, la cierra; si no, la abre
+    this.filaExpandida = this.filaExpandida === index ? null : index;
+  }
+
+  public exportarOrdenesxlsx(idBodega: number) {
+    const datos: any[] = [];
+    // Encabezados de la tabla
+    const encabezado = [
+      'CONSECUTIVO',
+      'NUMERO DE ORDEN',
+      'FECHA DE LA ORDEN',
+      'TIPO',
+      'BODEGA ORIGEN',
+      'FUNCIONARIO QUE HIZO LA ORDEN',
+      'BODEGA DESTINO',
+      'FUNCIONARIO QUE RECIBIO LA ORDEN',
+      'FECHA DE RECIBIDO',
+      'NUMERO DE ITEMS',
+      'ESTADO DE LA ORDEN',
+      'NOMBRE DEL PROVEEDOR',
+      'NIT DEL PROVEEDOR',
+      'NUMERO FACTURA',
+      'VALOR FACTURA',
+      'TIPO INGRESO',
+      'OBSERVACIÓN'
+    ];
+
+    datos.push(encabezado);
+    let contador = 0;
+    // Agrega los items de despacho al array
+    this.listaOrdendespachofiltrada.forEach((item: any) => {
+      contador++;
+      datos.push([
+        contador || '',  // Validación si es null o undefined
+        item.idDespacho || '',
+        item.fechaDespacho || '',
+        item.tipo || '',
+        item.bodegaOrigen.nombre || '',
+        item.funcionarioDespacho || '',
+        item.bodegaDestino.nombre || '',
+        item.funcionarioEntradaDestino || '',
+        item.fechaEntradaDestino || '',
+        item.itemsDespacho.length || '0',
+        item.estado || '',
+        item.nomProvedor || '',
+        item.nitProvedor || '',
+        item.numFactura || '',  // nombre de la farmacia
+        item.valor || '',
+        item.tipoIngreso || '',
+        (item.observacion ? item.observacion.toUpperCase() : '')
+
+      ]);
+    });
+
+    // Crea la hoja de trabajo de Excel (worksheet)
+    const hojaDeTrabajo: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(datos);
+
+    // Aplicar formato al encabezado
+    const rangoEncabezado = XLSX.utils.decode_range(hojaDeTrabajo['!ref'] as string);
+    for (let col = rangoEncabezado.s.c; col <= rangoEncabezado.e.c; col++) {
+      const celda = hojaDeTrabajo[XLSX.utils.encode_cell({ r: 0, c: col })]; // Primera fila, r: 0
+      if (celda) {
+        celda.s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } }, // Texto en negrita y color blanco
+          alignment: { horizontal: "center", vertical: "center" }, // Centrado horizontal y vertical
+          fill: { fgColor: { rgb: "4F81BD" } }, // Color de fondo azul
+        };
+      }
+    }
+
+    // Crea el libro de trabajo (workbook)
+    const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'ORDENES');
+    // Genera y descarga el archivo Excel
+    XLSX.writeFile(libroDeTrabajo, 'ORDENES_' + new Date().getTime() + '.xlsx');
+    Swal.fire({
+      icon: 'success',
+      title: `Ok`,
+      text: `Su reporte fue exportado en su carpeta de descargas en formato xslx`,
+
+    });
+  }
+
+  getColorPorTipo(tipo: string): string {
+    switch ((tipo || '').toUpperCase()) {
+      case 'COMPRA': return 'rgba(65, 165, 71, 1)';      // Verde
+      case 'PRESTAMO': return '#8644adff';    // Morado
+      case 'DONACION': return '#e67e22';    // Naranja
+      case 'REINTEGRO': return '#e62298de';    // Naranja
+      default: return '#6c757d';            // Gris por defecto
+    }
+  }
+
+
+  getItemsOrdenados(itemt: any) {
+  if (!itemt?.itemsDespacho) return [];
+  return itemt.itemsDespacho
+    .slice() // copia para no alterar el original
+    .sort((a: any, b: any) =>
+      (a.medicamento?.nombre || '').localeCompare(b.medicamento?.nombre || '')
+    );
+}
 
 
   reporteEnConstruccion() {

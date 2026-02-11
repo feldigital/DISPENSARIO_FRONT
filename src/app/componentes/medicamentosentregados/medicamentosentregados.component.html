@@ -30,6 +30,11 @@
           (click)="buscarRegistro(medicamentoActual, parametro)">
           <mat-icon class="me-1">search</mat-icon> Buscar
         </button>
+
+          <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
+          (click)='reporteEntregadosDetalldos(parametro)'>
+          <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
+        </button>
       </div>
   
       <!-- Total Entregado -->
@@ -102,7 +107,7 @@
                       <mat-icon *ngIf="itemt.pave === 'SI'" title="paciente PAVE" [ngStyle]="{'color':'red'}">person_outline</mat-icon>
                     </td>
                     <td>{{itemt.idFormula || ''}}</td>
-                    <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
+                    <td>{{itemt.fecSolicitud | date: 'dd/MM/yyyy'}}</td>
                     <td>{{itemt.fecEntrega | date: 'dd/MM/YYYY : hh:mm'}}</td>
                     <td style="color: green; text-align: right;"> <mat-icon class="pointer-cursor"
                             title="Ver la entrega" [ngStyle]="{'color':'#009A94'}"

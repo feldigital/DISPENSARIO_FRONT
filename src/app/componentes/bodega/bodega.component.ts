@@ -1756,7 +1756,7 @@ Swal.fire({
       'Medio de entrega del pendiente',
       'Tipo recibe', 'Docuemnto recibe', 'Eps', '¿Es PGP?', 'Id Formula', 'CIE-R1', 'CIE-R2', 'CIE-R3',
       'Observación', 'Estado', 'Funcionario que entrega', 'PACIENTE PAVE', 
-      'MEDICAMENTO CONTROLADO','ID DEL MEDICAMENTO'];
+      'MEDICAMENTO CONTROLADO','MEDICAMENTO EN SEGUIMIENTO','ID DEL MEDICAMENTO'];
 
     datos.push(encabezado);
     let fecReal = "";
@@ -1834,6 +1834,7 @@ Swal.fire({
         item.funcionario || '',  // Validación para campos que podrían ser nulos
         item.pave || '',  // Validación para campos que podrían ser nulos
         item.controlado || '',  // Validación para campos que podrían ser nulos       
+        item.enseguimiento || '',  // Validación para campos que podrían ser nulos      
         item.idMedicamento || ''
       ]);
     });
@@ -1959,6 +1960,7 @@ Swal.fire({
       'FECHA DE ENTREGA',
       'FUNCIONARIO QUE ENTREGA',
       'PACIENTE PAVE',
+      'MEDICAMENTO EN SEGUIMIENTO',
       'ID MEDICAMENTO'
     ];
 
@@ -2004,7 +2006,8 @@ Swal.fire({
         item.fecSolicitud || '',
         item.fecEntrega || '',
         item.funcionario || '',  // Validación para campos que podrían ser nulos       
-        item.pave || '',  // Validación para campos que podrían ser nulos    
+        item.pave || '',  // Validación para campos que podrían ser nulos   
+        item.enseguimiento || '',  // Validación para campos que podrían ser nulos    
         item.idMedicamento || ''   
       ]);
     });
@@ -2036,6 +2039,61 @@ Swal.fire({
       text: `Su reporte fue exportado en su carpeta de descargas en formato xslx`,
 
     });
+  }
+
+async reportePendientesDetalldosFuturos(idBodega: number): Promise<void> {
+    const fInicial = this.generalForm.get('fInicial')?.value;
+    const fFinal = this.generalForm.get('fFinal')?.value;
+    // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
+    if (!fInicial || !fFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Pendiente!`,
+        text: `Falta la informacion de las fechas del periodo que desea generar!`,
+      });
+      return;  // Detener la ejecución si faltan las fechas
+    }
+    const fechaInicial = new Date(fInicial);
+    const fechaFinal = new Date(fFinal);
+
+    if (fechaInicial > fechaFinal) {
+      Swal.fire({
+        icon: 'error',
+        title: `Invertidas!`,
+        text: `La fecha inicial del periodo no puede ser mayor que la fecha final!`,
+      });
+      return;  // Detener la ejecución si las fechas no son válidas
+    }
+    try {
+      // Mostrar spinner mientras carga
+      Swal.fire({
+        title: 'Cargando registros...',
+        html: 'Por favor espera un momento',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // Esperar la promesa con await       
+      const parametrobodega = Number(idBodega);
+      const resp: any = await this.servicio.getMedicamentosPendienteDetalladaFuturos(parametrobodega, fInicial, fFinal).toPromise();
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      // Asegurarse de que resp sea un array antes de asignarlo
+      if (Array.isArray(resp)) {
+        this.lista = resp;
+         
+        this.exportarExcelPendientes(); // Exportar solo si la lista es válida
+      } else {
+        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
+      }
+      
+    } catch (error) {
+      console.error("Error al obtener los datos de medicamentos pendientes detallados:", error);
+      Swal.close(); // 🚨 Primero cerramos el spinner
+      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
+    }
+ 
   }
 
 
@@ -2654,7 +2712,7 @@ Swal.fire({
       'Medio de entrega del pendiente',
       'Tipo recibe', 'Docuemnto recibe', 'Eps', '¿Es PGP?', 'Id Formula', 'CIE-R1', 'CIE-R2', 'CIE-R3',
       'Observación', 'Estado', 'Funcionario que entrega', 'PACIENTE PAVE', 
-      'MEDICAMENTO CONTROLADO','ID DEL MEDICAMENTO'];
+      'MEDICAMENTO CONTROLADO', 'MEDICAMENTO EN SEGUIMIENTO','ID DEL MEDICAMENTO'];
 
     datos.push(encabezado);
     let fecReal = "";
@@ -2731,7 +2789,8 @@ Swal.fire({
         item.estado || '',
         item.funcionario || '',  // Validación para campos que podrían ser nulos
         item.pave || '',  // Validación para campos que podrían ser nulos
-        item.controlado || '',  // Validación para campos que podrían ser nulos        
+        item.controlado || '',  // Validación para campos que podrían ser nulos       
+        item.enseguimiento || '',  // Validación para campos que podrían ser nulos      
         item.idMedicamento || '' 
       ]);
     });

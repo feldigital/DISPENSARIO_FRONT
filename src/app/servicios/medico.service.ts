@@ -111,4 +111,12 @@ export class MedicoService {
     };
   }
 
+   getRegistrosEspecialidad(): Observable<any> {
+    return this.http.get(`${this.urlEndPoint}/especialidad`).pipe(
+      catchError(e => {
+        return throwError(e);
+      })
+    );
+  }
+
 }

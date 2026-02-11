@@ -181,7 +181,7 @@
               [ngStyle]="{'color':'red', 'font-size': '16px'}">person_outline</mat-icon>
           </td>
           <td>{{itemt.idFormula || ''}}</td>
-          <td>{{itemt.fecSolicitud | date: 'dd/MM/YYYY'}}</td>
+          <td>{{itemt.fecSolicitud | date: 'dd/MM/yyyy'}}</td>
           <td>{{itemt.pendiente}}</td>
           <td>
             <button title="Gestionar Pendiente" *ngIf=" itemt.cantidadEntrega===0" type="button" class="btn btn-sm"

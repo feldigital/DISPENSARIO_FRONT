@@ -142,97 +142,195 @@ export class OrdendespachoeditComponent implements OnInit {
     const cantidadSolicitada = this.generalForm.get('cantidad')?.value;
     const idMedicamento = Number(this.itemNuevo.id);
 
-  if(!this.existeItem(idMedicamento)){
-    // Validación de campos requeridos
-    if (!this.generalForm.get('invima')?.value ||
-      !this.generalForm.get('lote')?.value ||
-      !this.generalForm.get('laboratorio')?.value ||
-      !this.generalForm.get('fechaVencimiento')?.value ||
-      !cantidadSolicitada) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos obligatorios',
-        text: 'Por favor, complete todos los campos que se necesitan para agregar el item a la orden antes de continuar.',
-      });
-      return;
-    }
-  // Validación de campos requeridos
-  const fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;
-  const fechaIngresada = new Date(fechaVencimiento);
-  const fechaHoy = new Date();
-  // Normalizamos fechaHoy para que solo cuente la parte de la fecha (sin horas)
-  fechaHoy.setHours(0, 0, 0, 0);
+    if (!this.existeItem(idMedicamento)) {
+      // Validación de campos requeridos
+      if (!this.generalForm.get('invima')?.value ||
+        !this.generalForm.get('lote')?.value ||
+        !this.generalForm.get('laboratorio')?.value ||
+        !this.generalForm.get('fechaVencimiento')?.value ||
+        !cantidadSolicitada) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Campos obligatorios',
+          text: 'Por favor, complete todos los campos que se necesitan para agregar el item a la orden antes de continuar.',
+        });
+        return;
+      }
+      // Validación de campos requeridos
+      const fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;
+      const fechaIngresada = new Date(fechaVencimiento);
+      const fechaHoy = new Date();
+      // Normalizamos fechaHoy para que solo cuente la parte de la fecha (sin horas)
+      fechaHoy.setHours(0, 0, 0, 0);
 
-  if (fechaIngresada <= fechaHoy) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Fecha de Vencimiento',
-        text: 'La fecha de vencimiento del medicamento no puede ser anterior o igual a la fecha actual.',
-      });
-      return;
-    }
+      if (fechaIngresada <= fechaHoy) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Fecha de Vencimiento',
+          text: 'La fecha de vencimiento del medicamento no puede ser anterior o igual a la fecha actual.',
+        });
+        return;
+      }
 
-    try {
-      this.medicamentoSeleccionado = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaOrigen.idBodega);
-      if (!this.medicamentoSeleccionado){
+      try {
+        this.medicamentoSeleccionado = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaOrigen.idBodega);
+        if (!this.medicamentoSeleccionado) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo obtener la cantidad disponible en la bodega de origen para comparar y agregar el medicamento a la orden .',
+          });
+          return;
+        }
+        if (cantidadSolicitada > this.medicamentoSeleccionado.cantidad) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Cantidad insuficiente',
+            text: `No se puede agregar el medicamento a la orden por que la cantidad existente (${this.medicamentoSeleccionado.cantidad}) es insuficiente a la cantidad solicitada (${cantidadSolicitada}) de la bodega de origen.`,
+          });
+          return;
+        }
+        // Crear el nuevo item
+        let nuevoItem = new ItemOrdenDespachoI();
+        nuevoItem.medicamento = idMedicamento;
+        nuevoItem.cantidad = cantidadSolicitada;
+        nuevoItem.invima = this.generalForm.get('invima')?.value;;
+        nuevoItem.laboratorio = this.generalForm.get('laboratorio')?.value;;
+        nuevoItem.lote = this.generalForm.get('lote')?.value;;
+        nuevoItem.fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;;
+        this.listaregistros.itemsDespacho.push(nuevoItem);
+
+        this.ordenDespachoservicio.agregarItemAOrden(this.listaregistros.idDespacho, nuevoItem)
+          .subscribe({
+            next: (response) => {
+              this.verItem = false;
+              this.buscarRegistro(this.parametro);
+              Swal.fire({
+                icon: 'success',
+                title: 'Medicamento agregado',
+                text: `Se agregó ${cantidadSolicitada} unidad(es) del medicamento  ${this.itemNuevo.medicamento} a la orden de despacho correctamente.`,
+              });
+            },
+            error: (error) => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+              });
+            }
+          });
+      } catch (error) {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo obtener la cantidad disponible en la bodega de origen para comparar y agregar el medicamento a la orden .',
+          text: 'Hubo un problema al validar el medicamento.',
         });
-        return;
       }
-      if (cantidadSolicitada > this.medicamentoSeleccionado.cantidad) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Cantidad insuficiente',
-          text: `No se puede agregar el medicamento a la orden por que la cantidad existente (${this.medicamentoSeleccionado.cantidad}) es insuficiente a la cantidad solicitada (${cantidadSolicitada}) de la bodega de origen.`,
-        });
-        return;
-      }
-      // Crear el nuevo item
-      let nuevoItem = new ItemOrdenDespachoI();
-      nuevoItem.medicamento = idMedicamento;
-      nuevoItem.cantidad = cantidadSolicitada;
-      nuevoItem.invima = this.generalForm.get('invima')?.value;;
-      nuevoItem.laboratorio = this.generalForm.get('laboratorio')?.value;;
-      nuevoItem.lote = this.generalForm.get('lote')?.value;;
-      nuevoItem.fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;;
-      this.listaregistros.itemsDespacho.push(nuevoItem);
-
-      this.ordenDespachoservicio.agregarItemAOrden(this.listaregistros.idDespacho, nuevoItem)
-        .subscribe({
-          next: (response) => {
-            this.verItem=false;
-            this.buscarRegistro(this.parametro);
-            Swal.fire({
-              icon: 'success',
-              title: 'Medicamento agregado',
-              text: `Se agregó ${cantidadSolicitada} unidad(es) del medicamento  ${this.itemNuevo.medicamento} a la orden de despacho correctamente.`,
-            });
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: error.message,
-            });
-          }
-        });
-    } catch (error) {
+    } else {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un problema al validar el medicamento.',
+        text: 'El medicamento ' + this.itemNuevo.medicamento + ' que esta intentando agregar, ya se encuentra en los item de la orden. por lo tanto no se puede adicionar!',
       });
     }
-  }else{
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'El medicamento ' + this.itemNuevo.medicamento + ' que esta intentando agregar, ya se encuentra en los item de la orden. por lo tanto no se puede adicionar!',
-    });
   }
+
+
+  async validarYGuardarMedicamentoBodegaDestino() {
+    const cantidadSolicitada = this.generalForm.get('cantidad')?.value;
+    const idMedicamento = Number(this.itemNuevo.id);
+
+    if (!this.existeItem(idMedicamento)) {
+      // Validación de campos requeridos
+      if (!this.generalForm.get('invima')?.value ||
+        !this.generalForm.get('lote')?.value ||
+        !this.generalForm.get('laboratorio')?.value ||
+        !this.generalForm.get('fechaVencimiento')?.value ||
+        !cantidadSolicitada) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Campos obligatorios',
+          text: 'Por favor, complete todos los campos que se necesitan para agregar el item a la orden antes de continuar.',
+        });
+        return;
+      }
+      // Validación de campos requeridos
+      const fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;
+      const fechaIngresada = new Date(fechaVencimiento);
+      const fechaHoy = new Date();
+      // Normalizamos fechaHoy para que solo cuente la parte de la fecha (sin horas)
+      fechaHoy.setHours(0, 0, 0, 0);
+
+      if (fechaIngresada <= fechaHoy) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Fecha de Vencimiento',
+          text: 'La fecha de vencimiento del medicamento no puede ser anterior o igual a la fecha actual.',
+        });
+        return;
+      }
+
+      try {
+        this.medicamentoSeleccionado = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaOrigen.idBodega);
+        if (!this.medicamentoSeleccionado) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo obtener la cantidad disponible en la bodega de origen para comparar y agregar el medicamento a la orden .',
+          });
+          return;
+        }
+        if (cantidadSolicitada > this.medicamentoSeleccionado.cantidad) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Cantidad insuficiente',
+            text: `No se puede agregar el medicamento a la orden por que la cantidad existente (${this.medicamentoSeleccionado.cantidad}) es insuficiente a la cantidad solicitada (${cantidadSolicitada}) de la bodega de origen.`,
+          });
+          return;
+        }
+        // Crear el nuevo item
+        let nuevoItem = new ItemOrdenDespachoI();
+        nuevoItem.medicamento = idMedicamento;
+        nuevoItem.cantidad = cantidadSolicitada;
+        nuevoItem.invima = this.generalForm.get('invima')?.value;;
+        nuevoItem.laboratorio = this.generalForm.get('laboratorio')?.value;;
+        nuevoItem.lote = this.generalForm.get('lote')?.value;;
+        nuevoItem.fechaVencimiento = this.generalForm.get('fechaVencimiento')?.value;;
+        this.listaregistros.itemsDespacho.push(nuevoItem);
+
+        this.ordenDespachoservicio.agregarItemAOrdenDestino(this.listaregistros.idDespacho, nuevoItem)
+          .subscribe({
+            next: (response) => {
+              this.verItem = false;
+              this.buscarRegistro(this.parametro);
+              Swal.fire({
+                icon: 'success',
+                title: 'Medicamento agregado',
+                text: `Se agregó ${cantidadSolicitada} unidad(es) del medicamento  ${this.itemNuevo.medicamento} a la orden de despacho correctamente.`,
+              });
+            },
+            error: (error) => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+              });
+            }
+          });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un problema al validar el medicamento.',
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El medicamento ' + this.itemNuevo.medicamento + ' que esta intentando agregar, ya se encuentra en los item de la orden. por lo tanto no se puede adicionar!',
+      });
+    }
   }
 
   existenciaActual(idMedicamento: number, idBodega: number): Promise<number> {
@@ -286,6 +384,60 @@ export class OrdendespachoeditComponent implements OnInit {
                 text: err.mensaje,
               });
             });
+        }
+      });
+    }
+    else {
+      Swal.fire({
+        icon: 'warning',
+        title: `Falta de permisos`,
+        text: "No tienes permisos para realizar la modificación en la devolución del medicamento en la orden de despacho, comunicate con el funcionario encargado!",
+      });
+    }
+  }
+
+  eliminarItemOrdenProcesada(idItemOrden: any) {
+    if (this.tieneAcceso(4)) {
+      Swal.fire({
+        title: 'Desea eliminar?',
+        text: 'Esta seguro de quitar el medicamento ' + idItemOrden.medicamento.nombre + ' de la orden de despacho ya procesada, se devolvera la cantidad a la bodega de origen ' + this.listaregistros.bodegaOrigen.nombre + ' y se disminuira la cantidad en la bodega destino ' + this.listaregistros.bodegaDestino.nombre + ' cantidad a afectar +/- ' + idItemOrden.cantidad + '.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, devolver cantidad y eliminar registro!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+          this.ordenDespachoservicio.regresarItemDestino_a_Origen(this.listaregistros.idDespacho, idItemOrden.id, idItemOrden.medicamento.idMedicamento, idItemOrden.cantidad)
+           .subscribe({
+
+    // ✅ SI TODO SALE BIEN
+    next: (resp: any) => {
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Devolución exitosa',
+        text: resp + ' El medicamento  ' + idItemOrden.medicamento.nombre + ' de la orden se ha eliminado y devuelto a la bodega de origen ' + this.listaregistros.bodegaOrigen.nombre + ' la cantidad de ' + idItemOrden.cantidad + ' correctamente! ya puede verificarlo en su existencia',
+        confirmButtonText: 'OK'
+      });
+
+      // refrescar tabla o recargar despacho
+      this.buscarRegistro(this.parametro);
+    },
+
+    // ❌ SI FALLA
+    error: (err) => {
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al devolver medicamento',
+        text: err.error, // mensaje que viene del backend
+        confirmButtonText: 'Entendido'
+      });
+    }
+  });
+
         }
       });
     }

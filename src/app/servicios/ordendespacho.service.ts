@@ -165,6 +165,22 @@ regresarItemcangeBodegaorigen(idDespacho: number, idItemDespacho: number, idMedi
     }));
 } 
 
+regresarItemDestino_a_Origen(idDespacho: number, idItem: number, idMedicamento: number, cantidad: number) {
+  return this.http.get(
+    `${this.urlEndPoint}/regresaritem_Destino_Origen`,
+    {
+      params: {
+        idDespacho,
+        idItemDespacho: idItem,
+        idMedicamento,
+        cantidad
+      }
+    }
+  );
+}
+
+
+
 agregarItemAOrden(idDespacho: number, item: any) {
   return this.http.post(`${this.urlEndPoint}/${idDespacho}/items`, item)
     .pipe(
@@ -177,6 +193,22 @@ agregarItemAOrden(idDespacho: number, item: any) {
       })
     );
 }
+
+
+
+agregarItemAOrdenDestino(idDespacho: number, item: any) {
+  return this.http.post(`${this.urlEndPoint}/${idDespacho}/itemsdestino`, item)
+    .pipe(
+      catchError(error => {
+        let errorMsg = 'Ocurrió un error desconocido';
+        if (error.error && error.error.message) {
+          errorMsg = error.error.message; // Obtener el mensaje del backend
+        }
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+}
+
 
 
 getDetalleOrdenDespacho( idBodega: number,fInicial: string, fFinal: string, tipoReporte: number): Observable<any> {

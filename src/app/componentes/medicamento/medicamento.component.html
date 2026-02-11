@@ -84,6 +84,7 @@
                     <input *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="agotado"> Agotado
 
                     <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="controlado"> Controlado
+                    <input  *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="enseguimiento"> En seguimiento
                 </div>
 
                 <hr>
@@ -98,32 +99,33 @@
                     
                     <mat-menu #menuMed="matMenu">           
                        
-                        <button (click)='reporteMedicamentosFiltrados(true,false,false,false,"AGOTADOS")' mat-menu-item>
+                        <button (click)='reporteMedicamentosFiltrados(true,false,false,false,false,"AGOTADOS")' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'#orange'}">print</mat-icon>
                             <span>Agotados</span>
                         </button>
-                        <button (click)='reporteMedicamentosFiltrados(false,false,true,false,"CONTROLADOS")' mat-menu-item>
+                        <button (click)='reporteMedicamentosFiltrados(false,false,true,false,false,"CONTROLADOS")' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'green'}">print</mat-icon>
                             <span>Controlados</span>
                         </button>  
-                        <button (click)='reporteMedicamentosFiltrados(false,true,false,false,"DESABASTECIDOS")' mat-menu-item>
+                        <button (click)='reporteMedicamentosFiltrados(false,true,false,false,false,"DESABASTECIDOS")' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'2BB6D7'}">print</mat-icon>
                             <span>Desabastecidos</span>
+                        </button>       
+                         <button (click)='reporteMedicamentosFiltrados(false,false,false,false,true,"EN SEGUIMIENTO")' mat-menu-item>
+                            <mat-icon [ngStyle]="{'color':'orange'}">print</mat-icon>
+                            <span>En seguimiento</span>
                         </button>          
-                        <button (click)='reporteMedicamentosFiltrados(false,false,false,true,"NO VIGENTES")' mat-menu-item>
+                        <button (click)='reporteMedicamentosFiltrados(false,false,false,true,false,"NO VIGENTES")' mat-menu-item>
                             <mat-icon [ngStyle]="{'color':'red'}">print</mat-icon>
                             <span>No vigentes</span>
                         </button>       
-                    <!--    <button (click)='reporteEnConstruccion()' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
-                            <span>Exportar todos</span>
-                        </button>           -->
+                   
                     </mat-menu>
                 </div>               
 
             </div>
             <div class="col-sm">
-                <!-- <img src="./assets/celula.jpg" alt="Bienvenidos" class="img-thumbnail rounded">-->
+              
             </div>
         </div>
     </form>
