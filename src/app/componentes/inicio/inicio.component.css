@@ -1,0 +1,151 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.chart-card {
+  height: 380px; /* todas iguales */
+  display: flex;
+  flex-direction: column;
+}
+
+
+.chart-box {
+  height: 280px; /* tamaño fijo de gráfica */
+}
+
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+.kpi-card {
+  height: 380px;   /* misma altura que chart-card */
+  padding: 20px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.kpi-card mat-card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.titulo {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* Grid moderno */
+.kpi-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.kpi-grid + .kpi-grid {
+  margin-top: 12px;
+}
+
+.kpi-box {
+  flex: 1;
+  padding: 12px;   /* antes 20px */
+  border-radius: 18px;
+  color: white;
+  text-align: center;
+ /* box-shadow: 0px 6px 15px rgba(0,0,0,0.2);*/
+  box-shadow: 
+    0 6px 15px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: transform 0.2s ease-in-out;
+
+}
+
+.kpi-box:hover {
+  transform: scale(1.05);
+}
+
+/* Texto */
+.kpi-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.kpi-value {
+  font-size: 38px;   /* antes 45px */
+  font-weight: bold;  
+  margin: 2px 0;      /* espacio pequeño arriba y abajo */
+  line-height: 1.1;   /* compacta el número */
+}
+
+.kpi-sub {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* KPI DIA (actividad diaria) */
+.dia {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+}
+
+/* KPI SEMANA (procesos) */
+.semana {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+
+/* KPI MES (resultado positivo) */
+.mes {
+  background: linear-gradient(135deg, #22c55e, #166534);
+}
+
+/* KPI NO PROCESADAS (alerta) */
+.noprocesadas {
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+}
+
+/* KPI ORDENES NO RECIBIDAS (pendiente) */
+.norecibidas {
+  background: linear-gradient(135deg, #f0e96b, #b6b904);
+}
+
+/* KPI PQRS (gestión / casos) */
+.noresueltas {
+  background: linear-gradient(135deg, #8b5cf6, #4c1d95);
+}
+
+.mes-activo-box {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  background: linear-gradient(135deg, #e0f2ff, #f0f9ff);
+  padding: 8px 18px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.btn-refresh {
+  border-radius: 20px;          /* esquinas más redondeadas */
+  padding: 4px 10px;            /* botón más pequeño */
+  font-size: 13px;
+  font-weight: 500;
+  height: 32px;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+  transform: scale(1.05);
+}
+
+.icon-refresh {
+  font-size: 18px;
+}
+

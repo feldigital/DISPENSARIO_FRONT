@@ -27,6 +27,7 @@ export class VerajusteinventarioComponent {
   lista: any = [];
   ajusteActual: any = null;
   parametro: any;
+  filaExpandida: number | null = null;
 
   constructor(  
     private fb: FormBuilder,
@@ -156,104 +157,52 @@ export class VerajusteinventarioComponent {
   }
 
 
-  async salidasExcelDetalleAjuste(): Promise<void> {
-    const fInicial = this.generalForm.get('fInicial')?.value;
-    const fFinal = this.generalForm.get('fFinal')?.value;
-    const idBodega = this.generalForm.get('idBodega')?.value;
-    // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
-    if (!fInicial || !fFinal) {
-      Swal.fire({
-        icon: 'error',
-        title: `Orden Despacho!`,
-        text: `Falta la informacion de las fechas del periodo que desea generar!`,
-      });
-      return;  // Detener la ejecución si faltan las fechas
+ 
+  exportarDetalleAjuste() {  // Crea un array con los datos de la orden de despacho que deseas exportar
+   
+     console.log(this.ajusteActual);
+   // 1. Verificación de seguridad inicial
+    if (!this.ajusteActual || !this.ajusteActual.itemsAjuste) {
+      console.error("No se encontraron items para exportar:", this.ajusteActual);
+      Swal.fire('Atención', 'Los detalles del ajuste aún se están cargando o no existen.', 'warning');
+      return;
     }
-
-    if (!idBodega) {
-      Swal.fire({
-        icon: 'error',
-        title: `Orden Despacho!`,
-        text: `No ha seleccionado la bodega de la que desea generar el reporte!`,
-      });
-      return;  // Detener la ejecución si faltan las fechas
-    }
-    const fechaInicial = new Date(fInicial);
-    const fechaFinal = new Date(fFinal);
-
-    if (fechaInicial > fechaFinal) {
-      Swal.fire({
-        icon: 'error',
-        title: `Invertidas!`,
-        text: `La fecha inicial del periodo no puede ser mayor que la fecha final!`,
-      });
-      return;  // Detener la ejecución si las fechas no son válidas
-    }
-    try {
-      // Esperar la promesa con await 
-    
-      const parametrobodega=Number(idBodega);
-    
-      let resp: any;           
-      
-      let fileName: string = "";
-      //resp =  await this.ajusteInventarioservicio.getDetalleOrdenDespacho(parametrobodega, fInicial, fFinal,tipoReporte).toPromise();
-
-      // Asegurarse de que resp sea un array antes de asignarlo
-      if (Array.isArray(resp)) {
-        this.lista = resp;        
-        this.excelDetalleOrdenDespacho(fileName); // Exportar solo si la lista es válida
-      } else {
-        console.error("El formato de la respuesta no es válido. Se esperaba un array.");
-      }
-    } catch (error) {
-      console.error("Error al obtener los datos de detallados de las ordenes de despacho:", error);
-    }
-  }
-
-  excelDetalleOrdenDespacho(fileName: string) {  // Crea un array con los datos de la orden de despacho que deseas exportar
+  
     // Crea un array con los datos de la orden de despacho que deseas exportar
     const datos: any[] = [];
 
     // Encabezados de la tabla
     const encabezado = [
-      'ID MEDICAMENTO',
-      'CUM',
-      'NOMBRE MEDICAMENTO',
-      'PRESENTACION',
-      'CONTROLADO',
-      'CANTIDAD AJUSTE',
-      'ID ORDEN AJUSTE',
-      'FECHA AJUSTE',
-      'ESTADO',
-      'BODEGA',      
-      'FUNCIONARIO AJUSTE',
+      '#',
+      'ID MEDICAMENTO',      
+      'NOMBRE DEL MEDICAMENTO',    
+      'PRESENTACION', 
+      'CANTIDAD EN SISTEMA DURANTE EL INVENTARIO',
+      'CANTIDAD FISICA EN EL INVENTARIO',
+      'CANTIDAD DE AJUSTE +/-',
+      'VALOR MEDICAMENTO', 
+      'ID AJUSTE',
       'FUNCIONARIO INVENTARIO',
-      
+      'DISPENSARIO AJUSTADO',     
     ];
 
     datos.push(encabezado);
    
-    let controladoCadena = "";
-    // Agrega los items de despacho al array
-    this.lista.forEach((item: any) => {      
-
-     controladoCadena = item.controlado ? "SI" : "NO";
-      datos.push([
-        item.idMedicamento || '',  // Validación si es null o undefined
-        item.codigoCum || '',
-        item.nombreMedicamento || '',
-        item.presentacion || '',
-        controladoCadena,
-        item.cantidad || '',
-        item.idDespacho || '',
-        item.fechaDespacho || '',       
-        item.estado || '',
-        item.bodegaOrigen || '',
-        item.funcionarioDespacho || '',
-        item.bodegaDestino || '',
-        item.funcionarioEntradaDestino || '',
-        item.tipo || ''
+    // Agrega los items de ajuste al array
+    this.ajusteActual.itemsAjuste.forEach((item: any, index: number) => {      
+       datos.push([
+        index + 1,
+        item.medicamento?.idMedicamento || '',  // Validación si es null o undefined
+        item.medicamento?.nombre || '',
+        item.medicamento?.forma?.nombre || '',
+        item.cantidadSistema ?? 0,
+        item.cantidadFisica ?? 0,
+        item.cantidadAjuste ?? 0,     
+        item.medicamento?.valor || '',
+        this.ajusteActual.idAjuste || '',
+        this.ajusteActual.funcionarioInventario || '',
+        this.ajusteActual.bodegaAjuste.nombre || ''
+       
       ]);
     });
 
@@ -275,9 +224,9 @@ export class VerajusteinventarioComponent {
 
     // Crea el libro de trabajo (workbook)
     const libroDeTrabajo: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, fileName);
+    XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, 'Relacion');
     // Genera y descarga el archivo Excel
-    XLSX.writeFile(libroDeTrabajo, 'Relacion_Ajuste_' + fileName + new Date().getTime()+'.xlsx');
+    XLSX.writeFile(libroDeTrabajo, 'Relacion_Ajuste_ID' + this.ajusteActual.idAjuste.toString() +'_'  + new Date().getTime()+'.xlsx');
     Swal.fire({
       icon: 'success',
       title: `Ok`,
@@ -287,12 +236,6 @@ export class VerajusteinventarioComponent {
   }
 
 
-  private calcularTotal(columna: string): string {
-    const total = this.listaItemAjuste.reduce((accum: number, current: any) => {
-      return accum + (current[columna] ? 1 : 0);
-    }, 0);
-    return total.toString();
-  }
 
   public primerasmayusculas(str: string): string {
     if (!str) {
@@ -321,12 +264,13 @@ export class VerajusteinventarioComponent {
   }
 
 
-  mostrarItemAjuste(item: any): void {    
-    console.log(item);
+  mostrarItemAjuste(item: any, index: number): void {   
+   //console.log(item);
     this.listaItemAjuste = item.itemsAjuste.sort((a: any, b: any) => {
       return a.medicamento.nombre.localeCompare(b.medicamento.nombre);
     });
     this.ajusteActual=item;
+    this.filaExpandida = (this.filaExpandida === index) ? null : index;
     
   }
  
@@ -522,6 +466,60 @@ export class VerajusteinventarioComponent {
     }
   }
 
+ /*
+  eliminarItemOrdenAjuste(idItemOrden: any) {
+    if (this.tieneAcceso(4)) {
+      Swal.fire({
+        title: 'Desea eliminar?',
+        text: 'Esta seguro de deshacer el ajuste del medicamento ' + idItemOrden.medicamento.nombre + ' de la orden de ajuste ya procesada, se deshacera la cantidad del ajuste en la bodega ' + this.listaregistros.bodegaOrigen.nombre + ' y se disminuira la cantidad en la bodega ajustada ' + this.listaregistros.bodegaDestino.nombre + ' cantidad a desajustar +/- ' + idItemOrden.cantidad + '.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, deshacer cantidad y eliminar registro!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.ordenDespachoservicio.regresarItemDestino_a_Origen(this.listaregistros.idDespacho, idItemOrden.id, idItemOrden.medicamento.idMedicamento, idItemOrden.cantidad)
+           .subscribe({
+
+    // ✅ SI TODO SALE BIEN
+    next: (resp: any) => {
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Devolución exitosa',
+        text: resp + ' El medicamento  ' + idItemOrden.medicamento.nombre + ' de la orden se ha eliminado y devuelto a la bodega de origen ' + this.listaregistros.bodegaOrigen.nombre + ' la cantidad de ' + idItemOrden.cantidad + ' correctamente! ya puede verificarlo en su existencia',
+        confirmButtonText: 'OK'
+      });
+
+      // refrescar tabla o recargar despacho
+      this.buscarRegistro(this.parametro);
+    },
+
+    // ❌ SI FALLA
+    error: (err) => {
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al desajustar medicamento',
+        text: err.error, // mensaje que viene del backend
+        confirmButtonText: 'Entendido'
+      });
+    }
+  });
+        }
+      });
+    }
+
+    else {
+      Swal.fire({
+        icon: 'warning',
+        title: `Falta de permisos`,
+        text: "No tienes permisos para realizar la modificación en la devolución del medicamento en la orden de despacho, comunicate con el funcionario encargado!",
+      });
+    }
+  }
+*/
   reporteEnConstruccion() {
     Swal.fire({
       icon: 'info',

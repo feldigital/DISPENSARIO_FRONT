@@ -82,7 +82,7 @@ export class HistorialformulaComponent implements OnInit {
   public verDetalles(itemt: any) {
     let mensaje = `Medico que prescribe: ${itemt.medico.nombre} <br> <br>`;
     for (let i = 0; i < itemt.items.length; i++) {
-      mensaje += (i + 1) + ` - ${itemt.items[i].medicamento.nombre} - Cantidad - ${itemt.items[i].cantidad}<br>`;
+      mensaje += (i + 1) + ` - ${itemt.items[i].medicamento.nombre} - Cantidad  ${itemt.items[i].cantidad}<br>`;
     }
     Swal.fire({
       icon: 'success',

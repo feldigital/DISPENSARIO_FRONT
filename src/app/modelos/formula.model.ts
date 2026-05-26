@@ -36,6 +36,7 @@ export class FormulaI {
   codEps: string;
   regimen: string;
   categoria: string;
+  urlFormula: string;
   
 
 
@@ -70,6 +71,7 @@ export class FormulaI {
     this.codEps="";
     this.regimen="";
     this.categoria="";
+    this.urlFormula="";
 }
 
   calcularGranTotal(): number {

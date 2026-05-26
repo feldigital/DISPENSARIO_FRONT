@@ -19,6 +19,7 @@ export class HistorialentregaComponent {
   listaItemsFormula: any;
   formulaActual: any;
   ajusteActual: any = null;
+  indexExpandidoTabla2: number | null = null;
 
   constructor(
     private servicio: PacienteService,
@@ -40,7 +41,8 @@ export class HistorialentregaComponent {
   public buscarRegistro() {
     this.servicio.getRegistroDocumento(this.generalForm.get('documento')?.value)
       .subscribe((resp: any) => {
-        this.listaregistros = resp     
+        this.listaregistros = resp    
+       
         if (resp && resp.length > 1) {
           Swal.fire({
             icon: 'warning',
@@ -59,20 +61,40 @@ export class HistorialentregaComponent {
 });
   }
 
-  public buscarFormulas(id: number) {  
-    this.servicioformula.getFormulaIdPaciente(id,this.generalForm.get('fechainicial')?.value, this.generalForm.get('fechafinal')?.value)
-      .subscribe((resp: any) => {   
-        this.listaformulas = resp 
-        this.listaformulas.sort((a: any, b: any) => b.idFormula - a.idFormula);
+
+public buscarFormulas(id: number) {  
+  this.formulaActual = null
+  this.servicioformula.getFormulaIdPaciente(
+    id,
+    this.generalForm.get('fechainicial')?.value, 
+    this.generalForm.get('fechafinal')?.value
+  )
+  .subscribe((resp: any) => {   
+    // Validamos si la respuesta está vacía o es nula
+    if (!resp || resp.length === 0) {
+      this.listaformulas = []; // Limpiamos la lista para actualizar la vista
+       Swal.fire({
+        icon: 'info',
+        title: `Información`,
+        text: `El paciente no tiene formulas prescritas en el periodo seleccionado!.`,
+        confirmButtonColor: '#009A94' // Opcional: para que combine con tu diseño
       });
-
-  }
-
+      
+    } else {
+      // Si hay registros, los asignamos y ordenamos
+      this.listaformulas = resp;
+      this.listaformulas.sort((a: any, b: any) => b.idFormula - a.idFormula);
+    }
+  }, (error) => {
+    // Es buena práctica manejar errores de red o del servidor
+    console.error('Error al buscar fórmulas', error);
+  });
+}
   
-
   calcularPendiente(item: any): number {
     return item.cantidad - item.totalEntregado;
   }
+
 
 
   mostrarItemformula(item: any): void {
@@ -80,23 +102,7 @@ export class HistorialentregaComponent {
     this.formulaActual=item.idFormula;
     this.ajusteActual=item;
   }
-  
-  mostrarformula(item: any): void {   
-    
-   if (item.formulas && Array.isArray(item.formulas) && item.formulas.length > 0) 
-    {this.listaformulas=item.formulas;}
-    else{
-      Swal.fire({
-        icon: 'info',
-        title: `Información`,
-        text: `El paciente no tiene formulas prescritas de medicamentos en el periodo seleccionado!.`,
-      });
-    }
-  }
-
-  public cancelEdicion(itemt: any) {
-    itemt.editing = false;
-  }
+ 
 
   public primerasmayusculas(str: string): string {
   if (!str) {
@@ -104,6 +110,18 @@ export class HistorialentregaComponent {
   }
   str = str.toLowerCase();
   return str.replace(/\b\w/g, (char) => char.toLocaleUpperCase());
+}
+
+// En tu archivo .ts agrega o modifica esta lógica:
+seleccionarFormula(formula: any) {
+    // Si la fórmula actual es la misma que ya está abierta, la cerramos (null)
+    if (this.formulaActual === formula.idFormula) {
+        this.formulaActual = null;
+        this.listaItemsFormula = []; // Limpiamos los items para que se oculte la tabla
+    } else {
+        // Si es una diferente, llamamos a tu procedimiento normal
+        this.mostrarItemformula(formula);
+    }
 }
 
 }

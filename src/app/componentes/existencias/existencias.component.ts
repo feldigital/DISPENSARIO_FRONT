@@ -20,7 +20,8 @@ export class ExistenciasComponent {
   listaItemEnvio: any = [];
   totalCantidadExistencia:number =0;
   totalCantidadPendiente:number =0;
-   totalCantidadCanje:number =0;
+  totalCantidadCanje:number =0;
+  totalCantidadPromedio:number =0;
 
   constructor(
     private servicio: BodegaService,
@@ -74,17 +75,21 @@ export class ExistenciasComponent {
       this.buscarRegistroEnvio(this.medicamentoActual);
     }
 
+
   buscarRegistro(idMedicamento: number): Observable<any[]> {
      this.totalCantidadExistencia=0;
      this.totalCantidadPendiente=0;
+     this.totalCantidadPromedio=0;
     if(idMedicamento){
         this.servicio.getExistenciasMedicamentoPuntual(idMedicamento)
-          .subscribe((resp: any) => {            
+          .subscribe((resp: any) => {   
+            console.log(resp)    ;     
             this.listaItemBodega = resp.sort((a: any, b: any) => a.dato_5.localeCompare(b.dato_5));    
             this.listaExistencia=  this.listaItemBodega;
             // Calcular totales
             this.totalCantidadExistencia = resp.reduce((sum:number, item:any) => sum + (item.d_1 || 0), 0);
             this.totalCantidadPendiente  = resp.reduce((sum:number, item:any) => sum + (item.d_2 || 0), 0);
+            this.totalCantidadPromedio  = resp.reduce((sum:number, item:any) => sum + (item.d_3 || 0), 0);
 
              this.aplicarFiltroCantidad(); // ← Aplica el filtro después de cargar
           });

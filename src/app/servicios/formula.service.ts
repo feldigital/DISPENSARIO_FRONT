@@ -5,6 +5,7 @@ import { FormulaI } from '../modelos/formula.model';
 import { MedicamentoI } from '../modelos/medicamento.model';
 import { environment } from 'src/environments/environment';
 import { HistorialMensajeI } from '../modelos/historialMensaje';
+import { EpsMedicamentoI } from '../modelos/epsMedicamento.model';
 
 @Injectable({
   providedIn: 'root'
@@ -328,7 +329,7 @@ desprocesarFormula(idFormula: number,idBodega: number ) {
    const params = new HttpParams()
    .set('idFormula', idFormula)
    .set('idBodega', idBodega);  
-   return this.http.put<any>(`${this.urlEndPoint}/entrega/desprocesar`, {params}).pipe(
+   return this.http.put<any>(`${this.urlEndPoint}/entrega/desprocesar`,null, {params}).pipe(
    catchError(e => {
      return throwError(e);
    })
@@ -339,7 +340,7 @@ desprocesarFormula(idFormula: number,idBodega: number ) {
    const params = new HttpParams()
    .set('idFormula', idFormula)
    .set('codigoVerificado', codigoVerificado);  
-   console.log("Formula: " + idFormula + " Codigo Verificado: " + codigoVerificado);
+  
    return this.http.get<any>(`${this.urlEndPoint}/codigoverificado`, {params}).pipe(
    catchError(e => {
      return throwError(e);
@@ -347,6 +348,19 @@ desprocesarFormula(idFormula: number,idBodega: number ) {
  );
  }
 
+getValorventaMedicamentosEps(idMedicamento: number, codEps: string): Observable<EpsMedicamentoI> {
+  const params = new HttpParams()
+    .set('idMedicamento', idMedicamento.toString())
+    .set('codEps', codEps);
+  
+  // Especificamos <EpsMedicamentoI> para que TypeScript sepa que viene un objeto, no un array
+  return this.http.get<EpsMedicamentoI>(`${this.urlEndPoint}/valormedicamentoventa`, { params }).pipe(
+    catchError(e => {
+      // Opcional: Manejo de error 404 personalizado si no existe el precio
+      return throwError(() => e);
+    })
+  );
+}
 
 
 }

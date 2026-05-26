@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HistorialMensajeI } from 'src/app/modelos/historialMensaje';
 import { MensajeI } from 'src/app/modelos/mensaje.model';
 import { BodegaService } from 'src/app/servicios/bodega.service';
@@ -36,6 +36,7 @@ export class EntregasComponent implements OnInit, OnChanges {
   codigoGenerado: string | null = null; // almacena temporalmente el código generado
   enviandoMensajes: boolean = false;
   origen!: string;
+  cargando: boolean = false;
 
   constructor(
     private pacienteService: PacienteService,
@@ -44,7 +45,8 @@ export class EntregasComponent implements OnInit, OnChanges {
     private serviciobodega: BodegaService,
     private formBuilder: FormBuilder,
     private whatsappService: WhatsappService,
-    private activatedRoute: ActivatedRoute) {
+    private activatedRoute: ActivatedRoute,
+    private router: Router) {
     this.facturaForm = this.formBuilder.group({
       direccion: [''],
       celularPrincipal: [''],
@@ -84,34 +86,48 @@ export class EntregasComponent implements OnInit, OnChanges {
     }
   }
 
+
   public buscarRegistro(id: number) {
-    this.servicioformula.getFormulaId(id)
-      .subscribe((resp: any) => {
+    this.cargando = true;
+
+    this.servicioformula.getFormulaId(id).subscribe({
+      next: (resp: any) => {
         this.listaregistros = resp;
         this.pacienteActual = resp.paciente;
+
+        // Transformación de items
         this.listaItemsFormula = resp.items.map((item: any) => ({
           ...item,
           editing: false,
-          fechaPqrs: this.formatearFechaISO(item.fechaPqrs), // Formatea la fecha individual
-          canalPqrs: this.formatearCanal(item.canalPqrs), // Formatea el canal de la pqrs         
+          fechaPqrs: this.formatearFechaISO(item.fechaPqrs),
+          canalPqrs: this.formatearCanal(item.canalPqrs),
         }));
 
-        // 👉 Rellenar el formulario con los datos del paciente
-        this.facturaForm.patchValue({
-          direccion: this.pacienteActual.direccion,
-          celularPrincipal: this.pacienteActual.celularPrincipal,
-          celularSecundario: this.pacienteActual.celularSecundario,
-          barrio: this.pacienteActual.barrio,
-          email: this.pacienteActual.email
-        });
-        console.log(this.origen);
+        // Rellenar formulario con seguridad (usando opcional chaining por si pacienteActual es null)
+        if (this.pacienteActual) {
+          this.facturaForm.patchValue({
+            direccion: this.pacienteActual.direccion,
+            celularPrincipal: this.pacienteActual.celularPrincipal,
+            celularSecundario: this.pacienteActual.celularSecundario,
+            barrio: this.pacienteActual.barrio,
+            email: this.pacienteActual.email
+          });
+        }
 
-        // this.enviarMensajeAlertaCodigo()
-        (this.origen === 'procesar')
-          ? this.chequearMostrarAlertaCodigo()
-          : this.chequearMostrarAlertaCodigo();
-
-      });
+        // Simplificación de la lógica de alerta
+        // No importa si es 'procesar' o no, llamas a la misma función
+        this.chequearMostrarAlertaCodigo();
+      },
+      error: (err) => {
+        console.error('Error al refrescar:', err);
+        this.cargando = false;
+        // Opcional: Mostrar un Swal de error aquí
+      },
+      complete: () => {
+        // Retraso para que el usuario perciba que algo sucedió (UX)
+        setTimeout(() => this.cargando = false, 600);
+      }
+    });
   }
 
 
@@ -210,7 +226,7 @@ export class EntregasComponent implements OnInit, OnChanges {
 
           let selectElementdate = document.getElementById('fechaentrega') as HTMLInputElement;
           const selectedValueDate = selectElementdate.value;
-
+          
           if (selectedValue !== '-1' && selectedValueDate !== '') {
             let selectElementinput = document.getElementById('cantidadentregada') as HTMLInputElement;
             const cantidadAentregar = parseInt(selectElementinput.value);
@@ -229,11 +245,17 @@ export class EntregasComponent implements OnInit, OnChanges {
                     if (selectedValuetipo !== '' && selectedValuedocumento !== '') {
 
 
-                      // ⬇️ PEGAR ESTE IF AQUÍ
+                      // --- INICIO VALIDACIÓN DE FECHAS ---
+                      if (!this.listaregistros.fecSolicitud) {
+                        Swal.fire('Error', 'No se encontró la fecha de solicitud de la fórmula.', 'error');
+                        return;
+                      }
+
                       const fechaSolicitud = this.convertirFechaSinDesfase(this.listaregistros.fecSolicitud);
                       const fechaEntrega = this.convertirFechaSinDesfase(selectedValueDate);
                       const hoy = new Date();
 
+                      // Normalizar a medianoche para comparar solo fechas
                       fechaSolicitud.setHours(0, 0, 0, 0);
                       fechaEntrega.setHours(0, 0, 0, 0);
                       hoy.setHours(0, 0, 0, 0);
@@ -243,20 +265,17 @@ export class EntregasComponent implements OnInit, OnChanges {
                           icon: 'warning',
                           title: 'Fecha de entrega no válida',
                           html: `
-    La fecha de entrega seleccionada: <b>${this.formatFecha(selectedValueDate)}</b> no es válida.<br><br>
-
-    <ul style="text-align: left;">
-      <li>No puede ser anterior a la fecha de solicitud de la fórmula: <b>${this.formatFecha(fechaSolicitud)}</b>.</li>
-      <li>No puede ser posterior a la fecha actual: <b>${this.formatFecha(hoy)}</b>.</li>
-    </ul>
-
-    <br>Por favor seleccione una fecha de entrega correcta.
-  `,
+                La fecha de entrega seleccionada: <b>${this.formatFecha(fechaEntrega)}</b> no es válida.<br><br>
+                <ul style="text-align: left;">
+                    <li>No puede ser anterior a la solicitud: <b>${this.formatFecha(fechaSolicitud)}</b>.</li>
+                    <li>No puede ser posterior a hoy: <b>${this.formatFecha(hoy)}</b>.</li>
+                </ul>
+                <br>Por favor seleccione una fecha correcta.
+            `,
                         });
-
-                        return;
+                        return; // Detiene la ejecución
                       }
-                      // ⬆️ FIN VALIDACIÓN
+                      // --- FIN VALIDACIÓN DE FECHAS ---
 
 
                       this.enProceso = true;
@@ -313,19 +332,52 @@ export class EntregasComponent implements OnInit, OnChanges {
   }
 
 
-  formatFecha(fecha: string | Date): string {
-  const d = new Date(fecha);
-  const dia = String(d.getDate()).padStart(2, '0');
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
-  const anio = d.getFullYear();
-  return `${dia}/${mes}/${anio}`;
-}
+  formatFecha(fecha: Date): string {
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const anio = fecha.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  }
 
-// Función para evitar desfase de fechas
- convertirFechaSinDesfase(fechaStr: string): Date {
-  const [anio, mes, dia] = fechaStr.split('-').map(Number);
-  return new Date(anio, mes - 1, dia);
-}
+
+  puedeEliminar(): boolean {
+    if (!this.listaregistros.fecSolicitud) {
+      Swal.fire('Error', 'No se encontró la fecha de solicitud de la fórmula.', 'error');
+      return false;
+    }
+    const fechaSolicitud = this.convertirFechaSinDesfase(this.listaregistros.fecSolicitud);
+    const hoy = new Date();
+    // 2. Normalizar a medianoche
+    fechaSolicitud.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+    // 3. Calcular diferencia en milisegundos y convertir a días
+    const diferenciaMilisegundos = hoy.getTime() - fechaSolicitud.getTime();
+    const diferenciaDias = diferenciaMilisegundos / (1000 * 60 * 60 * 24);
+    // 4. Retorna true si la fecha es de hace 90 días o menos (y no es futura)
+    return diferenciaDias >= 0 && diferenciaDias <= 90;
+  }
+
+  convertirFechaSinDesfase(fechaStr: string): Date {
+    if (!fechaStr) return new Date();
+
+    // Si la fecha viene como "2026-01-13T15:40:09...", tomamos solo "2026-01-13"
+    const soloFecha = fechaStr.substring(0, 10);
+
+    // Detectar si el separador es / o -
+    const separador = soloFecha.includes('/') ? '/' : '-';
+    const partes = soloFecha.split(separador).map(Number);
+
+    if (separador === '/') {
+      // Caso: DD/MM/AAAA
+      const [dia, mes, anio] = partes;
+      return new Date(anio, mes - 1, dia);
+    } else {
+      // Caso: AAAA-MM-DD
+      const [anio, mes, dia] = partes;
+      return new Date(anio, mes - 1, dia);
+    }
+  }
+
 
   onRecibeChange(event: Event, itemt: any): void {
     const isChecked = (event.target as HTMLInputElement).checked;
@@ -554,7 +606,6 @@ export class EntregasComponent implements OnInit, OnChanges {
 ${bodega?.direccion}
 Nro: ${formula.idFormula}
 Impresión: ${fechaimpresionFormateada}
-
 -------------------------------------
 Documento:${formula.paciente.numDocumento}  
 Paciente: ${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''}
@@ -565,7 +616,6 @@ Funcionario:${formula.funcionariocreaformula}
 Pendiente:${fechaFormateada}
 Convenio: ${formula.paciente.eps.nombre}
 -------------------------------------
-
   Detalle de los medicamentos
 -------------------------------------
 ${formula.items
@@ -580,10 +630,12 @@ ${formula.items
         .join('\n')}
 -------------------------------------
 
+Fecha de entrega:_____________________      
 
-       
-Firma    :___________________________
-Documento:___________________________
+Firma recibe:_________________________
+Documento :___________________________
+Parentesco:___________________________
+Celular   :___________________________
 
 
 Este documento es válido hasta 
@@ -646,7 +698,6 @@ através de WhatsApp ${bodega?.telefono}
 ${bodega?.direccion}
 Nro: ${formula.idFormula} 
 Impresión: ${fechaimpresionFormateada}
-
 -------------------------------------
 Documento:${formula.paciente.numDocumento}  
 Paciente: ${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''}
@@ -657,7 +708,6 @@ Funcionario:${formula.funcionariocreaformula}
 Entrega: ${fechaFormateada}
 Convenio:${formula.paciente.eps.nombre}
 -------------------------------------
-
   Detalle de los medicamentos
 -------------------------------------
 ${formula.items
@@ -673,10 +723,10 @@ ${formula.items
 -------------------------------------
 
 
-       
-Firma    :___________________________
-Documento:___________________________
-
+Firma recibe:_________________________
+Documento :___________________________
+Parentesco:___________________________
+Celular   :___________________________
 
 
 Donar medicamentos,puede hacer la 
@@ -886,6 +936,7 @@ ${detalleMedicamentos}
 
 Firma    :___________________________
 Documento:___________________________
+
 
 </pre>
   `;
@@ -1467,7 +1518,7 @@ Documento:___________________________
       Swal.fire({
         icon: 'warning',
         title: 'Atención',
-        text: 'No se puede desprocesar la fórmula porque ya tiene entregas registradas.',
+        text: 'No se puede desprocesar la fórmula porque tiene entregas registradas, por favor devuelva las entrega y vuelva a intentar desprocesar la formula.',
         confirmButtonColor: '#f0ad4e'
       });
       return; // 🚫 no llamamos al backend
@@ -1475,21 +1526,17 @@ Documento:___________________________
 
     this.servicioformula.desprocesarFormula(this.listaregistros.idFormula, this.listaregistros.idBodega).subscribe({
       next: (resp) => {
-        if (resp.status === 'success') {
-          Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: resp.message,
-            confirmButtonColor: '#3085d6'
-          });
-        } else {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Atención',
-            text: resp.message,
-            confirmButtonColor: '#f0ad4e'
-          });
-        }
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: resp.message,
+          confirmButtonColor: '#3085d6'
+        }).then((result) => {
+          // Este bloque se ejecuta cuando el usuario hace clic en "OK"
+          if (result.isConfirmed) {
+            this.router.navigate(['/menu/formula', this.pacienteActual.idPaciente]); // <--- REDIRECCIÓN
+          }
+        });
       },
       error: (err) => {
         Swal.fire({
@@ -1500,6 +1547,7 @@ Documento:___________________________
         });
       }
     });
+
   }
 
   cancelarEdicion() {
@@ -1656,7 +1704,6 @@ Documento:___________________________
     const codigoGeneradoStr = String(this.codigoGenerado).trim();
     if (codigoIngresado === codigoGeneradoStr) {
       //actualizar en la base de datos el codigo
-      console.log("Formula: " + this.listaregistros.idFormula + " Codigo Verificado: " + codigoGeneradoStr);
       this.servicioformula.guardarCodigoVerificado(this.listaregistros.idFormula, codigoGeneradoStr)
         .subscribe(
           (resp) => {

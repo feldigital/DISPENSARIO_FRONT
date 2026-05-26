@@ -1,78 +1,85 @@
-<div class="example-container" [class.example-is-mobile]="mobileQuery.matches" *ngIf="shouldRun">
-  <mat-toolbar color="primary" class="example-toolbar">
-    <button mat-icon-button (click)="snav.toggle()"><mat-icon>menu</mat-icon></button>
+<div class="app-container" [class.mobile]="mobileQuery.matches" *ngIf="shouldRun">
 
+  <!-- TOOLBAR SUPERIOR -->
+  <mat-toolbar class="main-toolbar">
 
-  <div class="logo-container">
-    <img src="assets/logosism.png" alt="Logo" class="logo">
-    <h1 class="example-app-name">Dispensario SISM App</h1>
-  </div>
+    <button mat-icon-button (click)="snav.toggle()" class="menu-btn">
+      <mat-icon>menu</mat-icon>
+    </button>
 
-   
-    <span class="spacer"></span> 
-    <div class="icon-center">
-      <mat-icon>person</mat-icon>
+    <div class="logo-container">
+      <img src="assets/logosism.png" alt="Logo" class="logo">
+      <h1 class="app-name">Dispensario SISM App</h1>
     </div>
-    <span *ngIf="isLoggedIn" class="user-info">
-      {{funcionario | uppercase}} 
-      <br>{{bodegaActual?.nombre | titlecase }}
-      <br>{{bodegaActual?.puntoEntrega | titlecase}}
-    </span>
+
+    <span class="spacer"></span>
+
+    <div class="user-section" *ngIf="isLoggedIn">
+      <div class="user-avatar">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="user-info">
+        <strong>{{funcionario | uppercase}}</strong>
+        <div>{{bodegaActual?.nombre | titlecase}}</div>
+        <div>{{bodegaActual?.puntoEntrega | titlecase}}</div>
+      </div>
+    </div>
+
   </mat-toolbar>
 
+  <!-- CONTENEDOR PRINCIPAL -->
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'" [opened]="sidebarOpen" class="sidenav">
 
-  <mat-sidenav-container class="example-sidenav-container" [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
-    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'" [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
-      <mat-nav-list>  
-        <ng-container *ngFor="let nav of fillerNav">
-          <a mat-list-item 
-             [routerLink]="nav.route" 
-             routerLinkActive="active-link"  
-             [ngClass]="{'menu-parent': nav.subNav}"  
-             *ngIf="tieneAcceso(nav.nivel)">
-            <mat-icon class="icono">{{nav.icon}}</mat-icon>
-            {{nav.name}}
-          </a>
-  
-          <!-- Mostrar submenú si hay subNav 
-          <div *ngIf="nav.subNav && nav.subNav.length" class="submenu">
-            <a mat-list-item *ngFor="let sub of nav.subNav" 
-               [routerLink]="sub.route" 
-               routerLinkActive="active-link">
-              <mat-icon class="icono">{{sub.icon}}</mat-icon>
-              {{sub.name}}
-            </a>
-          </div>
-          -->
-        </ng-container>
-      </mat-nav-list>      
-    </mat-sidenav>
-  
-    <mat-sidenav-content>
-      <router-outlet></router-outlet>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+      <mat-accordion multi="true">
 
-<!--
-  <mat-sidenav-container class="example-sidenav-container"
-                         [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
-    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'"
-                 [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
-      <mat-nav-list>  
-         <ng-container *ngFor="let nav of fillerNav">
-          <a mat-list-item [routerLink]="nav.route" *ngIf="tieneAcceso(nav.nivel)">
-            <mat-icon class="icono">{{nav.icon}}</mat-icon>
-            {{nav.name}}
-          </a>
-        </ng-container>
-     </mat-nav-list>      
+        <mat-expansion-panel *ngFor="let grupo of menuAgrupado" [hideToggle]="!sidebarOpen" [disabled]="!sidebarOpen"
+          [expanded]="isGrupoActivo(grupo)" [ngClass]="{'grupo-activo': isGrupoActivo(grupo)}">
+
+          <!-- HEADER DEL GRUPO -->
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon class="group-icon" [matTooltip]="!sidebarOpen ? grupo.nombre : ''" matTooltipPosition="right">
+                {{grupo.icon}}
+              </mat-icon>
+
+              <span *ngIf="sidebarOpen">
+                {{grupo.nombre}}
+              </span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <!-- ITEMS DEL GRUPO -->
+          <mat-nav-list>
+            <ng-container *ngFor="let item of grupo.items">
+              <a mat-list-item *ngIf="tieneAcceso(item.nivel)" [routerLink]="['/menu', item.route]"
+                [ngClass]="{'active-link': esRutaActiva(item.route)}" [matTooltip]="item.name"
+                matTooltipPosition="right" (click)="mobileQuery.matches ? snav.close() : null">
+                <mat-icon matListItemIcon class="icono">
+                  {{item.icon}}
+                </mat-icon>
+                <span #menuLabel class="menu-text" [matTooltip]="tooltipMap[item.route] || ''"
+                  [matTooltipDisabled]="!tooltipMap[item.route]" matTooltipPosition="right" matTooltipShowDelay="300">
+                  {{ item.name }}
+                </span>
+              </a>
+
+
+            </ng-container>
+          </mat-nav-list>
+        </mat-expansion-panel>
+
+      </mat-accordion>
+
     </mat-sidenav>
 
+    <!-- CONTENIDO -->
     <mat-sidenav-content>
+      <div class="content-wrapper">
         <router-outlet></router-outlet>
+      </div>
     </mat-sidenav-content>
-  </mat-sidenav-container>
-  -->
-</div>
 
-<div *ngIf="!shouldRun">Please open on Stackblitz to see result</div>
+  </mat-sidenav-container>
+
+</div>

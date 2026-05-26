@@ -5,7 +5,7 @@ import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { FormaService } from 'src/app/servicios/forma.service';
 import Swal from 'sweetalert2';
 import { ViaService } from 'src/app/servicios/via.service';
-import { Observable, debounceTime, of, switchMap } from 'rxjs';
+import { Observable, debounceTime, map, of, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { FfarmaceuticaComponent } from '../ffarmaceutica/ffarmaceutica.component';
 import { VadministracionComponent } from '../vadministracion/vadministracion.component';
@@ -13,7 +13,9 @@ import { PacienteService } from 'src/app/servicios/paciente.service';
 import { EpsMedicamentoI } from 'src/app/modelos/epsMedicamento.model';
 import { BodegaService } from 'src/app/servicios/bodega.service';
 import autoTable, { RowInput } from 'jspdf-autotable';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import jsPDF from 'jspdf';
+
 
 @Component({
   selector: 'app-medicamento',
@@ -32,15 +34,14 @@ export class MedicamentoComponent implements OnInit {
   listaEps: any;
   listaBodegas: any;
   lista: any = [];
-
-
+  medicamentosFiltradosPadre: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private servicio: MedicamentoService,
     private servicioPaciente: PacienteService,
     private servicioBodega: BodegaService,
-    private formaservicio: FormaService,
+    private formaservicio: FormaService,    
     private viaservicio: ViaService,
     public dialog: MatDialog
   ) {
@@ -62,8 +63,40 @@ export class MedicamentoComponent implements OnInit {
       .subscribe(results => {
         this.listaregistrosFiltrados = results
       });
+
+this.generalForm.get('nombrePadre')!.valueChanges
+  .pipe(
+    debounceTime(300),
+    switchMap(value => {
+      // Si el valor es un objeto (porque ya se seleccionó), usamos el nombre para buscar
+      // Si es un string, lo usamos directamente.
+      const busca = (typeof value === 'string') ? value : (value?.nombre || '');
+      return this.buscarMedicamentos(busca);
+    })
+  )
+  .subscribe(results => {
+    this.medicamentosFiltradosPadre = results;
+  });
+
   }
 
+  
+displayMedicamento(med: any): string {
+  if (!med) return '';
+  // Si por alguna razón es un string, lo devuelve, si es objeto, devuelve el nombre
+  return typeof med === 'string' ? med : (med.nombre || '');
+}
+
+seleccionarPadre(event: MatAutocompleteSelectedEvent): void {
+  const medicamentoSeleccionado = event.option.value;
+  if (medicamentoSeleccionado) {
+    // Guardamos el ID en el campo que se envía al DTO
+    this.generalForm.patchValue({
+      idPadre: medicamentoSeleccionado.idMedicamento,
+      nombrePadre: medicamentoSeleccionado.nombre // Para que se vea en el input
+    });
+  }
+}
   
    
 buscarMedicamentos(filterValue: string): Observable<any[]> {
@@ -148,6 +181,8 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         agotado: [false],
         controlado: [false],
         enseguimiento: [false],        
+        idPadre: [null],        
+        nombrePadre:[''],
 
       });
   }
@@ -156,7 +191,8 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
 
   mostrarRegistro(itemt: any) {
     this.nombrebtn = "Actualizar"
-    this.generalForm.setValue({
+    
+    this.generalForm.patchValue({
       idMedicamento: itemt.idMedicamento,
       nombre: itemt.nombre,
       principioActivo: itemt.principioActivo,
@@ -174,6 +210,8 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       agotado: itemt.agotado,
       controlado: itemt.controlado,
       enseguimiento: itemt.enseguimiento,
+      idPadre: itemt.idPadre,
+      nombrePadre: itemt.nombrePadre,
       // listFilter: '',      
     })
   }
@@ -513,7 +551,6 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
           titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth(corte) / 2);
           doc.text(corte, titleXPos, 21);
 
-
         },
         didDrawPage: function (data) {
           // Agrega el número de página en la parte superior derecha de cada página
@@ -528,23 +565,20 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
         },
       });
 
+
       // Para calcular el total de páginas
       if (typeof doc.putTotalPages === 'function') {
         doc.putTotalPages(totalPagesExp);
       }
-
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+ 
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
-
   }
 
+
+  
 
   private async datosMedicamentosFiltrados(agotado: boolean, desabastecido: boolean, controlado: boolean, estado: boolean, enseguimiento: boolean): Promise<RowInput[] | undefined> {
     const data: RowInput[] = [];

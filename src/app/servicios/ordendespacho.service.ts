@@ -74,6 +74,23 @@ export class OrdendespachoService {
     .set('id', id);
     return this.http.delete<void>(`${this.urlEndPoint}/item`, {params});
   }
+
+  public updateCantidadComprobadaItemOrden(id: number,cantidadComprobada: number) {
+   const params = new HttpParams()
+    .set('idItemOrdenDespacho', id)
+    .set('cantidadComprobada', cantidadComprobada);
+  return this.http.put<OrdenDespachoI>(`${this.urlEndPoint}/updateitem`, null,{params}).pipe(
+    catchError(e => {
+      if (e.status == 400) {
+        return throwError(e);
+      }
+      if (e.error.mensaje) {
+        console.error(e.error.mensaje);
+      }
+      return throwError(e);
+    }));
+}
+
   
 
   create(registro: OrdenDespachoI): Observable<OrdenDespachoI> {
@@ -256,6 +273,34 @@ getMedicamentoOrdenDespachoEnvio( idMedicamento: number): Observable<any> {
       return throwError(e);
     }));
 } 
+
+actualizarItemBodega(idDes: number, idItem: number, idMed: number, cant: number): Observable<any> {
+  if (!idDes || !idItem || !idMed) {
+        console.warn('Parámetros incompletos en actualizarItemBodega:', { idDes, idItem, idMed, cant });
+    } 
+    
+    const params = new HttpParams()
+      .set('idDespacho', idDes.toString())
+      .set('idItemDespacho', idItem.toString())
+      .set('idMedicamento', idMed.toString())
+      .set('cantidadActualizada', cant.toString());
+
+    return this.http.put(`${this.urlEndPoint}/actualizaritemordenaorigen`, null, { params });
+}
+
+
+actualizarItemBodegaOrigenDestino(idDes: number, idItem: number, idMed: number, cant: number): Observable<any> {
+  if (!idDes || !idItem || !idMed) {
+        console.warn('Parámetros incompletos en actualizarItemBodega:', { idDes, idItem, idMed, cant });
+    }     
+    const params = new HttpParams()
+      .set('idDespacho', idDes.toString())
+      .set('idItemDespacho', idItem.toString())
+      .set('idMedicamento', idMed.toString())
+      .set('cantidadActualizada', cant.toString());
+
+    return this.http.put(`${this.urlEndPoint}/actualizaritemordenaorigendestino`, null, { params });
+}
 
 
 }

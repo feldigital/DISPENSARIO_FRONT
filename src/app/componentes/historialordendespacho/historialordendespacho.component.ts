@@ -333,14 +333,9 @@ export class HistorialordendespachoComponent {
       doc.putTotalPages(totalPagesExp);
     }
 
-    var pdfDataUri = doc.output('datauri');
-    var newWindow = window.open();
-    if (newWindow) {
-      newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-    } else {
-      // Manejar el caso en el que window.open() devuelve nulo
-      console.error('No se pudo abrir una nueva ventana.');
-    }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
 
   }
 

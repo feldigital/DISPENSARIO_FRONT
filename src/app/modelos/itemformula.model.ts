@@ -17,9 +17,10 @@ export class ItemFormulaI {
   entregaEfectiva: boolean  = true;
   items: Array<ItemFormulaEntregaI> = [];
   itemsMensaje: Array<HistorialMensajeI> = [];
+  precioAplicado: number = 0.0; // Guardaremos aquí el precio final decidido
 
   public calcularImporte(): number {
-    return this.cantidad * this.medicamento.valor;
+    return this.cantidad * this.precioAplicado;
   }
 
   

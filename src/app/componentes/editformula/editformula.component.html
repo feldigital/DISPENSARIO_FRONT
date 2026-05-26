@@ -109,6 +109,37 @@
                             </h5>
                         </div>
                     </div>
+                    <div class="form-group row">
+
+                        <label for="soporte" class="col-sm-4 col-form-label">Soporte escaneado</label>
+                        <mat-icon *ngIf="!this.formula.urlFormula && !editingSoporte" class="pointer-cursor"
+                            title="Adicionar pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                            (click)="editarSoporte()">
+                            add_circle
+                        </mat-icon>
+                        <mat-icon *ngIf="this.formula.urlFormula && !editingSoporte" title="Gestión pdf de la formula"
+                            class="pointer-cursor" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                            [matMenuTriggerFor]="menu">attach_file</mat-icon>
+
+                        <div *ngIf="editingSoporte">
+                            <input type="file" (change)="onFileSelected($event)" />
+                        </div>
+                        <mat-icon *ngIf="editingSoporte" title="Cancelar" class="pointer-cursor"
+                            title="Cancelar edición" [ngStyle]="{'color':'orange'}"
+                            (click)="cancelSoporte()">clear</mat-icon>
+
+                        <mat-menu #menu="matMenu">
+                            <button (click)="verArchivo()" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'#2BB6D7'}">attach_file</mat-icon>
+                                <span>Ver soporte</span>
+                            </button>
+                            <button (click)="editarSoporte()" mat-menu-item>
+                                <mat-icon [ngStyle]="{'color':'orange'}">repeat</mat-icon>
+                                <span>Reemplazar soporte</span>
+                            </button>
+                        </mat-menu>
+                    </div>
+
 
                 </div>
                 <div class="col-md-6">
@@ -458,9 +489,23 @@
 
         <div class="form-group row mt-3 d-flex align-items-center justify-content-between">
             <div class="col-sm-4">
-                <input type="button" (click)="actualizarFormula()" value="Actualizar Fórmula"
-                    class="btn btn-secondary w-100" [disabled]="!botonActivo" />
+                <button class="btn-custom btn-secondary w-100" (click)="actualizarFormula()" 
+                     [disabled]="!botonActivo" >
+                    Actualizar Fórmula
+                    </button>
             </div>
+            <div class="col-sm-2">
+                <button class="btn-custom btn-custom-gradient w-100"
+                    [routerLink]="['/menu/formula', formula.paciente.idPaciente]">
+                    Ver Historial
+                </button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn-custom btn-custom-gradient-d w-100" [routerLink]="['/menu/entrega', formula.idFormula]">
+                    Ver Entrega
+                </button>
+            </div>
+
             <div class="col-sm-4 text-end"> Total formula:
                 <span class="fw-bold">{{ formula.total | currency }}</span>
             </div>

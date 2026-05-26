@@ -1,134 +1,196 @@
 <div class="container mt-4">
-    <form [formGroup]="generalForm"  class="w-100 d-block">
-        <div class="row">
+    <form [formGroup]="generalForm" class="container-fluid py-2"> <!-- Padding reducido -->
+        <div class="row g-3"> <!-- Espaciado entre columnas controlado -->
 
-            <div class="col-sm">
-                <div class="input-group mb-2">
-                    <input type="text" formControlName="nombre" placeholder="Ingrese el nombre del medicamento"
-                        class="form-control border-end-0" required>
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
-                </div>
-                <div class="input-group mb-2">
-                    <input type="text" formControlName="principioActivo" placeholder="Ingrese el principio activo"
-                        class="form-control border-end-0">
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
-                </div>
-                <div class="input-group mb-2">
-                    <input type="text" formControlName="codigoCum" placeholder="Ingrese el codigo CUM"
-                        class="form-control border-end-0" required>
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
-                </div>
-                <div class="input-group mb-2">
-                    <input type="text" formControlName="codigoAtc" placeholder="Ingrese el codigo ATC"
-                        class="form-control border-end-0">
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
-                </div>
+            <!-- COLUMNA IZQUIERDA: DATOS DEL MEDICAMENTO (MÁS ANCHA: 8) -->
+            <div class="col-md-8">
+                <h6 class="text-primary mb-2 border-bottom pb-1">
+                    <i class="fa fa-pills me-2"></i>Información Principal
+                </h6>
 
-                <div class="input-group mb-2">
-                    <input type="text" formControlName="concentracion" placeholder="Ingrese la concentración"
-                        class="form-control border-end-0">
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
-                </div>
-
-                <div class="mb-3 d-flex align-items-center">                 
-                    <div class="input-group">
-                      <select class="form-select" formControlName="forma" required>
-                        <option selected value="">Seleccione forma farmaceutica</option>
-                        <option *ngFor="let item of listFormas" [ngValue]="item.idForma"
-                            [selected]="parametro == item.idForma">{{item.nombre }}</option>
-                    </select>
-                      <button mat-icon-button type="button"  (click)="openDialogForma()">
-                        <mat-icon>add_circle</mat-icon>
-                      </button>
+                <div class="row g-2">
+                    <!-- Nombre Comercial con más peso visual (col-12 o col-8) -->
+                    <div class="col-md-7 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Nombre del Medicamento</label>
+                        <input type="text" formControlName="nombre" placeholder="Ej: Acetaminofén"
+                            class="form-control form-control-sm" required>
                     </div>
-                  </div>
-               
-                <div class="mb-3 d-flex align-items-center">
-                         <div class="input-group">
-                      <select class="form-select" formControlName="via" required>
-                        <option selected value="">Seleccione via de administración</option>
-                        <option *ngFor="let item of listVias" [ngValue]="item.idVia" 
-                          [selected]="parametro == item.idVia">{{item.nombre}}
-                        </option>
-                      </select>
-                      <button mat-icon-button type="button"  (click)="openDialogVia()">
-                        <mat-icon>add_circle</mat-icon>
-                      </button>
+
+                    <div class="col-md-5 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Principio Activo</label>
+                        <input type="text" formControlName="principioActivo" placeholder="Ej: Paracetamol"
+                            class="form-control form-control-sm">
                     </div>
-                  </div>
 
-                <div class="input-group mb-2">
-                    <input type="number" formControlName="valor" placeholder="Ingrese el precio"
-                        class="form-control border-end-0" required>
-                    <span class="input-group-text bg-transparent">
-                        <i class="fa fa-user"></i>
-                    </span>
+                    <!-- CUM, ATC y Concentración en una sola fila para ahorrar espacio -->
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Código CUM</label>
+                        <input type="text" formControlName="codigoCum" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Código ATC</label>
+                        <input type="text" formControlName="codigoAtc" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Concentración</label>
+                        <input type="text" formControlName="concentracion" placeholder="Ej: 500mg"
+                            class="form-control form-control-sm">
+                    </div>
+
+                    <!-- Precio y Autocomplete de Padre -->
+                    <div class="col-md-3 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Precio Compra Unitario</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">$</span>
+                            <input type="number" formControlName="valor" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9 mb-1">
+                        <label class="form-label mb-0 small fw-bold">Medicamento Padre (Unificar Stock)</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" formControlName="nombrePadre"
+                                [matAutocomplete]="autoPadre" placeholder="Buscar para vincular...">
+                            <span class="input-group-text"></span>
+                        </div>
+                        <mat-autocomplete #autoPadre="matAutocomplete" (optionSelected)="seleccionarPadre($event)"
+                            [displayWith]="displayMedicamento">
+                            <mat-option *ngFor="let option of medicamentosFiltradosPadre" [value]="option"
+                                class="small">
+                                {{ option.nombre }} | {{ option.concentracion }}
+                            </mat-option>
+                        </mat-autocomplete>
+                        <input type="hidden" formControlName="idPadre">
+                    </div>
                 </div>
-
-                <div class="input-group mb-2">
-                    <!--  <mat-slide-toggle formControlName="estado">Estado !</mat-slide-toggle> -->
-                    <input class="form-check-input" style="margin-right: 5px" type="checkbox" formControlName="estado"> Vigente 
-
-                    <input *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="desabastecido"> Desabastecido
-
-                    <input *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="agotado"> Agotado
-
-                    <input class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="controlado"> Controlado
-                    <input  *ngIf="tieneAcceso(4)" class="form-check-input" style="margin-right: 5px; margin-left: 30px;" type="checkbox" formControlName="enseguimiento"> En seguimiento
-                </div>
-
-                <hr>
-                <div class="row">
-                    <div class="col-6">
-                        <button class="btn btn-outline-primary w-50" (click)="create()">
-                            {{this.nombrebtn}}</button>
-
-                            <button class="btn btn-outline-primary w-50" [matMenuTriggerFor]="menuMed">
-                                Imprimir</button>   
-                    </div>  
-                    
-                    <mat-menu #menuMed="matMenu">           
-                       
-                        <button (click)='reporteMedicamentosFiltrados(true,false,false,false,false,"AGOTADOS")' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'#orange'}">print</mat-icon>
-                            <span>Agotados</span>
-                        </button>
-                        <button (click)='reporteMedicamentosFiltrados(false,false,true,false,false,"CONTROLADOS")' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'green'}">print</mat-icon>
-                            <span>Controlados</span>
-                        </button>  
-                        <button (click)='reporteMedicamentosFiltrados(false,true,false,false,false,"DESABASTECIDOS")' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'2BB6D7'}">print</mat-icon>
-                            <span>Desabastecidos</span>
-                        </button>       
-                         <button (click)='reporteMedicamentosFiltrados(false,false,false,false,true,"EN SEGUIMIENTO")' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'orange'}">print</mat-icon>
-                            <span>En seguimiento</span>
-                        </button>          
-                        <button (click)='reporteMedicamentosFiltrados(false,false,false,true,false,"NO VIGENTES")' mat-menu-item>
-                            <mat-icon [ngStyle]="{'color':'red'}">print</mat-icon>
-                            <span>No vigentes</span>
-                        </button>       
-                   
-                    </mat-menu>
-                </div>               
-
             </div>
-            <div class="col-sm">
-              
+
+            <!-- COLUMNA DERECHA: CLASIFICACIÓN Y ESTADOS (MÁS ANGOSTA: 4) -->
+            <div class="col-md-4 border-start ps-3">
+                <h6 class="text-primary mb-2 border-bottom pb-1">Clasificación</h6>
+
+                <div class="mb-2">
+                    <label class="form-label mb-0 small fw-bold">Forma Farmacéutica</label>
+                    <div class="input-group input-group-sm">
+                        <select class="form-select" formControlName="forma" required>
+                            <option value="">Seleccione...</option>
+                            <option *ngFor="let item of listFormas" [ngValue]="item.idForma">{{item.nombre}}</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button"
+                            (click)="openDialogForma()"><mat-icon class="me-1" style="font-size: 18px; width: 18px; height: 18px;">add_circle</mat-icon></button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label mb-0 small fw-bold">Vía de Administración</label>
+                    <div class="input-group input-group-sm">
+                        <select class="form-select" formControlName="via" required>
+                            <option value="">Seleccione...</option>
+                            <option *ngFor="let item of listVias" [ngValue]="item.idVia">{{item.nombre}}</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button"
+                            (click)="openDialogVia()"><mat-icon class="me-1" style="font-size: 18px; width: 18px; height: 18px;">add_circle</mat-icon></button>
+                    </div>
+                </div>
+
+                <!-- Checkboxes de Estado compactos -->
+                <div class="card bg-light p-2 mb-1">
+                    <div class="row g-1">
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" formControlName="estado" id="chkEstado">
+                                <label class="form-check-label small" for="chkEstado">Vigente</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" formControlName="controlado"
+                                    id="chkCtrl">
+                                <label class="form-check-label small" for="chkCtrl">Controlado</label>
+                            </div>
+                        </div>
+                        <div class="col-4" *ngIf="tieneAcceso(4)">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" formControlName="desabastecido"
+                                    id="chkDes">
+                                <label class="form-check-label small text-danger" for="chkDes">Desabastecido</label>
+                            </div>
+                        </div>
+                        <div class="col-4" *ngIf="tieneAcceso(4)">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" formControlName="agotado" id="chkAgo">
+                                <label class="form-check-label small text-warning" for="chkAgo">Agotado</label>
+                            </div>
+                        </div>
+                        <div class="col-8" *ngIf="tieneAcceso(4)">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" formControlName="enseguimiento"
+                                    id="chkSeg">
+                                <label class="form-check-label small" for="chkSeg">Seguimiento especial</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+               <!-- Botones de Acción: Proporción 5/7 con mat-icon -->
+<div class="row g-2 mt-2">
+    <!-- Botón Crear/Actualizar (5 col) -->
+    <div class="col-5">
+        <button class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center text-truncate" (click)="create()">
+            <mat-icon class="me-1" style="font-size: 18px; width: 18px; height: 18px;">
+                {{ nombrebtn === 'Actualizar' ? 'edit' : 'save' }}
+            </mat-icon>
+            {{ nombrebtn }}
+        </button>
+    </div>
+
+    <!-- Botón Reportes (7 col) -->
+    <div class="col-7">
+        <button class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center text-truncate" [matMenuTriggerFor]="menuMed">
+            <mat-icon class="me-1" style="font-size: 18px; width: 18px; height: 18px;">print</mat-icon>
+            Reportes
+        </button>
+    </div>
+</div>
+               
             </div>
         </div>
     </form>
+
+    <!-- Menú de Impresión: Estados de Medicamentos -->
+    <mat-menu #menuMed="matMenu">
+
+        <!-- AGOTADOS: Icono de advertencia/vacío en color Naranja/Rojo -->
+        <button (click)='reporteMedicamentosFiltrados(true,false,false,false,false,"AGOTADOS")' mat-menu-item>
+            <mat-icon [ngStyle]="{'color': '#ff9800'}">production_quantity_limits</mat-icon>
+            <span>Reporte Agotados</span>
+        </button>
+
+        <!-- CONTROLADOS: Icono de escudo o seguridad en color Verde -->
+        <button (click)='reporteMedicamentosFiltrados(false,false,true,false,false,"CONTROLADOS")' mat-menu-item>
+            <mat-icon [ngStyle]="{'color': 'green'}">verified_user</mat-icon>
+            <span>Reporte Controlados</span>
+        </button>
+
+        <!-- DESABASTECIDOS: Icono de error de red o falta en color Cian/Azul -->
+        <button (click)='reporteMedicamentosFiltrados(false,true,false,false,false,"DESABASTECIDOS")' mat-menu-item>
+            <mat-icon [ngStyle]="{'color': '#2BB6D7'}">block</mat-icon>
+            <span>Reporte Desabastecidos</span>
+        </button>
+
+        <!-- EN SEGUIMIENTO: Icono de visibilidad/ojo en color Amarillo/Dorado -->
+        <button (click)='reporteMedicamentosFiltrados(false,false,false,false,true,"EN SEGUIMIENTO")' mat-menu-item>
+            <mat-icon [ngStyle]="{'color': '#ffc107'}">visibility</mat-icon>
+            <span>En Seguimiento Especial</span>
+        </button>
+
+        <!-- NO VIGENTES: Icono de papelera o eliminar en color Rojo -->
+        <button (click)='reporteMedicamentosFiltrados(false,false,false,true,false,"NO VIGENTES")' mat-menu-item>
+            <mat-icon [ngStyle]="{'color': 'red'}">dangerous</mat-icon>
+            <span>Reporte No Vigentes</span>
+        </button>
+
+    </mat-menu>
 
 
     <div class="alert alert-info my-4" *ngIf="listaregistros?.length == 0">
@@ -144,8 +206,8 @@
                     <th>Nombre</th>
                     <th>Forma Farmaceutica</th>
                     <th>Via</th>
-                    <th>Precio Unit.</th>                    
-                    <th>Gestión</th>                   
+                    <th>Precio Unit.</th>
+                    <th>Gestión</th>
 
                 </tr>
             </thead>
@@ -159,26 +221,32 @@
                     <td>{{primerasmayusculas(itemt.nombre)}}</td>
                     <td>{{itemt.forma.nombre}}</td>
                     <td>{{itemt.via.nombre}}</td>
-                    <td>{{ '$ ' + (itemt.valor | number:'1.0-0') }}</td>          
+                    <td>{{ '$ ' + (itemt.valor | number:'1.0-0') }}</td>
                     <td>
                         <div style="display: flex; align-items: center; ">
-                        <mat-icon title="Gestionar el medicamento en la bodega" class="pointer-cursor" [matMenuTriggerFor]="menu"
-                        [ngStyle]="{'font-size': '20px', 'color':'#009A94'}"  >domain</mat-icon> 
+                            <mat-icon title="Gestionar el medicamento en la bodega" class="pointer-cursor"
+                                [matMenuTriggerFor]="menu"
+                                [ngStyle]="{'font-size': '20px', 'color':'#009A94'}">domain</mat-icon>
 
-                        <mat-icon title="Asociar el medicamento al contrato" class="pointer-cursor" 
-                        [ngStyle]="{'font-size': '20px','color':'#009A94'}"  (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon> 
 
-                        <mat-icon title="Quitar el medicamento del contrato" class="pointer-cursor" 
-                        [ngStyle]="{'font-size': '20px','color':'orange'}"  (click)="modificarContrato(itemt,1)">clear</mat-icon> 
+                            <mat-icon *ngIf="tieneAcceso(5)" title="Asociar el medicamento al contrato"
+                                class="pointer-cursor" [ngStyle]="{'font-size': '20px','color':'#009A94'}"
+                                (click)="modificarContrato(itemt,0 )">offline_pin</mat-icon>
 
-                        <mat-icon title="Actualizar el medicamento" class="pointer-cursor" 
-                        [ngStyle]="{'font-size': '20px','color':'#009A94'}"  (click)="mostrarRegistro(itemt)">edit</mat-icon> 
+                            <mat-icon title="Quitar el medicamento del contrato" class="pointer-cursor"
+                                [ngStyle]="{'font-size': '20px','color':'orange'}"
+                                (click)="modificarContrato(itemt,1)">clear</mat-icon>
 
-                        <mat-icon title="Eliminar el medicamento" class="pointer-cursor" 
-                        [ngStyle]="{'font-size': '20px','color':'red'}"  (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
-</div>
+                            <mat-icon title="Actualizar el medicamento" class="pointer-cursor"
+                                [ngStyle]="{'font-size': '20px','color':'#009A94'}"
+                                (click)="mostrarRegistro(itemt)">edit</mat-icon>
+
+                            <mat-icon title="Eliminar el medicamento" class="pointer-cursor"
+                                [ngStyle]="{'font-size': '20px','color':'red'}"
+                                (click)="eliminarRegistro(itemt)">delete_sweep</mat-icon>
+                        </div>
                         <mat-menu #menu="matMenu">
-                            
+
                             <button (click)='agregarMedicamentotodasBodega(itemt)' mat-menu-item>
                                 <mat-icon [ngStyle]="{'color':'green'}">art_track</mat-icon>
                                 <span>Agregar en todas las bodega</span>
@@ -193,9 +261,9 @@
                                 <span>Quitar de una bodega</span>
                             </button>
 
-                           
+
                         </mat-menu>
-                     </td>
+                    </td>
 
                 </tr>
             </tbody>

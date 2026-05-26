@@ -3,11 +3,28 @@
 
         <div class="d-flex align-items-center justify-content-between w-100 gap-3" [formGroup]="generalForm">
 
-            <!-- Nombre del paciente alineado a la izquierda -->
-            <div class="fw-bold">
+
+
+
+
+<!-- Info Paciente -->
+        <div class="col-md-4">
+          <div class="d-flex align-items-center">
+            <div class="avatar-circle me-2"
+            [ngClass]="{'bg-danger text-white border border-danger shadow-sm': pacienteActual?.pave}"
+                  [matTooltip]="pacienteActual?.pave ? 'PAVE: Paciente de Alto Valor Estratégico' : 'Paciente normal'">
+              {{ pacienteActual?.pNombre?.charAt(0) }}{{ pacienteActual?.pApellido?.charAt(0) }}
+            </div>
+            <div>
+              <h6 class="mb-0 fw-bold text-primary text-uppercase">
                 {{ pacienteActual?.pNombre }} {{ pacienteActual?.sNombre }}
                 {{ pacienteActual?.pApellido }} {{ pacienteActual?.sApellido }}
+              </h6>
+              <small class="text-muted">Historial de Fórmulas</small>
             </div>
+          </div>
+        </div>
+           
 
             <!-- Grupo alineado a la derecha -->
             <div class="d-flex align-items-center gap-3 ms-auto">
@@ -28,7 +45,7 @@
                 <!-- Botón buscar -->
                 <button type="button" class="btn btn-outline-success d-flex align-items-center"
                     (click)="buscarRegistro(parametro)">
-                    <mat-icon class="me-1">search</mat-icon> Buscar
+                    <mat-icon class="me-1">search</mat-icon> Filtro
                 </button>
             </div>
         </div>
@@ -46,7 +63,7 @@
             <thead class="thead-colored">
                 <tr>
                     <th>Nro. Formula</th>
-                    <th>...</th>
+                    <th>PDF </th>
                     <th>F. Prescripción</th>
                     <th>IPS prescribe </th>
                     <th>Fecha y hora de solicitud</th>

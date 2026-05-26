@@ -1,4 +1,27 @@
-.selected-row {
-    background-color: #d1ecf1 !important; /* Color celeste claro */
-    font-weight: bold; /* Opcional: para resaltar el texto */
+
+  .puntero-hover {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    /* Forzar un color de sombreado más notable si el de Bootstrap es muy tenue */
+    .table-hover tbody tr.puntero-hover:hover {
+        background-color: rgba(0, 154, 148, 0.1) !important; /* Un verde azulado muy suave */
+    }
+
+    /* Evitar que la fila que contiene la tabla interna se sombree al pasar el mouse */
+    .no-hover:hover {
+        background-color: transparent !important;
+    }
+
+    .selected-row {
+        background-color: rgba(0, 154, 148, 0.15) !important;
+        border-left: 4px solid #009A94;
+        font-weight: bold; /* Opcional: para resaltar el texto */
+    }
+
+/*    .selected-row {
+    background-color: #d1ecf1 !important;
+   
   }
+  */

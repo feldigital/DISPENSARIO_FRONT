@@ -328,15 +328,9 @@ export class BodegaComponent implements OnInit {
       if (typeof doc.putTotalPages === 'function') {
         doc.putTotalPages(totalPagesExp);
       }
-
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
   }
 
@@ -480,14 +474,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
   }
 
@@ -600,14 +589,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -721,14 +705,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+     const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -793,14 +772,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+     const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -932,14 +906,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -1075,14 +1044,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -1219,14 +1183,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+   const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -1364,14 +1323,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+    const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -1508,14 +1462,9 @@ export class BodegaComponent implements OnInit {
         doc.putTotalPages(totalPagesExp);
       }
 
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
+   const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
     });
 
   }
@@ -2822,163 +2771,6 @@ Swal.fire({
       text: `Su reporte fue exportado en su carpeta de descargas en formato xslx`,
     });
   }
-
-
-/*  
-  reporteFormulasBodegaMeses(bodega: any): void {
-    const fInicial = this.generalForm.get('fInicial')?.value;
-    const fFinal = this.generalForm.get('fFinal')?.value;
-    // Validar que las fechas no sean nulas y que fInicial no sea mayor a fFinal
-    if (!fInicial || !fFinal) {
-      Swal.fire({
-        icon: 'error',
-        title: `Pendiente!`,
-        text: `Falta la informacion de las fechas del periodo que desea generar!`,
-      });
-      return;  // Detener la ejecución si faltan las fechas
-    }
-
-    const fechaInicial = new Date(fInicial);
-    const fechaFinal = new Date(fFinal);
-
-    if (fechaInicial > fechaFinal) {
-      Swal.fire({
-        icon: 'error',
-        title: `Invertidas!`,
-        text: `La fecha inicial del periodo no puede ser mayor que la fecha final!`,
-      });
-      return;  // Detener la ejecución si las fechas no son válidas
-    }
-
-    this.datosBodegaEntregasMeses(bodega, fInicial, fFinal).then((bodyData) => {
-      const doc = new jsPDF({
-        orientation: 'l',
-        unit: 'mm',
-        format: [220, 340],
-        putOnlyUsedFonts: true
-
-      });
-      let totalPagesExp = '{total_pages_count_string}';
-      let paginaActual = 1;
-
-      autoTable(doc, {
-        head: [['Nro', 'CUM', 'Nombre del medicamento', 'Presentación', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Total']],
-        body: bodyData,
-        startY: 37,
-        theme: 'striped',
-        //theme: 'grid',
-
-        willDrawPage: function (data) {
-          //doc.addImage('/assets/vertical.jpg', 'JPEG', 0, 5, 15, 60);
-          doc.setFontSize(11);
-          //doc.setFont("helvetica", "bold");
-          doc.setDrawColor(0);
-          //doc.setFillColor(255, 255, 255);
-          //doc.roundedRect(15, 8, 250, 31, 3, 3, "FD");
-          let titleXPos = (doc.internal.pageSize.getWidth() / 2) - (doc.getTextWidth('MEDICAMENTOS ENTREGADOS POR BODEGA CONSOLIDADO POR MESES') / 2);
-          let titleYPos = doc.getTextWidth('MEDICAMENTOS ENTREGADOS POR BODEGA CONSOLIDADO POR MESES');
-          doc.setDrawColor('#D3E3FD');
-          doc.setFillColor('#D3E3FD');
-          doc.roundedRect(titleXPos - 10, 9, titleYPos + 20, 7, 3, 3, "FD");
-
-          doc.addImage('/assets/logo.png', 'JPEG', 280, 8, 25, 20);
-          //doc.setTextColor('#FFFFFF'); // Color blanco
-
-          doc.text('MEDICAMENTOS ENTREGADOS POR BODEGA CONSOLIDADO POR MESES', titleXPos, 14);
-          // Establecer el color de la letra y el estilo de la fuente para el segundo texto
-          doc.setTextColor('#000000'); // Color negro  #E5E5E5
-
-          doc.text('Nombre de la bodega:', 17, 20);
-          //doc.setTextColor('#E5E5E5'); // Color gris
-          doc.text(bodega.nombre.toString() + " - " + bodega.puntoEntrega, 60, 20);
-          doc.text('Municipio:', 17, 25);
-          doc.text(bodega.municipio, 60, 25);
-          doc.text('Dirección:', 17, 30);
-          doc.text(bodega.direccion, 60, 30);
-          doc.text('Teléfono:', 17, 35);
-          doc.text(bodega.telefono, 60, 35);
-
-        },
-        didDrawPage: function (data) {
-          // Agrega el número de página en la parte superior derecha de cada página
-          doc.setFontSize(10);
-          doc.text('Página ' + paginaActual + ' de ' + totalPagesExp, 170, doc.internal.pageSize.height - 10);
-          doc.text(bodega.direccion.toString(), 12, doc.internal.pageSize.height - 12);
-          doc.text('Cel: ' + bodega.telefono.toString() + ', Email: ' + bodega.email.toString(), 12, doc.internal.pageSize.height - 7);
-          doc.setLineWidth(1.3);
-          doc.setDrawColor(236, 255, 83); // draw red lines 
-          doc.line(10, doc.internal.pageSize.height - 20, 10, doc.internal.pageSize.height - 5);
-          paginaActual++;
-        },
-      });
-
-      // Para calcular el total de páginas
-      if (typeof doc.putTotalPages === 'function') {
-        doc.putTotalPages(totalPagesExp);
-      }
-
-      var pdfDataUri = doc.output('datauri');
-      var newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write('<iframe src="' + pdfDataUri + '" width="100%" height="100%"></iframe>');
-      } else {
-        // Manejar el caso en el que window.open() devuelve nulo
-        console.error('No se pudo abrir una nueva ventana.');
-      }
-    });
-  }
-
-  private async datosFormulaBodegaMeses(bodega: any, fInicial: string, fFinal: string): Promise<RowInput[] | undefined> {
-    const data: RowInput[] = [];
-    try {
-      // Mostrar spinner mientras carga
-      Swal.fire({
-        title: 'Cargando registros...',
-        html: 'Por favor espera un momento',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-      const resp: any = await this.servicio.getMedicamentosBodegaEntregadosMeses(bodega.idBodega, fInicial, fFinal).toPromise();
-      this.lista = resp;
-      this.lista.sort((a: any, b: any) => a.dato_2.localeCompare(b.dato_2));
-      
-      for (let i = 0; i < this.lista.length; i++) {
-        this.contador++;
-        const rowData: RowInput = [
-          this.contador.toString(),
-          this.lista[i].dato_1,
-          this.lista[i].dato_2,
-
-          this.primerasmayusculas(this.lista[i].dato_3),
-          this.lista[i].d_1,
-          this.lista[i].d_2,
-          this.lista[i].d_3,
-          this.lista[i].d_4,
-          this.lista[i].d_5,
-          this.lista[i].d_6,
-          this.lista[i].d_7,
-          this.lista[i].d_8,
-          this.lista[i].d_9,
-          this.lista[i].d_10,
-          this.lista[i].d_11,
-          this.lista[i].d_12,
-          this.lista[i].d_t,
-        ];
-        data.push(rowData);
-      }
-      Swal.close(); // ✅ Cerrar el spinner al terminar correctamente
-      return data.length > 0 ? data : undefined;
-    } catch (err) {
-      console.error(err);
-      Swal.close(); // 🚨 Primero cerramos el spinner
-      Swal.fire('Error', 'No se pudieron cargar los registros.', 'error');
-      return undefined;
-    }
-  }
-
-*/
 
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));

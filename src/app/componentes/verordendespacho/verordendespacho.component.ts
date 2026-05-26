@@ -13,7 +13,7 @@ export class VerordendespachoComponent implements OnInit {
   listaItemsFormula: any;
   listaregistros: any;
   parametro: any;
- 
+  cargando:boolean =false; 
 
   existencias: { [key: number]: number } = {};
   constructor(   
@@ -32,26 +32,73 @@ export class VerordendespachoComponent implements OnInit {
     
   }
 
-  public buscarRegistro(id: number) {
+
+
+
+public buscarRegistro(id: number) {
+  this.cargando = true; // Iniciamos el efecto de carga
+  this.ordenDespachoservicio.getOrdenDespachoId(id)
+    .subscribe({
+      next: (resp: any) => {
+        this.listaregistros = resp;
+        
+        // Mapeo y lógica de control
+        this.listaItemsFormula = resp.itemsDespacho.map((item: any) => ({
+          ...item,
+          control: item.cantidad === item.cantidadComprobada,
+          cantidadDespacho: item.cantidadComprobada,
+        }));
+
+        // Ordenamiento
+        this.listaItemsFormula.sort((a: any, b: any) => 
+          a.medicamento.nombre.localeCompare(b.medicamento.nombre)
+        );
+      },
+      error: (err) => {
+        console.error('Error al refrescar:', err);
+        this.cargando = false; // Detenemos el spinner si hay error
+      },
+      complete: () => {
+        // Un pequeño retraso opcional para que la animación se aprecie
+        setTimeout(() => this.cargando = false, 600);
+      }
+    });
+}
+
+ /* public buscarRegistro(id: number) {
     this.ordenDespachoservicio.getOrdenDespachoId(id)
       .subscribe((resp: any) => {
         this.listaregistros = resp;       
-        //this.listaItemsFormula = resp.itemsDespacho;     
         this.listaItemsFormula = resp.itemsDespacho.map((item: any) => ({
           ...item,
-          control: false, // O cualquier lógica que determine el estado
+          // Si las cantidades son iguales, se asigna true, de lo contrario false
+          control: item.cantidad === item.cantidadComprobada,
           //editing: false,
-          cantidadDespacho: '',
+          cantidadDespacho: item.cantidadComprobada,
         }));        
         this.listaItemsFormula.sort((a: any, b: any) => a.medicamento.nombre.localeCompare(b.medicamento.nombre));
       });
   }
+*/
 
-  verificarCantidad(item: any, event: any): void{
-    if(item.cantidad===item.cantidadDespacho) 
-      item.control=true ;
-    else item.control=false;
+verificarCantidad(item: any, event: any): void {
+  // 1. Asignación directa del estado de control
+  item.control = (item.cantidad === item.cantidadDespacho);
+ console.log(item);
+  // 2. Ejecutar guardado solo si la condición se cumple
+  if (item.control) {
+    this.ordenDespachoservicio.updateCantidadComprobadaItemOrden(item.id, item.cantidadDespacho)
+      .subscribe({
+        next: () => { /* Guardado silencioso exitoso */ },
+        error: (err) => {
+          // Si falla el guardado automático, revertimos el check para que el usuario sepa que algo no cuadró
+          item.control = false;
+          console.error('Fallo en guardado automático:', err);
+        }
+      });
   }
+}
+
 
   procesarOrdenDespachoIngreso(): void {
     let funcionario = sessionStorage.getItem("nombre");

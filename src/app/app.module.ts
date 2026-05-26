@@ -34,6 +34,11 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatBadgeModule } from '@angular/material/badge';
+import { NgChartsModule } from 'ng2-charts';
+import { MatCardModule } from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 
 import { DetalleformulaComponent } from './componentes/detalleformula/detalleformula.component';
 import { EntregasComponent } from './componentes/entregas/entregas.component';
@@ -138,7 +143,13 @@ export function initPermisos(permisosService: PermisosService) {
     MatTabsModule,
     MatProgressBarModule,
     MatSnackBarModule,
-    MatBadgeModule
+    MatBadgeModule,
+    NgChartsModule,
+    MatCardModule,
+    MatExpansionModule,
+    MatTooltipModule,
+   
+
   ],
 
   providers: [

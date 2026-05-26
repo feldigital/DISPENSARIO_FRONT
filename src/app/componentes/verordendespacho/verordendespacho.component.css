@@ -132,3 +132,13 @@
   .input-group .btn {
     margin: 0; /* Elimina el margen por defecto del botón */
   }
+
+  /* Agrega esto a tu verordendespacho.component.css */
+.spinner-animacion {
+  animation: rotate 1.2s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

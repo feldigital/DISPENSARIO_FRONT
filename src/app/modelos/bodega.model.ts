@@ -14,6 +14,8 @@ export class BodegaI {
     inventario: boolean; 
 	entrada: boolean; 	
 	salida: boolean; 
+    compra: boolean; 
+    vencimiento: boolean; 
 
 
 
@@ -32,6 +34,8 @@ export class BodegaI {
         this.inventario = false;
         this.entrada = false;
         this.salida = false;
+        this.compra = false; 
+        this.vencimiento = false;
 
     }
 

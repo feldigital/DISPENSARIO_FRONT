@@ -1,1 +1,191 @@
-<p>Este modulo esta eb construcción!</p>
+<form [formGroup]="generalForm" class="px-2">
+   
+  <div class="row align-items-end g-2 mb-2">
+    <!-- Selector de Bodega -->
+    <div class="col-md-4">
+      <label class="form-label mb-1 fw-bold">Bodega de pendiente</label>
+      <select class="form-select form-select-sm" formControlName="idBodega">
+        <option selected value="0">TODAS LAS BODEGAS</option>
+        <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+          {{ item.nombre }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Rango de Fechas -->
+    <div class="col-md-3">
+      <label class="form-label mb-1 fw-bold">Fecha</label>
+      <div class="d-flex gap-1">
+        <input type="date" formControlName="fechainicial" class="form-control form-control-sm">       
+      </div>
+    </div>
+    
+
+  <!-- Botón Refrescar -->
+<div class="col-md-1">
+  <button
+    type="button"
+    class="btn btn-info btn-sm btn-refresh w-100 d-flex align-items-center justify-content-center"
+    (click)="cargarEstadistica()">
+    <mat-icon class="me-1 icon-refresh">refresh</mat-icon>  
+  </button>  
+</div>
+     <!-- MES ACTIVO -->
+    <div class="col-md-4 d-flex justify-content-end align-items-end">
+      <div class="mes-activo-box">
+        {{ mesActivo | date:'MMMM yyyy' | titlecase }}
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="dashboard">
+
+    <!-- Gráfica kpi -->
+    <mat-card class="kpi-card">
+      <mat-card-title class="titulo">
+        📊 Estadísticas de Procesos
+      </mat-card-title>
+      <mat-card-content>
+        <div class="kpi-grid">
+          <!-- KPI Día -->
+          <div class="kpi-box dia">
+            <p class="kpi-label">Fórmulas</p>
+            <h2 class="kpi-value">{{ formulasDia }}</h2>
+            <p class="kpi-sub">Procesadas en el día</p>
+          </div>
+          <!-- KPI Semana -->
+          <div class="kpi-box semana">
+            <p class="kpi-label">Fórmulas</p>
+            <h2 class="kpi-value">{{ formulasSemana }}</h2>
+            <p class="kpi-sub">Procesadas en la semana</p>
+          </div>
+
+          <!-- KPI Mes -->
+          <div class="kpi-box mes">
+            <p class="kpi-label">Fórmulas</p>
+            <h2 class="kpi-value">{{ formulasMes }}</h2>
+            <p class="kpi-sub">Procesadas en el mes</p>
+          </div>
+ 
+        </div>
+        <div class="kpi-grid">
+         
+          <!-- KPI no procesadas -->
+          <div class="kpi-box noprocesadas">
+            <p class="kpi-label">Fórmulas</p>
+            <h2 class="kpi-value">{{ formulasNoProcesadas }}</h2>
+            <p class="kpi-sub">No procesadas</p>
+          </div>
+          <!-- KPI Ordenes -->
+          <div class="kpi-box norecibidas">
+            <p class="kpi-label">Ordenes</p>
+            <h2 class="kpi-value">{{ ordenesNoRecibidas }}</h2>
+            <p class="kpi-sub">No recibidas</p>
+          </div>
+
+          <!-- KPI PQRS -->
+          <div class="kpi-box noresueltas">
+            <p class="kpi-label">PQRS</p>
+            <h2 class="kpi-value">{{ pqrsNoResueltas }}</h2>
+            <p class="kpi-sub">No resueltas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Gráfica barra horizontal-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Formulas por Funcionario</mat-card-title>
+      <mat-card-content>
+        <div class="chart-box">
+          <canvas baseChart [data]="barChartDataHorizontal" [options]="barChartOptionsHorizontal" type="bar">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Gráfica  barra vertical-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Formulas procesadas últimos 12 meses</mat-card-title>
+
+      <mat-card-content>
+        <div class="chart-box">            
+          <canvas  baseChart [data]="barChartDataVertical" type="bar" [options]="barChartOptionsVertical">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+     <!-- Gráfica  barra vertical-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Formulas no reclamadas últimos 12 meses</mat-card-title>
+
+      <mat-card-content>
+        <div class="chart-box">
+          <canvas baseChart [data]="barChartDataNoReclamdas" type="bar" [options]="barChartOptionsVertical">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+
+    
+    <!-- Gráfica barra horizontal-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Top de Medicamentos Prescritos Mes</mat-card-title>
+      <mat-card-content>
+        <div class="chart-box">
+  <canvas baseChart 
+          [data]="barChartDataTop" 
+          [options]="barChartOptionsTop" 
+          type="bar">
+  </canvas>
+</div>
+      </mat-card-content>
+    </mat-card>
+
+
+    <!-- Gráfica barra horizontal-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Top de Medicamentos Pendiente Mes</mat-card-title>
+      <mat-card-content>
+        <div class="chart-box">
+  <canvas baseChart 
+          [data]="barChartDataTopPendiente" 
+          [options]="barChartOptionsTopPendiente" 
+          type="bar">
+  </canvas>
+</div>
+      </mat-card-content>
+    </mat-card>
+
+        
+
+       <!-- Gráfica  Dona -->
+    <mat-card class="chart-card">
+      <mat-card-title>🍩 Estados de Ordenes</mat-card-title>
+      <mat-card-content>
+        <div class="chart-box">
+          <canvas baseChart [data]="doughnutChartData" type="doughnut" [options]="chartOptions">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+<!-- Gráfica  barra vertical vencimientos-->
+    <mat-card class="chart-card">
+      <mat-card-title>📊 Vencimientos de medicamentos en los proximos 6 meses</mat-card-title>
+
+      <mat-card-content>
+        <div class="chart-box">
+          <canvas baseChart [data]="barChartDataVencimiento" type="bar" [options]="barChartOptionsVencimiento">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+
+
+  </div>

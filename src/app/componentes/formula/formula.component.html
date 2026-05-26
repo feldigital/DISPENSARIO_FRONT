@@ -1,348 +1,510 @@
-<div class="card bg-light">
-  <div class="card-body">
-    <form [formGroup]="facturaForm">
-      <div class="row">
-        <div class="col-md-5">
-          <div class="form-group row">
-            <label for="cliente" class="col-sm-4 col-form-label">Documento *</label>
-            <div class="col-sm-8">
-              <div class="input-group">
+<div class="container-fluid py-1 px-3">
+  <form [formGroup]="facturaForm">
+    <div class="row g-2">
+
+      <!-- ========================================== -->
+      <!-- PANEL 1: DATOS DEL PACIENTE Y BUSQUEDA     -->
+      <!-- ========================================== -->
+      <div class="card shadow-sm border-0 mb-1 bg-gradient-patient">
+        <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+          <mat-icon inline class="me-1 text-primary">person</mat-icon>Datos del paciente
+        </h6>
+        <div class="card-body p-2">
+
+          <div class="row align-items-center g-2">
+            <!-- Título y Búsqueda Compacta (Todo en una sola fila) -->
+            <div class="col-md-3">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white fw-bold text-muted" style="font-size: 13px;">Doc *</span>
                 <input type="text" (keyup.enter)="buscarDocumento()" formControlName="paciente" class="form-control"
-                  placeholder="Digite el documento" />
-                <button type="button" class="btn btn-info btn-sm" (click)="buscarDocumento()">Buscar paciente</button>
-              </div>
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('paciente')?.invalid && (facturaForm.get('paciente')?.touched)">
-                El número del paciente es requerido.
-              </div>
-            </div>
-          </div>
+                  style="font-size: 13px;" placeholder="Ej: 10203040"
+                  [class.is-invalid]="facturaForm.get('paciente')?.invalid && facturaForm.get('paciente')?.touched">
 
-          <div class="form-group row align-items-center">
-            <label for="ipsPrescribe" class="col-sm-4 col-form-label">IPS que prescribe *</label>
-            <div class="col-sm-8">
-              <mat-form-field class="w-100">
-                <mat-label>Buscar IPS</mat-label>
-                <input type="text" matInput formControlName="ips" [matAutocomplete]="autoips" />
-                <button mat-icon-button matSuffix (click)="openDialogIps()">
-                  <mat-icon>add_circle</mat-icon>
+                <button
+                  class="btn border-0 shadow-sm d-inline-flex align-items-center justify-content-center px-3 btn-buscar-premium"
+                  type="button" (click)="buscarDocumento()" matTooltip="Consultar documento en base de datos">
+                  <!-- Icono alineado perfectamente -->
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">search</mat-icon>
+                  <span class="fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Buscar</span>
                 </button>
-                <mat-autocomplete #autoips="matAutocomplete" [displayWith]="displayIps"
-                  (optionSelected)="onOptionSelectedIps($event.option.value)">
-                  <mat-option *ngFor="let option of ipsFiltrados" [value]="option">
-                    {{ option.nombre }}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-            </div>
-          </div>
 
-
-          <div class="form-group row align-items-center">
-            <label for="medicoPrescribe" class="col-sm-4 col-form-label">Médico prescribe *</label>
-            <div class="col-sm-8">
-              <mat-form-field class="w-100">
-                <mat-label>Buscar médico</mat-label>
-                <input type="text" matInput formControlName="medico" [matAutocomplete]="automedico" />
-                <button mat-icon-button matSuffix (click)="openDialogMedico()">
-                  <mat-icon>add_circle</mat-icon>
-                </button>
-                <mat-autocomplete #automedico="matAutocomplete" [displayWith]="displayMedico"
-                  (optionSelected)="onOptionSelectedMedico($event.option.value)">
-                  <mat-option *ngFor="let option of medicosFiltrados" [value]="option">
-                    {{ option.nombre }} - {{ option.especialidad }}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('medico')?.invalid && facturaForm.get('medico')?.touched">
-                Médico que prescribe la fórmula es requerido.
               </div>
             </div>
-          </div>
-          <div class="form-group row">
-            <label for="fecPrescribe" class="col-sm-4 col-form-label">Fecha de prescripción *</label>
-            <div class="col-sm-4">
-              <div class="diagnosticos-group">
-                <input type="date" formControlName="fecPrescribe" style="width: 350px" class="form-control"
-                  [max]="hoy" />
+
+            <!-- Datos Dinámicos del Paciente (Si está cargado)   -->
+            <ng-container *ngIf="mostrarComponente">
+
+              <div class="col-auto position-relative">
+                <!-- Avatar dinámico con color rojo y Tooltip explicativo si es PAVE -->
+                <div class="avatar-circle-sm"
+                  [ngClass]="{'bg-danger text-white border border-danger shadow-sm': pacienteActual?.pave}"
+                  [matTooltip]="pacienteActual?.pave ? 'PAVE: Paciente de Alto Valor Estratégico' : 'Paciente normal'">
+                  {{pacienteActual?.pNombre[0]}}{{pacienteActual?.pApellido[0]}}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-0 text-dark fw-bold text-uppercase" style="font-size: 13px;">
+                  {{pacienteActual?.pNombre}} {{pacienteActual?.sNombre}} {{pacienteActual?.pApellido}}
+                  {{pacienteActual?.sApellido}}
+                </h6>
+                <span class="text-muted d-block" style="font-size: 12px; font-weight: 500;">
+                  <span class="fw-bold" style="color: #10b981;">{{pacienteActual?.eps?.nombre}}</span>
+                  | {{pacienteActual?.sexo}} |
+                  {{calcularEdad(pacienteActual?.fecNacimiento)}} años
+                </span>
               </div>
 
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('fecPrescribe')?.invalid && (facturaForm.get('fecPrescribe')?.touched)">
-                La fecha de la prescripción de la fórmula es requerida.
+
+
+              <div class="col-auto">
+                <div *ngIf="pacienteActual?.portabilidad"
+                  class="d-inline-flex align-items-center bg-info-subtle border border-info rounded px-2 py-1 shadow-sm">
+                  <!-- Icono indicador -->
+                  <mat-icon class="text-info me-1"
+                    style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">sync_alt</mat-icon>
+
+                  <!-- Texto principal -->
+                  <span class="text-info-dark fw-bold text-uppercase me-2"
+                    style="font-size: 11px; letter-spacing: 0.5px;">
+                    Portabilidad: {{pacienteActual.mpoportabilidad.nombre}}
+                  </span>
+
+                  <!-- Divisor visual interno -->
+                  <span class="text-info opacity-50 me-2">|</span>
+
+                  <!-- Alerta de Vencimiento Resaltada -->
+                  <span class="badge bg-danger text-white fw-bold" style="font-size: 10px; padding: 3px 6px;">
+                    VENCE: {{pacienteActual.fecVencePortabilidad | date: 'dd/MM/yyyy'}}
+                  </span>
+                </div>
               </div>
+            </ng-container>
+          </div>
+
+          <!-- Información Detallada del Contacto -->
+          <div class="row g-2 mt-1 pt-1 border-top text-muted" style="font-size: 12px;" *ngIf="mostrarComponente">
+            <div class="col-md-5 d-flex align-items-center gap-2">
+              <span>
+                <!-- Color rojo vivo para localización -->
+                <mat-icon inline style="color: #ea4335; font-size: 14px; vertical-align: middle;">location_on</mat-icon>
+                {{pacienteActual.municipio.nombre}} - {{pacienteActual.municipio.departamento.nombre}},
+                {{pacienteActual.direccion}}
+              </span>
             </div>
-            <input class="form-check-input" type="checkbox" formControlName="origenurgencia" />
-            ¿Fue por urgencia?
-          </div>
 
-          <div class="form-group row">
-            <label for="fecSolicitud" class="col-sm-4 col-form-label">Fecha de entrega *</label>
-            <div class="col-sm-4">
-              <div class="diagnosticos-group">
-                <input type="date" formControlName="fecSolicitud" style="width: 350px" class="form-control" [max]="hoy"
-                  [min]="minimohoy" />
-
-              </div>
-
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('fecSolicitud')?.invalid && (facturaForm.get('fecSolicitud')?.touched)">
-                La fecha de solicitud de la fórmula es requerida.
-              </div>
+            <div class="col-md-3 d-flex align-items-center gap-2">
+              <span>
+                <!-- Color verde llamadas/comunicación -->
+                <mat-icon inline style="color: #198754; font-size: 14px; vertical-align: middle;">phone</mat-icon>
+                {{pacienteActual.celularPrincipal}}
+              </span>
             </div>
-            <input class="form-check-input" type="checkbox" formControlName="pgp" /> ¿Es PGP?
 
-          </div>
+            <div class="col-md-4 d-flex align-items-center justify-content-between">
+              <span>
+                <!-- Color azul médico para la institución/dispensario -->
+                <mat-icon inline
+                  style="color: #0d6efd; font-size: 14px; vertical-align: middle;">local_hospital</mat-icon>
+                Disp: {{pacienteActual.dispensario}}
+              </span>
 
-          <div class="form-group row">
-            <label for="diagnosticos" class="col-sm-4 col-form-label">Diagnósticos *</label>
-            <div class="col-sm-8">
-              <div class="diagnosticos-group">
-                <input type="text" formControlName="cieP" class="form-control" placeholder="Dx principal *"
-                  maxlength="4" (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieP($event)"
-                  (blur)="ocultarComentario()" (input)="actualizarComentario($event)" />
-                <input type="text" formControlName="cieR1" class="form-control" placeholder="Dx rel 1" maxlength="4"
-                  (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieR1($event)"
-                  (blur)="ocultarComentario()" (input)="actualizarComentario($event)" />
-                <input type="text" formControlName="cieR2" class="form-control" placeholder="Dx rel 2" maxlength="4"
-                  (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieR2($event)"
-                  (blur)="ocultarComentario()" (input)="actualizarComentario($event)" />
-                <input type="text" formControlName="cieR3" class="form-control" placeholder="Dx rel 3" maxlength="4"
-                  (focus)="actualizarComentario($event)" (input)="convertirAMayusculasCieR3($event)"
-                  (blur)="ocultarComentario()" (input)="actualizarComentario($event)" />
-
-              </div>
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('cieP')?.invalid && (facturaForm.get('cieP')?.touched)">
-                El Dx Principal es requerido.
-
-              </div>
-              <div class="alert alert-danger mt-2" *ngIf="comentarioVisible">
-                <small *ngIf="comentarioVisible" class="form-text text-muted">
-                  {{ mensajeComentario }}
-                </small>
-              </div>
-
-              <div class="alert alert-danger mt-2" *ngIf="comentarioVisible">
-                <small *ngIf="comentarioVisible" class="form-text text-muted">
-                  {{ mensajeErrorDx }}
-                </small>
-              </div>
-
+              <!-- Botón de edición con un naranja ejecutivo más llamativo y profesional -->
+              <button mat-button class="p-0 h-auto border-0 bg-transparent fw-bold text-uppercase"
+                style="font-size: 11px; color: #d97706; letter-spacing: 0.3px;" (click)="enEdicion()">
+                <mat-icon inline style="font-size: 13px; margin-right: 2px; vertical-align: middle;">edit</mat-icon>
+                Editar contacto
+              </button>
             </div>
-          </div>
 
-          <div class="form-group row">
-            <label for="programa" class="col-sm-4 col-form-label">Programa *</label>
-            <div class="col-sm-8">
-              <div class="diagnosticos-group">
-                <select class="form-select" formControlName="programa">
-                  <option selected value="">Seleccionar el programa</option>
-                  <option value="1">Mayores de 70 años no incluidos en cohortes</option>
-                  <option value="2">Menores de 70 años no incluidos en cohortes</option>
-                  <option value="3">Hipertensión arterial</option>
-                  <option value="4">Diabetes Mellitu</option>
-                  <option value="5">Cardiopatias y Enfermedades Cerebrovasculares</option>
-                  <option value="6">Terapia de remplazo renal</option>
-                  <option value="7">Artritis y otras autoinmunes</option>
-                  <option value="8">Epoc</option>
-                  <option value="9">Asma</option>
-                  <option value="10">Vih</option>
-                  <option value="11">TBC o Hepatitis C</option>
-                  <option value="12">Enfermedad neurologica</option>
-                  <option value="13">Salud Mental</option>
-                  <option value="14">Hemofilia</option>
-                  <option value="15">Discapacitados</option>
-                  <option value="16">Enfermedad Huerfana</option>
-                  <option value="17">Trasplantes</option>
-                  <option value="18">Desnutrición</option>
-                  <option value="19">Gestantes</option>
-                  <option value="20">Hipertensión y Diabete</option>
-                  <option value="21">Niños menores de 5 años</option>
-                </select>
-              </div>
-              <div class="alert alert-danger mt-2"
-                *ngIf="facturaForm.get('programa')?.invalid && (facturaForm.get('programa')?.touched)">
-                El programa del paciente es requerido.
-              </div>
-            </div>
-          </div>
-          <div class="form-group row">
-            <label for="observacion" class="col-sm-4 col-form-label">Observación</label>
-            <div class="col-sm-8">
-              <textarea formControlName="observacion" class="form-control"></textarea>
-            </div>
-          </div>
-
-          <div class="form-group row">
-            <label for="observacion" class="col-sm-4 col-form-label">Cuota Moderadora</label>
-            <div class="col-sm-8" *ngIf="mostrarComponente">
-              <p><mat-slide-toggle formControlName="cobroCM" labelPosition="before"
-                  [checked]="cobroCuotaModeradora()">Cobro la cuota moderadora!</mat-slide-toggle></p>
-              <h5 class="float-right mt-3" *ngIf="pacienteActual?.regimen==='C'">
-                <span class="text-green"> {{pacienteActual.categoria.nombre}} : {{ pacienteActual.categoria.valor |
-                  currency:'COP':'symbol-narrow':'1.0-0'}} </span>
-              </h5>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-7">
-          <div class="row">
-            <div *ngIf="mostrarComponente" class="card" class="col-md-7">
-              <p><strong>Nombre:</strong> {{pacienteActual.pNombre}} {{pacienteActual.sNombre}}
-                {{pacienteActual.pApellido}} {{pacienteActual.sApellido}}</p>
-              <p><strong>Eps:</strong> {{pacienteActual.eps.nombre}}</p>
-
-              <div>
-                <ng-container *ngIf="!editarContacto; else modoEdicion">
-                  <p>
-                    <strong>Dirección:</strong> {{ pacienteActual.direccion }}<br />
-                    <strong>Contacto:</strong> {{ pacienteActual.celularPrincipal }} - {{ pacienteActual.celularSecundario }}
-                    <button mat-icon-button (click)="enEdicion()" style="width: 24px; height: 24px;">
-                      <mat-icon style="font-size: 16px; color: green;">edit</mat-icon>
-                    </button>
-                  </p>
-                </ng-container>
-              
-                <ng-template #modoEdicion>
-                  <div class="contacto-edicion-container">
-                    <div >
-                      <mat-label>Datos de contacto</mat-label>                     
-                      <input  class="form-control" type="number" formControlName="celularPrincipal"  placeholder="Digite teléfono principal" />
-                      <input  class="form-control" type="number" formControlName="celularSecundario"  placeholder="Digite teléfono secundario" />
-                      <input  class="form-control" type="text" formControlName="direccion"  placeholder="Digite dirección" />
-                      <input  class="form-control" type="text" formControlName="barrio"  placeholder="Digite barrio" />
-                      <input  class="form-control" type="text" formControlName="email"  placeholder="Digite correo electrónico" />
-                    </div>
-                
-                    <div class="acciones">
-                      <button mat-icon-button color="primary" (click)="guardarDatosContacto()" matTooltip="Guardar">
-                        <mat-icon>check</mat-icon>
-                      </button>
-                      <button mat-icon-button color="warn" (click)="cancelarEdicion()" matTooltip="Cancelar">
-                        <mat-icon>close</mat-icon>
-                      </button>
-                    </div>
+            <!-- Formulario de Edición Desplegable -->
+            <div class="col-12" *ngIf="editarContacto">
+              <div class="p-2 border rounded bg-white mt-1">
+                <div class="row g-1 align-items-center">
+                  <!-- Añadido align-items-center para que inputs y botones queden en la misma línea visual -->
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="number"
+                      formControlName="celularPrincipal" placeholder="Tel Principal" />
                   </div>
-                </ng-template>
-                
-                
-              </div>
-              
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="number"
+                      formControlName="celularSecundario" placeholder="Tel Secundario" />
+                  </div>
+                  <div class="col-md-3">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="direccion" placeholder="Dirección" />
+                  </div>
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="barrio" placeholder="Barrio" />
+                  </div>
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="email" placeholder="Correo electrónico" />
+                  </div>
 
-              <p><strong>Sexo:</strong> {{pacienteActual.sexo}} <strong> - Edad:</strong>
-                {{calcularEdad(pacienteActual.fecNacimiento)}} años</p>
-            </div>
-            <div *ngIf="mostrarComponente" class="card" class="col-md-5">
-              <p><strong>Municipio:</strong> {{pacienteActual.municipio.nombre}} -
-                {{pacienteActual.municipio.departamento.nombre}}</p>
-              <p><strong>Dispensario:</strong> {{pacienteActual.dispensario}} </p>
-              <div class="blink" *ngIf="pacienteActual.pave">
-                <p> <strong>Paciente PAVE</strong></p>
-              </div>
-              <div class="porta" *ngIf="pacienteActual.portabilidad">
-                <p> <strong>Portabilidad - {{pacienteActual.mpoportabilidad.nombre}} vence:
-                    {{pacienteActual.fecVencePortabilidad | date: 'dd/MM/yyyy'}}</strong></p>
-              </div>
-            </div>
-          </div>
-          <div class="form-group row align-items-center">
-            <label class="col-sm-4 col-form-label">Agregar lista de medicamentos
+                  <!-- Contenedor de acciones optimizado -->
+                  <div class="col-md-1 d-flex justify-content-end gap-1">
+                    <!-- Botón Guardar (Check) -->
+                    <button type="button"
+                      class="btn btn-success p-0 d-flex align-items-center justify-content-center btn-accion-compacta"
+                      (click)="guardarDatosContacto()" matTooltip="Guardar cambios">
+                      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">check</mat-icon>
+                    </button>
 
-            </label>
-
-            <div class="col-sm-8">
-              <mat-form-field appearance="fill" class="w-100">
-                <mat-label>Buscar medicamento a agregar
-                </mat-label>
-                <input type="text" matInput formControlName="medicamento" [matAutocomplete]="automedicamento" />
-                <mat-autocomplete #automedicamento="matAutocomplete" (optionSelected)="seleccionarMedicamento($event)">
-                  <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option">
-                    {{ option.nombre }}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-              <div class="alert alert-danger mt-2" *ngIf="facturaForm.get('autocompleteControl')?.invalid">
-                No ha seleccionado los medicamentos de la fórmula.
+                    <!-- Botón Cancelar (Close) -->
+                    <button type="button"
+                      class="btn btn-danger p-0 d-flex align-items-center justify-content-center btn-accion-compacta"
+                      (click)="cancelarEdicion()" matTooltip="Cancelar edición">
+                      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">close</mat-icon>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-
-          <div class="alert alert-info mt-4" *ngIf="formula.items.length == 0">
-            No hay medicamentos asignados para la fórmula, debe agregar al menos uno.
-          </div>
-
-          <table class="table table-striped table-hover table-sm mt-3" *ngIf="formula.items.length > 0">
-            <thead class="thead-colored">
-              <tr>
-                <th *ngIf="facturaForm.get('checkcontinuidad')?.value"></th>
-                <th>Medicamento</th>
-                <th style="width: 180px;">Frecuencia</th>
-                <th style="width: 80px;">Duración</th>
-                <th style="width: 80px;">Cantidad</th>
-                <th style="width: 80px;">Eliminar</th>
-                <th>Inventario</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of formula.items; let i = index" formArrayName="posfechados"
-                [ngStyle]="{'color': !item.medicamento.desabastecido  ? 'black' : 'red' }">
-                <td *ngIf="facturaForm.get('checkcontinuidad')?.value">
-                  <input class="form-check-input" type="checkbox" [formControlName]="i" />
-                </td>
-                <td>{{ item.medicamento.nombre }}</td>
-                <td>
-                  <select class="form-select" [value]="item.frecuencia"
-                    (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
-                    <option *ngFor="let frecuencia of frecuencias" [value]="frecuencia.valor"
-                      [attr.data-multiplicador]="frecuencia.multiplicador">
-                      {{frecuencia.nombre}}
-                    </option>
-                  </select>
-                </td>
-                <td>
-                  <input type="number" [value]="item.duracion" class="form-control col-sm-4"
-                    (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)" [min]="1" />
-                </td>
-                <td>
-                  <input type="number" [value]="item.cantidad" class="form-control col-sm-4"
-                    (change)="actualizarCantidad(item.medicamento.idMedicamento, $event)"
-                    [disabled]="item.habilitarCantidad"
-                    [ngStyle]="{'background-color': item.habilitarCantidad ?  'gris' : '#A5E3C6'}" [min]="1" />
-                </td>
-                <td>
-                  <button class="btn btn-danger btn-sm" type="button"
-                    (click)="eliminarItemFormula(item.medicamento.idMedicamento)">x</button>
-                </td>
-                <td>{{ existencias[item.medicamento.idMedicamento] || '0' }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-
-          <h6 class="float-right mt-3" *ngIf="formula.items.length > 0" style="display: flex; align-items: center;">
-            <input class="form-check-input" type="checkbox" formControlName="checkcontinuidad" />
-            Post fechar fórmula:
-            <input class="form-control" formControlName="cantidadmeses" type="number"
-              placeholder="Ingrese Nro. de meses" *ngIf="facturaForm.get('checkcontinuidad')?.value"
-              style="margin-left: 10px; width: 200px;" />
-          </h6>
-
-
-          <div class="form-group row mt-3">
-            <div class="col-sm-12">
-              <input type="button" (click)="create()" value="Guardar Fórmula" class="btn btn-secondary w-100"
-                [disabled]="!facturaForm.valid" /> <!--[disabled]="!facturaForm.valid" -->
-            </div>
-          </div>
         </div>
       </div>
-    </form>
-    <div *ngIf="mostrarComponente" class="mt-4">
-      <app-historialformula [idPaciente]="pacienteActual.idPaciente"></app-historialformula>
-      <!-- [triggerActualizar]="formulaAgregada"  [datoRecibido]="datoParaHijo"-->
+
+      <!-- ========================================== -->
+      <!-- PANEL 2: DATOS DE LA FÓRMULA               -->
+      <!-- ========================================== -->
+      <div class="card shadow-sm border-0 mb-1 bg-gradient-patient">
+        <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+          <mat-icon inline class="me-1 text-warning">assignment</mat-icon>Datos de la prescripción en Fórmula
+        </h6>
+        <div class="card-body p-2">
+
+          <!-- FILA 1: IPS, Médico, Fechas y Urgencia -->
+          <div class="row g-2 align-items-center mb-1">
+            <!-- IPS Autocomplete -->
+            <div class="col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted"><mat-icon
+                    style="font-size: 14px; width:14px; height:14px;">store</mat-icon></span>
+                <input type="text" class="form-control" style="font-size: 13px;" formControlName="ips"
+                  [matAutocomplete]="autoips" placeholder="IPS Prescribe">
+                <button type="button" class="btn btn-light border text-dark d-flex align-items-center px-2"
+                  (click)="openDialogIps()" matTooltip="Agregar nueva IPS">
+                  <mat-icon style="font-size: 18px; width:18px; height:18px;">add_circle</mat-icon>
+                </button>
+              </div>
+              <mat-autocomplete #autoips="matAutocomplete" (optionSelected)="onOptionSelectedIps($event.option.value)"
+                [displayWith]="displayIps">
+                <mat-option *ngFor="let option of ipsFiltrados" [value]="option" style="font-size: 13px;">{{
+                  option.nombre }}</mat-option>
+              </mat-autocomplete>
+            </div>
+
+            <!-- Médico Autocomplete -->
+            <div class="col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted"><mat-icon
+                    style="font-size: 14px; width:14px; height:14px;">person</mat-icon></span>
+                <input type="text" class="form-control" style="font-size: 13px;" formControlName="medico"
+                  [matAutocomplete]="automedico" placeholder="Médico Tratante">
+                <button type="button" class="btn btn-light border text-dark d-flex align-items-center px-2"
+                  (click)="openDialogMedico()" matTooltip="Agregar nuevo Médico">
+                  <mat-icon style="font-size: 18px; width:18px; height:18px;">add_circle</mat-icon>
+                </button>
+              </div>
+              <mat-autocomplete #automedico="matAutocomplete"
+                (optionSelected)="onOptionSelectedMedico($event.option.value)" [displayWith]="displayMedico">
+                <mat-option *ngFor="let option of medicosFiltrados" [value]="option" style="font-size: 13px;">{{
+                  option.nombre }}</mat-option>
+              </mat-autocomplete>
+            </div>
+
+            <!-- Fechas Unidas -->
+            <div class="col-md-2">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 11px; font-weight: bold;">F.
+                  Pres</span>
+                <input type="date" formControlName="fecPrescribe" class="form-control px-1" style="font-size: 13px;"
+                  [max]="hoy">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 11px; font-weight: bold;">F.
+                  Entr</span>
+                <input type="date" formControlName="fecSolicitud" class="form-control px-1" style="font-size: 13px;"
+                  [max]="hoy" [min]="minimohoy">
+              </div>
+            </div>
+          </div>
+
+          <!-- FILA 2: PGP, Diagnósticos y Cuota Moderadora -->
+          <div class="row g-2 align-items-center mb-1 border-top pt-2">
+            <!-- Toggle Urgencia -->
+            <div class="col-md-1">
+              <div class="form-check form-switch m-0 pt-1">
+                <input class="form-check-input scale-sm" type="checkbox" formControlName="origenurgencia" id="swUrg">
+                <label class="form-check-label fw-bold text-danger" style="font-size: 13px;"
+                  for="swUrg">Urgencia</label>
+              </div>
+            </div>
+
+            <!-- Toggle PGP -->
+            <div class="col-md-1">
+              <div class="form-check form-switch m-0 pt-1">
+                <input class="form-check-input scale-sm" type="checkbox" formControlName="pgp" id="swPgp">
+                <label class="form-check-label fw-bold text-muted" style="font-size: 13px;" for="swPgp">PGP</label>
+              </div>
+            </div>
+
+            <!-- Diagnósticos (CIE-10) -->
+            <div class="col-md-7">
+              <div class="d-flex align-items-center gap-1">
+                <span class="text-muted fw-bold px-1 text-uppercase"
+                  style="min-width: 55px; font-size: 12px;">DIAGNOSTICOS CIE-10:</span>
+
+                <!-- Principal: VALIDA SEXO (true) -->
+                <input type="text" formControlName="cieP"
+                  class="form-control form-control-xs text-uppercase text-center border-primary fw-bold"
+                  placeholder="Prin" maxlength="4" matTooltip="Dx Principal" style="width: 70px; font-size: 12px;"
+                  (focus)="actualizarComentario($event, 'cieP', true)" (blur)="ocultarComentario()"
+                  (input)="actualizarComentario($event, 'cieP', true)">
+
+                 
+                <!-- Relacionado 1: NO VALIDA SEXO (false) -->
+                <input type="text" formControlName="cieR1"
+                  class="form-control form-control-xs text-uppercase text-center" placeholder="Rel 1" maxlength="4"
+                  style="width: 60px; font-size: 12px;" (focus)="actualizarComentario($event, 'cieR1', false)"
+                  (blur)="ocultarComentario()" (input)="actualizarComentario($event, 'cieR1', false)">
+
+                <!-- Relacionado 2: NO VALIDA SEXO (false) -->
+                <input type="text" formControlName="cieR2"
+                  class="form-control form-control-xs text-uppercase text-center" placeholder="Rel 2" maxlength="4"
+                  style="width: 60px; font-size: 12px;" (focus)="actualizarComentario($event, 'cieR2', false)"
+                  (blur)="ocultarComentario()" (input)="actualizarComentario($event, 'cieR2', false)">
+
+                <!-- Relacionado 3: NO VALIDA SEXO (false) -->
+                <input type="text" formControlName="cieR3"
+                  class="form-control form-control-xs text-uppercase text-center" placeholder="Rel 3" maxlength="4"
+                  style="width: 60px; font-size: 12px;" (focus)="actualizarComentario($event, 'cieR3', false)"
+                  (blur)="ocultarComentario()" (input)="actualizarComentario($event, 'cieR3', false)">
+
+
+                <!-- El indicador visual cambia de color según el estado de dxValido -->
+                <span *ngIf="comentarioVisible" class="text-truncate ms-1"
+                  [ngClass]="{'text-danger fw-bold': dxValido, 'text-primary': !dxValido}"
+                  style="font-size: 11px; font-weight: 500;" [matTooltip]="mensajeComentario">
+
+                  <!-- El icono también cambia de color y de estilo según el contexto -->
+                  <mat-icon inline style="font-size: 13px;"
+                    [ngClass]="{'text-danger': dxValido, 'text-primary': !dxValido}">
+                    {{ dxValido ? 'error' : 'info' }}
+                  </mat-icon>
+
+                  {{ mensajeComentario }}
+                </span>
+
+                <!-- Alerta de texto inferior (solo se muestra si hay un mensaje de error explícito) -->
+                <div class="alert alert-danger mt-2 py-1 px-2" *ngIf="comentarioVisible && mensajeErrorDx">
+                  <span class="form-text text-dark fw-bold" style="font-size: 12px;">{{ mensajeErrorDx }}</span>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Cuota Moderadora -->
+            <div class="col-md-3 text-end">
+              <div class="d-inline-flex align-items-center gap-2 bg-white px-2 py-1 rounded border shadow-xs">
+                <mat-slide-toggle formControlName="cobroCM" color="red" class="scale-sm">
+                  <span class="fw-bold text-muted" style="font-size: 14px;">¿Cobrar CM?</span>
+                </mat-slide-toggle>
+                <div class="lh-1 text-start border-start ps-2" *ngIf="pacienteActual?.regimen==='C'">
+                  <small class="d-block fw-bold" style="font-size : 14px;">{{pacienteActual.categoria.nombre}}</small>
+                  <strong class="fw-bold text-danger" style="font-size: 14px;"> {{ pacienteActual.categoria.valor |
+                    currency:'COP':'symbol-narrow':'1.0-0'}}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILA 3: Programa Operativo y Observaciones -->
+          <div class="row g-2 align-items-center border-top pt-2">
+            <!-- Selector de Programa Operativo -->
+            <div class="col-md-4">
+              <select class="form-select form-select-xs fw-bold text-muted" style="font-size: 16px;"
+                formControlName="programa">
+                <option selected value="">Seleccionar el programa</option>
+                <option value="1">Mayores de 70 años no incluidos en cohortes</option>
+                <option value="2">Menores de 70 años no incluidos en cohortes</option>
+                <option value="3">Hipertensión arterial</option>
+                <option value="4">Diabetes Mellitu</option>
+                <option value="5">Cardiopatias y Enfermedades Cerebrovasculares</option>
+                <option value="6">Terapia de remplazo renal</option>
+                <option value="7">Artritis y otras autoinmunes</option>
+                <option value="8">Epoc</option>
+                <option value="9">Asma</option>
+                <option value="10">Vih</option>
+                <option value="11">TBC o Hepatitis C</option>
+                <option value="12">Enfermedad neurologica</option>
+                <option value="13">Salud Mental</option>
+                <option value="14">Hemofilia</option>
+                <option value="15">Discapacitados</option>
+                <option value="16">Enfermedad Huerfana</option>
+                <option value="17">Trasplantes</option>
+                <option value="18">Desnutrición</option>
+                <option value="19">Gestantes</option>
+                <option value="20">Hipertensión y Diabete</option>
+                <option value="21">Niños menores de 5 años</option>
+              </select>
+            </div>
+
+            <!-- Observaciones breves -->
+            <div class="col-md-8">
+              <input type="text" formControlName="observacion" class="form-control form-control-xs"
+                style="font-size: 16px;" placeholder="Observaciones adicionales de la prescripción...">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- PANEL 3: ADICIÓN Y TABLA DE MEDICAMENTOS   -->
+      <!-- ========================================== -->
+      <div class="card shadow-sm border-0 mb-1 bg-gradient-patient">
+        <!-- Input de Agregado Compacto -->
+        <div class="card-header bg-white py-1 px-2 border-0 d-flex justify-content-between align-items-center">  
+
+          <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+            <mat-icon inline class="me-1 text-success">healing</mat-icon>Datos de los Medicamentos Prescritos
+          </h6>
+          <div class="w-50">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-success text-white"><mat-icon
+                  style="font-size: 16px; width:16px; height:16px;">add</mat-icon></span>
+              <input type="text" class="form-control form-control-sm" style="font-size: 13px;"
+                formControlName="medicamento" [matAutocomplete]="automedicamento"
+                placeholder="Escriba el nombre del medicamento para añadir al listado...">
+            </div>
+            <mat-autocomplete #automedicamento="matAutocomplete" (optionSelected)="seleccionarMedicamento($event)">
+              <mat-option *ngFor="let option of medicamentosFiltrados" [value]="option" style="font-size: 13px;">
+                {{ option.nombre }} | {{ option.concentracion }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+        </div>
+
+        <div class="card-body p-0" formula.items>
+          <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0 mt-2 compact-table" *ngIf="formula.items.length > 0">
+              <thead class=" thead-colored shadow-xs">
+                <tr style="font-size: 14px;" class="fw-bold text-white border-0">
+                  <th *ngIf="facturaForm.get('checkcontinuidad')?.value">Fechar</th>
+                  <th class="ps-3" style="width: 45%;">Descripción del Medicamento</th>
+                  <th style="width: 20%;">Frecuencia</th>
+                  <th style="width: 10%;" class="text-center">Días</th>
+                  <th style="width: 10%;" class="text-center">Cantidad</th>
+                  <th style="width: 10%;" class="text-center">Stock Bodega</th>
+                  <th style="width: 5%;" class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody style="font-size: 14px;">
+                <tr *ngFor="let item of formula.items; let i = index" formArrayName="posfechados"
+                  [class.table-danger]="item.medicamento.desabastecido || item.medicamento.agotado">
+                  
+                  <td *ngIf="facturaForm.get('checkcontinuidad')?.value">
+                  <input class="form-check-input" type="checkbox" [formControlName]="i" />
+                </td>
+                  <td class="ps-3">
+                    <!-- El nombre cambia a rojo si está desabastecido o agotado para máxima advertencia -->
+                    <div class="fw-bold"
+                      [ngClass]="{'text-danger': item.medicamento.desabastecido || item.medicamento.agotado, 'text-dark': !item.medicamento.desabastecido && !item.medicamento.agotado}"
+                      style="font-size: 13px;">
+                      {{ item.medicamento.nombre }}
+                    </div>
+
+                    <!-- Bloque de Badges de Control de Inventario -->
+                    <div class="d-flex gap-1 mt-1">
+                      <!-- Alerta: Desabastecido (Nivel Nacional/INVIMA) -->
+                      <span
+                        class="badge bg-danger-subtle text-danger border border-danger px-1.5 py-0.5 fw-bold text-uppercase d-inline-flex align-items-center"
+                        *ngIf="item.medicamento.desabastecido" style="font-size: 10px; letter-spacing: 0.3px;">
+                        <mat-icon inline class="me-1" style="font-size: 12px;">gavel</mat-icon>
+                        Desabastecido
+                      </span>
+
+                      <!-- Alerta: Agotado (Sin Stock en Bodega Local) -->
+                      <span
+                        class="badge bg-danger px-1.5 py-0.5 fw-bold text-uppercase d-inline-flex align-items-center shadow-xs text-white"
+                        *ngIf="item.medicamento.agotado"
+                        style="font-size: 10px; letter-spacing: 0.3px; background-color: #dc3545 !important;">
+                        <mat-icon inline class="me-1" style="font-size: 12px;">block</mat-icon>
+                        Agotado
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <select class="form-select form-select-xs" style="font-size: 16px;" [value]="item.frecuencia"
+                      (change)="seleccionFrecuencia(item.medicamento.idMedicamento, $event)">
+                      <option *ngFor="let f of frecuencias" [value]="f.valor">{{f.nombre}}</option>
+                    </select>
+                  </td>
+                  <td><input type="number" [value]="item.duracion"
+                      class="form-control form-control-xs text-center mx-auto" style="font-size: 16px; max-width: 70px;"
+                      (change)="duracionTratamiento(item.medicamento.idMedicamento, $event)" min="1"></td>
+                  <td><input type="number" [value]="item.cantidad"
+                      class="form-control form-control-xs text-center fw-bold bg-success-light mx-auto"
+                      style="font-size: 15px; max-width: 70px;"
+                      (change)="actualizarCantidad(item.medicamento.idMedicamento, $event)"
+                      [disabled]="item.habilitarCantidad"></td>
+                  <td class="text-center"><span class="badge rounded-pill bg-light text-dark border px-2 py-1"
+                      style="font-size: 15px;">{{ existencias[item.medicamento.idMedicamento] || '0' }}</span></td>
+                  <td class="text-center">
+                    <button class="btn btn-link btn-sm text-danger p-0"
+                      (click)="eliminarItemFormula(item.medicamento.idMedicamento)">
+                      <mat-icon style="font-size: 18px; width:18px; height:18px;">delete_outline</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer Unificado Operativo -->
+          <div class="p-2 border-top bg-light d-flex justify-content-between align-items-center"
+            *ngIf="formula.items.length > 0">
+            <div class="d-flex align-items-center">
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input scale-sm" type="checkbox" formControlName="checkcontinuidad"
+                  id="chkCont">
+                <label class="form-check-label fw-bold text-muted" for="chkCont" style="font-size: 13px;">Post-fechar
+                  fórmula</label>
+              </div>
+              <input *ngIf="facturaForm.get('checkcontinuidad')?.value" type="number" formControlName="cantidadmeses"
+                class="form-control form-control-xs ms-2 text-center" style="font-size: 12px; width: 60px;"
+                placeholder="Meses">
+            </div>
+            <button class="btn d-inline-flex align-items-center justify-content-center px-4 btn-guardar-farma"
+              type="button" [disabled]="!facturaForm.valid" (click)="create()"
+              matTooltip="Confirmar y registrar fórmula médica en el sistema">
+
+              <!-- Icono estilizado con un ligero margen -->
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                {{ facturaForm.valid ? 'check_circle' : 'save' }}
+              </mat-icon>
+
+              <span class="fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 0.5px;">
+                Guardar Fórmula
+              </span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
+  </form>
+
+
+  <hr class="my-2 opacity-10">
+  <!-- Historial Compacto Inferior -->
+  <div *ngIf="mostrarComponente" class="mt-2">
+    <app-historialformula [idPaciente]="pacienteActual.idPaciente"></app-historialformula>
   </div>
 </div>

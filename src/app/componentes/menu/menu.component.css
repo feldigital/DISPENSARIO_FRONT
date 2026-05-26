@@ -1,104 +1,231 @@
+/* ==============================
+   LAYOUT GENERAL
+============================== */
 
-.example-container {
+.app-container {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  height: 100vh;
+  background: #f4f6f9;
 }
 
-.example-is-mobile .example-toolbar {
-  position: fixed;
-  /* Make sure the toolbar will stay on top of the content as it scrolls past. */
-  z-index: 2;
+.sidenav-container {
+  flex: 1;
 }
 
-h1.example-app-name {
-  margin-left: 8px;
-  color: #003366 !important;
-  font-weight: bold !important;
+/* ==============================
+   TOOLBAR SUPERIOR
+============================== */
+
+.main-toolbar {
+  background: linear-gradient(to right, #71E0D2, #67ACD6)!important;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  padding: 0 16px;
 }
 
 .logo-container {
   display: flex;
-  align-items: center; /* Centra verticalmente */
+  align-items: center;
+  gap: 10px;
 }
 
 .logo {
-  height: 40px; /* Ajusta el tamaño de la imagen según necesites */
-  margin-right: 10px; /* Espacio entre la imagen y el texto */
+  height: 36px;
 }
 
-.example-sidenav-container {
-  /* When the sidenav is not fixed, stretch the sidenav container to fill the available space. This
-     causes `<mat-sidenav-content>` to act as our scrolling element for desktop layouts. */
-  flex: 1;
-}
-
-.example-is-mobile .example-sidenav-container {
-  /* When the sidenav is fixed, don't constrain the height of the sidenav container. This allows the
-     `<body>` to be our scrolling element for mobile layouts. */
-  flex: 1 0 auto;
-}
-mat-sidenav{
-    width: 200px;
-}
-.icono{
-    margin-right: 10px;
-}
-
-mat-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.example-toolbar {
-  display: flex;
-  align-items: center;
+.app-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: .3px;
 }
 
 .spacer {
   flex: 1;
 }
 
-.user-info {
-  font-size: 0.75rem; /* Disminuir tamaño del texto */
-  line-height: 1.2;   /* Ajustar el espacio entre líneas */
-  text-align: right;  /* Alinear el texto a la derecha */
-}
-
-.icon-center {
+.user-section {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin: 0.2rem 0;   /* Espacio alrededor del icono */
+  gap: 10px;
 }
 
-.icon-center mat-icon {
-  font-size: 1.5rem; /* Tamaño del icono */
+.user-avatar {
+  background: #86a3d1;
+  color: white;
+  border-radius: 50%;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-:host ::ng-deep .mat-toolbar {
- /* background: linear-gradient(90deg, #67ACD6, #71E0D2) !important; 
-background: radial-gradient(to right, #5D8FA5, #6CC5D4);
-  background: radial-gradient(circle, #5D8FA5, #6CC5D4);  
-  color: white !important;*/
-  background: linear-gradient(90deg, #67ACD6, #5D8FA5) !important;
+.user-info {
+  font-size: 12px;
+  line-height: 1.2;
+  color: white;
 }
 
-.mat-list-item.active-link {
-  background-color: #CFF4FC !important;  /* Fondo verde claro (puedes cambiarlo) */
-  box-shadow: inset 3px 0px 0px hsl(353, 98%, 52%);  /* Línea roja en el lateral izquierdo */
-  border-radius: 5px;  /* Esquinas redondeadas */
-  padding-left: 10px;  /* Espacio extra para el texto */
-  font-weight: bold;
-  color: #39548B !important;  /* Color de texto activo */
+/* ==============================
+   SIDENAV
+============================== */
+
+.sidenav {
+  width: 210px;
+  transition: width .25s ease-in-out;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+/* ==============================
+   GRUPOS
+============================== */
+
+.mat-expansion-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid #eef2f7;
+  margin: 0 8px;
+}
+
+.mat-expansion-panel:last-child {
+  border-bottom: none;
+}
+
+.mat-expansion-panel-header {
+  height: 40px;
+  padding: 0 6px;
+  /*
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-radius: 8px;
+  transition: background .2s ease;*/
+}
+
+.mat-expansion-panel-header:hover {
+  background: #f3f4f6;
+}
+
+.grupo-activo .mat-expansion-panel-header {
+  background: rgba(59,130,246,0.08);
+  color: #5D8FA5;
+}
+
+.group-icon {
+  margin-right: 12px;
+  color: #6b7280;
+}
+
+.grupo-activo .group-icon {
+  color: #3b82f6;
 }
 
 
-.mat-list-item.active-link mat-icon {
-  color: #ff6347 !important;              /* Color personalizado del ícono cuando el menú está activo */
+/* ==============================
+   ITEMS — ANGULAR 15 (MDC FIX)
+============================== */
+
+a.mat-mdc-list-item {
+  height: 34px !important;
+  margin: 1px 6px !important;  
+  padding: 0 6px !important;
+  font-size: 12px;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+
+/* Contenedor principal interno */
+a.mat-mdc-list-item .mdc-list-item__content {
+  display: flex !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+/* 🔥 ESTE ES EL FIX REAL EN ANGULAR 15 */
+a.mat-mdc-list-item .mdc-list-item__primary-text {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100%;
+  line-height: 1 !important;
+}
+
+/* ICONO */
+a.mat-mdc-list-item .icono {
+  font-size: 20px !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* TEXTO */
+.menu-text {
+ /* flex: 1;
+  font-size: 14px;*/
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* HOVER */
+a.mat-mdc-list-item:hover {
+  background: #f3f4f6;
+}
+
+
+/* ==============================
+   ITEM ACTIVO LIMPIO
+============================== */
+
+a.mat-mdc-list-item.active-link {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1e3a8a !important;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.08);
+}
+
+a.mat-mdc-list-item.active-link .icono {
+  color: #2563eb !important;
+}
+
+/* ==============================
+   MODO COLAPSADO
+============================== */
+
+.sidenav.collapsed .mat-expansion-panel-header,
+.sidenav.collapsed a.mat-mdc-list-item {
+  justify-content: center !important;
+  padding-left: 0 !important;
+}
+
+.sidenav.collapsed .icono,
+.sidenav.collapsed .group-icon {
+  margin: 0 !important;
+  font-size: 20px;
+}
+
+/* ==============================
+   CONTENIDO
+    padding: 24px;
+  background: #f4f6f9;
+  min-height: 100%;
+============================== */
+.content-wrapper {
+  flex: 1; /* ocupa todo el alto disponible */
+  width: 100%;
+  padding: 10px;          /* ajustable, menos espacio si quieres */
+  transition: margin-left 0.25s ease;
+  box-sizing: border-box; /* evita overflow */
+  background: #f4f6f9;
+  min-height: 100%;
 }

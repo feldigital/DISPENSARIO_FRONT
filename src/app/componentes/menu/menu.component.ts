@@ -1,111 +1,184 @@
-
 import { MediaMatcher } from '@angular/cdk/layout';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit,AfterViewInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { AuthService } from 'src/app/servicios/auth.service';
 import { BodegaService } from 'src/app/servicios/bodega.service';
-
+import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-menu',
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.css']
 })
-export class MenuComponent implements OnInit {  
-  
+export class MenuComponent implements OnInit, OnDestroy, AfterViewInit{
+
   mobileQuery: MediaQueryList;
-  isLoggedIn: boolean = false;
-  funcionario!:string;
-  bodegaActual:any;
-
-  fillerNav=[
-  //  {name:"Inicio",route:"login",icon:"home"},
-    {name:"inicio",route:"inicio",icon:"home",nivel:2},
-    {name:"Paciente",route:"paciente",icon:"perm_identity",nivel:3},
-    { name:"Medicamentos",
-      route:"medicamento",
-      icon:"hdr_weak", nivel:3,
-      menu:"medicamentosMenu", 
-       subNav: [
-        { name: 'Consulta', route: '/menu/medicamento', icon: 'search' },
-        { name: 'Registro', route: '/menu/medicamento/register', icon: 'add' }
-      ]},
-
-    
-    {name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:2},
-    {name:"Editar Formula",route:"editformula",icon:"edit",nivel:4},   
-    {name:"Bodegas",route:"bodega",icon:"domain",nivel:2},   
-    {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:2},   
-    {name:"Pendientes",route:"pendiente",icon:"remove_circle_outline",nivel:2},   
-    {name:"No rotan",route:"norotan",icon:"pause_circle_outline",nivel:2}, 
-    {name:"Vencidos",route:"vencidos",icon:"alarm_off",nivel:2}, 
-    {name:"Medicamentos bodega",route:"medicamentobodega",icon:"filter_tilt_shift",nivel:2}, 
-    {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2}, 
-    {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3}, 
-  
-    {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:2}, 
-    {name:"Ordenes",route:"despacho",icon:"input",nivel:2},    
-    {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
-    {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}, 
-    {name:"Captados por Dx",route:"captadosdx",icon:"list_alt",nivel:2}, 
-     {name:"Pqrs",route:"historialpqrs",icon:"sentiment_very_dissatisfied",nivel:2}, 
-    {name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1},   
-    
-   
-  //  {name:"Estadistica",route:"estadistica",icon:"card_giftcard"}, settings_backup_restore query_builder
-
-
-  
-  
-  ]
-
-
-  fillerContent = Array.from({length: 50}, () =>
-      `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-       labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-       laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-       voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-       cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`);
-
   private _mobileQueryListener: () => void;
+  private bodegaSub?: Subscription;
+
+  @ViewChildren('menuLabel') menuLabels!: QueryList<ElementRef>;
+
+tooltipMap: { [key: string]: string | null } = {};
+
+  isLoggedIn = false;
+  funcionario = '';
+  bodegaActual: any;
+  shouldRun = true;
+  sidebarOpen = true;
+
+  menuAgrupado = [
+     {
+      nombre: 'Inicio',
+      icon: 'home',
+      items: [
+        { name:"Dashboard",route:"inicio",icon:"dashboard",nivel:2},
+       
+      ]
+    },
+    {
+      nombre: 'Gestión Farmacológica',
+      icon: 'medical_services',
+      items: [
+     
+        { name:"Paciente",route:"paciente",icon:"perm_identity",nivel:3},
+        { name:"Medicamentos",route:"medicamento",icon:"medication",nivel:3}, 
+        { name:"Bodegas",route:"bodega",icon:"domain",nivel:2},
+        { name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:2},
+        { name:"Editar Formula",route:"editformula",icon:"edit",nivel:4},        
+        { name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1}
+      ]
+    },
+    {
+      nombre: 'Seguimiento',
+      icon: 'inventory',
+      items: [
+        { name:"Pendientes",route:"pendiente",icon:"pending_actions",nivel:2},
+        {name:"Existencias",route:"existencias",icon:"playlist_add_check",nivel:2},        
+        {name:"Vencidos",route:"vencidos",icon:"alarm_off",nivel:2},
+        {name:"No rotan",route:"norotan",icon:"pause_circle_outline",nivel:2},
+        {name:"Medicamentos bodega",route:"medicamentobodega",icon:"category",nivel:2},   
+        {name:"Pqrs",route:"historialpqrs",icon:"support_agent",nivel:2}   
+       
+      ]
+    },
+    {
+      nombre: 'Logística',
+      icon: 'local_shipping',
+      items: [
+        {name:"Ordenes",route:"despacho",icon:"input",nivel:2},
+        {name:"Trazabilidad de Medicamento",route:"trazamedicamento",icon:"shuffle",nivel:2},
+        {name:"Ajuste por inventario",route:"ajusteinventario",icon:"compare_arrows",nivel:2}
+      ]
+    },
+    {
+      nombre: 'Reportes',
+      icon: 'analytics',
+      items: [
+        {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:2},
+        {name:"Captados por Dx",route:"captadosdx",icon:"query_stats",nivel:2},        
+        {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2},
+        {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3},
+    
+      ]
+    }
+  ];
 
   constructor(
-    changeDetectorRef: ChangeDetectorRef, 
+    changeDetectorRef: ChangeDetectorRef,
     media: MediaMatcher,
-    private authservicio: AuthService,
-    private bodegaservicio: BodegaService
+    private authService: AuthService,
+    private bodegaService: BodegaService,
+    private router: Router,
   ) {
-    this.mobileQuery = media.matchMedia('(max-width: 600px)');
+    this.mobileQuery = media.matchMedia('(max-width: 768px)');
     this._mobileQueryListener = () => changeDetectorRef.detectChanges();
-    this.mobileQuery.addListener(this._mobileQueryListener);
+    this.mobileQuery.addEventListener('change', this._mobileQueryListener);
+  }
+
+  ngAfterViewInit() {
+  setTimeout(() => {
+    this.menuLabels.forEach((labelRef, index) => {
+      const element = labelRef.nativeElement;
+      const route = this.getRouteByIndex(index);
+
+      if (element.scrollWidth > element.clientWidth) {
+        this.tooltipMap[route] = element.innerText;
+      } else {
+        this.tooltipMap[route] = null;
+      }
+    });
+  });
+}
+
+  ngOnInit(): void {
+
+    // 🔥 Recuperar estado sidebar
+    const savedState = localStorage.getItem('sidebarOpen');
+    this.sidebarOpen = savedState !== null ? savedState === 'true' : true;
+
+    // 🔐 Login
+    this.isLoggedIn = this.authService.checkLoginStatus();
+    this.funcionario = sessionStorage.getItem("nombre") ?? 'Usuario';
+
+    // 🏥 Bodega
+    const bodega = Number(sessionStorage.getItem("bodega")) || 0;
+
+    if (bodega > 0) {
+      this.bodegaSub = this.bodegaService
+        .getRegistroId(bodega)
+        .subscribe((resp: any) => {
+          this.bodegaActual = resp;
+        });
+    }
+  }
+
+  toggleSidebar(): void {
+     this.sidebarOpen = !this.sidebarOpen;
+
+  // Ajusta dinámicamente el margin-left del content-wrapper
+  const content = document.querySelector('.content-wrapper') as HTMLElement;
+  if(content) {
+    content.style.marginLeft = this.sidebarOpen ? '210px' : '0';  }
+  // Trigger resize para recalcular layouts de componentes internos
+  setTimeout(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, 300); // mismo tiempo que la transición CSS
+  localStorage.setItem('sidebarOpen', this.sidebarOpen.toString());
+}
+  
+ 
+
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem('nivel'));
+    return !isNaN(nivelUsuario) && nivelUsuario >= nivelRequerido;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   ngOnDestroy(): void {
-    this.mobileQuery.removeListener(this._mobileQueryListener);
+    this.mobileQuery.removeEventListener('change', this._mobileQueryListener);
+    this.bodegaSub?.unsubscribe();
   }
 
-  shouldRun = true;
+  isGrupoActivo(grupo: any): boolean {
+  return grupo.items.some((item: any) =>
+    this.router.url.includes(item.route)
+  );
+}
+esRutaActiva(ruta: string): boolean {
+  return this.router.url.startsWith('/menu/' + ruta);
+}
+isTextTruncated(element: HTMLElement): boolean {
+  return element.scrollWidth > element.clientWidth;
+}
+getRouteByIndex(index: number): string {
+  const flatItems = this.menuAgrupado
+    .flatMap((grupo: any) => grupo.items)
+    .filter((item: any) => this.tieneAcceso(item.nivel));
 
-  ngOnInit() {
-
-    this.isLoggedIn= this.authservicio.checkLoginStatus();
-    this.funcionario = sessionStorage.getItem("nombre") ?? 'Nombre no disponible';
-    let bodegaString = sessionStorage.getItem("bodega");
-    let bodega = parseInt(bodegaString !== null ? bodegaString : "0", 10);
-    this.bodegaservicio.getRegistroId(bodega)
-    .subscribe((resp: any) => {
-      this.bodegaActual = resp;    
-    },
-      (err: any) => { console.error(err) }
-    );
-  }
-
-  tieneAcceso(nivelRequerido: number): boolean {
-    const nivelUsuario = Number(sessionStorage.getItem("nivel"));    
-    if (isNaN(nivelUsuario)) {
-      //console.warn("El nivel del usuario no es válido o no está definido");
-      return false;
-    }  
-    return nivelUsuario >= nivelRequerido;
-  }
+  return flatItems[index]?.route;
+}
 
 }

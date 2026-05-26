@@ -2,10 +2,15 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
+                <!--
                 <div class="card-header">
                     Datos del paciente
-                </div>
-                <div class="card-body">
+                </div>-->
+                <div class="card-body p-1">
+                    <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+                        <mat-icon inline class="me-1 text-primary">person</mat-icon>DATOS DEL PACIENTE
+                    </h6>
+                    <hr class="my-2 opacity-10">
                     <p><strong>Nombre:</strong> {{listaregistros?.paciente?.pNombre}}
                         {{listaregistros?.paciente?.sNombre}}
                         {{listaregistros?.paciente?.pApellido}} {{listaregistros?.paciente?.sApellido}}
@@ -35,9 +40,10 @@
                                     <!-- Botón Enviar WhatsApp -->
                                     <button mat-raised-button color="accent"
                                         *ngIf="tieneAcceso(2) && listaregistros?.entregaCompleta && !listaregistros?.codigoVerificado"
-                                        (click)="enviarWhatsAppPendiente()" [disabled]="enviandoMensajes || listaregistros?.codigoVerificado">
+                                        (click)="enviarWhatsAppPendiente()"
+                                        [disabled]="enviandoMensajes || listaregistros?.codigoVerificado">
                                         <mat-icon>send</mat-icon>
-                                       {{ enviandoMensajes ? 'Enviando...' : 'Enviar código' }}
+                                        {{ enviandoMensajes ? 'Enviando...' : 'Enviar código' }}
                                     </button>
 
                                     <!-- Botón Verificar código -->
@@ -83,35 +89,34 @@
                             </ng-template>
                         </div>
                     </form>
-
                     <p>
                         <strong>Municipio:</strong> {{listaregistros?.paciente?.municipio?.nombre}} -
                         {{listaregistros?.paciente?.municipio?.departamento?.nombre}}
                     </p>
-
-
-                    <p><strong>¿PGP?:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }} <strong>¿Servicio de
-                            Origen?:</strong> {{ listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}
                     <div>
-                        <p>
-                            <strong>Soporte escaneado: </strong>
-                            <mat-icon *ngIf="!this.listaregistros.urlFormula && !editingSoporte" class="pointer-cursor"
+                        <p class="d-flex align-items-center">
+                            <mat-icon inline class="me-1" style="color: #b30b00;">picture_as_pdf</mat-icon>
+
+                            <strong class="me-2">
+                                {{ listaregistros?.urlFormula ? 'Ver Fórmula PDF:' : 'Agregar Fórmula PDF:' }}
+                            </strong>
+
+                            <mat-icon *ngIf="!listaregistros?.urlFormula && !editingSoporte"
                                 title="Adicionar pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
-                                (click)="editarSoporte()">
+                                class="pointer-cursor" (click)="editarSoporte()">
                                 add_circle
                             </mat-icon>
-                            <mat-icon *ngIf="this.listaregistros.urlFormula && !editingSoporte"
+
+                            <mat-icon *ngIf="listaregistros?.urlFormula && !editingSoporte"
                                 title="Gestión pdf de la formula" class="pointer-cursor"
-                                [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
-                                [matMenuTriggerFor]="menu">attach_file</mat-icon>
+                                [ngStyle]="{'font-size': '18px', 'color':'#009A94'}" [matMenuTriggerFor]="menu">
+                                attach_file
+                            </mat-icon>
                         </p>
 
                         <div *ngIf="editingSoporte">
                             <input type="file" (change)="onFileSelected($event)" />
                         </div>
-
-
-
                         <mat-icon *ngIf="editingSoporte" title="Cancelar" class="pointer-cursor"
                             title="Cancelar edición" [ngStyle]="{'color':'orange'}"
                             (click)="cancelSoporte()">clear</mat-icon>
@@ -130,19 +135,29 @@
 
                 </div>
             </div>
-
             <div class="col-md-6">
+                <!--
                 <div class="card-header">
-                    Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong> 
-                      <!-- Botón Desprocesar -->
-        <button mat-stroked-button color="black" *ngIf="tieneAcceso(4)" (click)="desprocesarFormula()">
-            <mat-icon class="me-1">loop</mat-icon>
-            Desprocesar
-        </button>
-                </div>
+                    Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong>              
+                 </div>
                 <div class="card-body">
-                    <p><strong>IPS que prescribe:</strong> {{listaregistros?.ips?.nombre}}</p>
-                    <p><strong>Medico que prescribe:</strong> {{listaregistros?.medico?.nombre}}</p>
+-->
+                <div class="card-body p-1">
+                    <h6 class="mb-0 fw-bold text-secondary"
+                        style="font-size: 14px; display: flex; align-items: center;">
+                        <mat-icon inline class="me-1 text-warning">assignment</mat-icon>
+                        DATOS DE LA FORMULA Nro.&nbsp;
+                        <span style="font-size: 16px; color: #198754; font-weight: 800;">
+                            {{listaregistros?.idFormula}}
+                        </span>
+                    </h6>
+                    <hr class="my-2 opacity-10">
+                    <p><strong>IPS prescribe:</strong> {{listaregistros?.ips?.nombre}}</p>
+                    <p><strong>Medico prescribe:</strong> {{listaregistros?.medico?.nombre}}
+                        <strong>PGP:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }} <strong>Origen:</strong> {{
+                        listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}
+
+                    </p>
                     <p><strong>Fecha de prescripción:</strong> {{listaregistros?.fecPrescribe | date: 'dd/MM/yyyy'}}
                         <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/yyyy :
                         hh:mm'}}
@@ -159,6 +174,28 @@
 
             </div>
         </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 align-items-center-custom">
+
+        <!-- Botón: Desprocesar (Pasa a ser un mat-stroked-button para acciones críticas secundarias) -->
+        <button mat-stroked-button class="btn-desprocesar"
+            matTooltip="Desprocesar la fórmula y anular registros de pendientes de medicamento." *ngIf="tieneAcceso(4)"
+            (click)="desprocesarFormula()">
+            <mat-icon class="icon-sm">history</mat-icon>
+            <span>Desprocesar</span>
+        </button>
+
+        <!-- Botón: Refrescar / Cargando (Unificado a Angular Material) -->
+        <button mat-flat-button class="btn-refrescar" [disabled]="cargando"
+            (click)="buscarRegistro(listaregistros.idFormula)"
+            [matTooltip]="cargando ? 'Espere un momento...' : 'Recarga desde base de datos la fórmula y refresca la vista.'">
+            <mat-icon class="icon-sm" [class.spinner-animacion]="cargando">
+                sync
+            </mat-icon>
+            <span>{{ cargando ? 'Cargando...' : 'Refrescar' }}</span>
+        </button>
+
     </div>
 
     <div class="alert alert-info my-4" *ngIf="listaItemsFormula?.length == 0">
@@ -182,7 +219,7 @@
                     <th>Dispensario</th>
                     <th>Quien entrega</th>
                     <th>Quien recibe</th>
-                    <th><mat-icon title="Proceso con permisos" [ngStyle]="{'color':'green'}">account_circle</mat-icon>
+                    <th><mat-icon title="Proceso con permisos" [ngStyle]="{'color':'white'}">account_circle</mat-icon>
                     </th>
                 </tr>
             </thead>
@@ -332,7 +369,8 @@
                         <td>{{ primerasmayusculas(entrega.bodega.puntoEntrega) || '' }}</td>
                         <td>{{ primerasmayusculas(entrega.funcionarioEntrega) || '' }}</td>
                         <td>{{ entrega.tipoRecibe | uppercase }} {{ entrega.documentoRecibe }}</td>
-                        <td> <mat-icon title="Eliminar la entrega" class="pointer-cursor" [ngStyle]="{'color':'red'}"
+                        <td> <mat-icon *ngIf="puedeEliminar() || tieneAcceso(4)" title="Eliminar la entrega"
+                                class="pointer-cursor" [ngStyle]="{'color':'red'}"
                                 (click)="eliminarRegistroEntrega(entrega,item.medicamento.idMedicamento)">clear</mat-icon>
                         </td>
                     </tr>
@@ -343,7 +381,7 @@
 
     <hr />
     <div class="d-flex justify-content-end flex-wrap gap-2">
-      
+
 
         <!-- Botón Regresar -->
         <button mat-stroked-button color="primary" [routerLink]="['/menu/formula']">
@@ -365,11 +403,11 @@
             Imprimir pendiente
         </button>
 
-          <!-- Botón Recibo de Caja -->
-         <button *ngIf = "listaregistros?.cobroCM" mat-stroked-button color="primary" (click)="imprimirRecibo()">
-                <mat-icon class="me-1">local_printshop</mat-icon>
-                Recibo de Caja CM
-            </button>
+        <!-- Botón Recibo de Caja -->
+        <button *ngIf="listaregistros?.cobroCM" mat-stroked-button color="primary" (click)="imprimirRecibo()">
+            <mat-icon class="me-1">local_printshop</mat-icon>
+            Recibo de Caja CM
+        </button>
 
         <!-- Botón Imprimir entrega (verde personalizado) -->
         <button mat-stroked-button class="btn-success" (click)="imprimir(0)">

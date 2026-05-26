@@ -32,23 +32,24 @@
 
 
                 <!-- Columna para los demás campos -->
-                <div class="col-md-6">
+                <div class="col-md-7">
                     <!-- Fecha de despacho -->
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Fecha</label>
-                        <div class="col-sm-8">
+                        <label class="col-sm-3 col-form-label">Fecha</label>
+                        <div class="col-sm-9">
                             <input type="date" formControlName="fechaDespacho" class="form-control" [max]="hoy">
                         </div>
                     </div>
 
                     <!-- Bodega Origen -->
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Bodega de Origen</label>
-                        <div class="col-sm-8">
+                        <label class="col-sm-3 col-form-label">Bodega de Origen</label>
+                        <div class="col-sm-9">
                             <select class="form-select" formControlName="idBodegaOrigen" required
+                                [compareWith]="compararBodegas"
                                 (change)="onBodegaChange()">
-                                <option selected value="0">Seleccione la bodega de origen</option>
-                                <option *ngFor="let item of listaregistrosOrigen" [ngValue]="item.idBodega">
+                                <option selected [ngValue]="null">Seleccione la bodega de origen</option>
+                                <option *ngFor="let item of listaregistrosOrigen" [ngValue]="item">
                                     {{item.nombre}} - {{item.puntoEntrega}}
                                 </option>
                             </select>
@@ -57,12 +58,13 @@
 
                     <!-- Bodega Destino -->
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Bodega de Destino</label>
-                        <div class="col-sm-8">
+                        <label class="col-sm-3 col-form-label">Bodega de Destino</label>
+                        <div class="col-sm-9">
                             <select class="form-select" formControlName="idBodegaDestino" required
+                                [compareWith]="compararBodegas"
                                 (change)="onBodegaChange()">
-                                <option selected value="0">Seleccione la bodega de destino</option>
-                                <option *ngFor="let item of listaregistrosDestino" [ngValue]="item.idBodega">
+                                <option selected [ngValue]="null">Seleccione la bodega de destino</option>
+                                <option *ngFor="let item of listaregistrosDestino" [ngValue]="item">
                                     {{item.nombre}} - {{item.puntoEntrega}}
                                 </option>
                             </select>
@@ -71,15 +73,15 @@
 
                     <!-- Observaciones -->
                     <div class="form-group row">
-                        <label class="col-sm-4 col-form-label">Registrar anotaciones</label>
-                        <div class="col-sm-8">
+                        <label class="col-sm-3 col-form-label">Registrar anotaciones</label>
+                        <div class="col-sm-9">
                             <textarea formControlName="observacion" class="form-control"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Columna para los campos de la Orden de Compra -->
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <!-- <label for="ipsPrescribe" class="col-sm-4 col-form-label">Proveedor *</label>  Inputs para compra, ocultos si es despacho -->
                     <div *ngIf="isCompra" class="w-100">
 
@@ -160,6 +162,19 @@
                     <button class="btn btn-outline-primary w-25" [routerLink]="['/menu/historialordendespacho']">
                         Ver orden
                     </button>
+                     <div class="col-sm-3 d-flex justify-content-end">
+                <button type="button" class="btn btn-sm d-flex align-items-center text-white" [disabled]="cargando"
+                    [style.background-color]="cargando ? '#ffc107' : '#67ACD6'"
+                    [style.border-color]="cargando ? '#ffc107' : '#67ACD6'"
+                    (click)="buscarRegistro(ordenDespacho.idDespacho)">
+
+                    <mat-icon class="me-1" [class.spinner-animacion]="cargando"
+                        style="font-size: 18px; width: 18px; height: 18px;">
+                        {{ cargando ? 'sync' : 'loop' }}
+                    </mat-icon>
+                    <span>{{ cargando ? 'Cargando...' : 'Refrescar' }}</span>
+                </button>
+            </div>
                 </div>
 
             </div>
@@ -214,7 +229,7 @@
                     <th>Existencias Origen</th>
                     <th>Existencias Destino</th>
                     <th>Pendientes Destino</th>
-                    <th>Prom. mes último trimestre</th>
+                    <th>Max. Presc último trimestre</th>
                     <th>Cantidad a despachar</th>
                     <th>Gestión</th>
                 </tr>
@@ -226,7 +241,10 @@
                     <td>{{itemt.idMedicamento}}</td>
                     <td>{{primerasmayusculas(itemt.nombre)}}</td>
                     <td>{{primerasmayusculas(itemt.forma)}}</td>
-                    <td style="text-align: right;">{{itemt.cantidad}}</td>
+                    <td style="text-align: right;">
+                        <mat-icon *ngIf="!itemt.estado  && itemt.cantidad < itemt.cantidadDespacho"
+                            title="Cantidad insufisiente" [ngStyle]="{'color':'red'}">report_problem</mat-icon>
+                        {{itemt.cantidad}}</td>
                     <td style="color: green; text-align: right;"><strong>{{itemt.stopMinimo}}</strong></td>
                     <td style="color: red; text-align: right;"><strong>{{itemt.pendiente}}</strong></td>
                     <td style="text-align: right;">{{itemt.cantidadEntregada}}</td>

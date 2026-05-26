@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormulaI } from 'src/app/modelos/formula.model';
 import { PacienteService } from 'src/app/servicios/paciente.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { map, debounceTime, switchMap } from 'rxjs/operators';
 import { FormulaService } from 'src/app/servicios/formula.service';
 import { MedicamentoI } from 'src/app/modelos/medicamento.model';
@@ -44,6 +44,8 @@ export class EditformulaComponent implements OnInit {
   dxValido: boolean = true;
   botonActivo: boolean = false;
   editarContacto: boolean = false;
+  editingSoporte: boolean = false;
+  selectedFile: File | null = null;
   //@Output() formulaAgregada = new EventEmitter<void>();  
   readonly formasConCantidadHabilitada = [3, 15, 19, 20, 22, 24, 116];
   frecuencias = [
@@ -458,7 +460,7 @@ this.facturaForm.get('medicamento')!.valueChanges
     return producto ? producto.nombre.toString() : '';
   }
 
-  seleccionarMedicamento(event: MatAutocompleteSelectedEvent): void {
+  async seleccionarMedicamento(event: MatAutocompleteSelectedEvent): Promise<void>  {
     let medicamento = event.option.value;
     let bodega = parseInt(sessionStorage.getItem("bodega") || "0", 10);
     // Verifica que tanto el medicamento como el paciente estén definidos
@@ -466,6 +468,8 @@ this.facturaForm.get('medicamento')!.valueChanges
       console.error('Medicamento o paciente no definido.');
       return;
     }
+
+    let codEps = this.pacienteActual?.eps?.codEps; // Ajusta según tu modelo de paciente
     this.medicamentoEntegadoMenos30Dias(medicamento.idMedicamento, this.pacienteActual.idPaciente);
     if (this.existeItem(medicamento.idMedicamento)) {
       this.incrementaCantidad(medicamento.idMedicamento);
@@ -473,6 +477,25 @@ this.facturaForm.get('medicamento')!.valueChanges
 
       let nuevoItem = new ItemFormulaI();
       nuevoItem.medicamento = medicamento;
+
+      // --- LÓGICA DE PRECIO ---
+      try {
+        // Intentamos obtener el valor de la EPS
+        // Convertimos el observable a promesa para usar await
+        const resEps = await firstValueFrom(this.formulaService.getValorventaMedicamentosEps(medicamento.idMedicamento, codEps));
+        const valorEps = resEps.valorVenta || 0;
+        // Si resEps.valorVenta existe y es mayor a 0, lo usa. Si es 0, null o undefined, usa medicamento.valor
+        nuevoItem.precioAplicado = (resEps && resEps.valorVenta > 0)
+          ? resEps.valorVenta
+          : medicamento.valor;
+
+      } catch (error) {
+        // Si falla (404 o error), usamos el valor por defecto (compra)
+        nuevoItem.precioAplicado = medicamento.valor;
+      }
+
+
+
       nuevoItem.importe = nuevoItem.calcularImporte();
 
       // Habilitar cantidad según el idForma del medicamento
@@ -1110,6 +1133,101 @@ guardarDatosContacto() {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
   }
+
+  
+  verArchivo() {
+    // Si la URL es pública o accesible, se abre en nueva pestaña
+    window.open(this.formula.urlFormula, '_blank');
+  }
+
+  public editarSoporte() {
+    this.editingSoporte = true;
+
+
+  }
+  public cancelSoporte() {
+    this.editingSoporte = false;
+  }
+
+
+    onFileSelected(event: any) {
+      this.selectedFile = event.target.files[0];
+  
+      if (!this.selectedFile) {
+        return;
+      }
+  
+      // Validar que sea PDF
+      const isPdf = this.selectedFile.type === 'application/pdf' || this.selectedFile.name.toLowerCase().endsWith('.pdf');
+  
+      if (!isPdf) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ERROR PDF ',
+          text: '❌ Solo se permiten archivos PDF como soporte de la formula',
+        });
+  
+        event.target.value = ''; // Limpiar selección del input
+        this.selectedFile = null;
+        return;
+      }
+  
+  
+  
+      if (this.formula.urlFormula) {
+        Swal.fire({
+          title: 'Reemplazar el Soporte',
+          text: 'Esta seguro de reemplzar el soporte existente de la formula por este otro, este cambio ya no se podra reversar',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Si, reemplazar!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.onUpload();
+          }
+        });
+  
+      }
+      else {
+  
+        this.onUpload();
+      }
+    }
+  
+    onUpload() {
+      if (!this.selectedFile) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Pendiente',
+          text: `No se ha seleccionado el soporte en DPF de la fórmula Nro. ${this.formula.idFormula}. para ser cargada a la nube`,
+        });
+        return;
+      }
+  
+      this.formulaService.subirFormula(this.selectedFile, this.formula.idFormula).subscribe({
+        next: (resp: string) => {
+          this.formula.urlFormula = resp;
+          this.editingSoporte = false;
+          Swal.fire({
+            icon: 'success',
+            title: 'Ok',
+            text: `El soporte de la fórmula Nro. ${this.formula.idFormula} fue cargado correctamenteen el bucket S3 ${resp}`,
+          });
+        },
+        error: (err) => {
+          console.error("❌ Error al subir:", err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: `Error al cargar el soporte de la fórmula Nro. ${this.formula.idFormula}.`,
+          });
+        }
+      });
+  
+    }
+  
 
 
 }

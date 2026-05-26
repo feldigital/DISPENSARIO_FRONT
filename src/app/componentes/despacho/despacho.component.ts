@@ -7,7 +7,7 @@ import { ItemOrdenDespachoI } from 'src/app/modelos/ItemOrdenDespacho.model';
 import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import { ActivatedRoute } from '@angular/router';
 import * as XLSX from 'xlsx';
-import { MedicamentoService } from 'src/app/servicios/medicamento.service';
+//import { MedicamentoService } from 'src/app/servicios/medicamento.service';
 import { Observable, debounceTime, map, of, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ProveedorComponent } from '../proveedor/proveedor.component';
@@ -37,6 +37,7 @@ export class DespachoComponent implements OnInit {
   isCompra: boolean = false;
   itemParaEliminar: any;
   proveedorFiltrados: any[] = [];
+   cargando: boolean = false;
 
 
 
@@ -120,13 +121,25 @@ export class DespachoComponent implements OnInit {
   }
 
   public buscarRegistro(id: number) {
-    this.ordenDespachoservicio.getOrdenDespachoId(id)
-      .subscribe((resp: any) => {
+  this.cargando = true;
+  this.ordenDespachoservicio.getOrdenDespachoId(id)
+    .subscribe({
+      // El "next" debe ir dentro de las llaves junto con error y complete
+      next: (resp: any) => {
         this.registroUpdate = resp;
         this.ordenDespacho = resp;
         this.mostrarOrdenDespacho();
-      });
-  }
+      },
+      error: (err) => {
+        console.error('Error al buscar el registro:', err);
+        // Importante: Si usas SweetAlert2 podrías ponerlo aquí
+        this.cargando = false; 
+      },
+      complete: () => {
+        this.cargando = false;
+      }
+    });
+}
 
 
   buscarMedicamentos(filterValue: string): Observable<any[]> {
@@ -174,8 +187,8 @@ export class DespachoComponent implements OnInit {
     this.generalForm = this.fb.group
       ({
         idDespacho: [''],
-        idBodegaOrigen: ['0', [Validators.required]],
-        idBodegaDestino: ['0', [Validators.required]],
+        idBodegaOrigen: [null, [Validators.required]],
+        idBodegaDestino: [null, [Validators.required]],
         fechaDespacho: ['', [Validators.required]],
         observacion: ['', [Validators.required]],
         estado: [false, [Validators.required]],
@@ -195,8 +208,8 @@ export class DespachoComponent implements OnInit {
     this.nombrebtn = "Actualizar";
     this.generalForm.patchValue({
       idDespacho: this.registroUpdate.idDespacho,
-      idBodegaOrigen: this.registroUpdate.bodegaOrigen.idBodega,
-      idBodegaDestino: this.registroUpdate.bodegaDestino.idBodega,
+      idBodegaOrigen: this.registroUpdate.bodegaOrigen,
+      idBodegaDestino: this.registroUpdate.bodegaDestino,
       fechaDespacho: this.registroUpdate.fechaDespacho,
       observacion: this.registroUpdate.observacion,
       estado: this.registroUpdate.estado,
@@ -252,13 +265,11 @@ export class DespachoComponent implements OnInit {
 
   onBodegaChange() {
     const idBodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
-    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
-
+    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;    
     this.generalForm.get('tipo')?.setValue(
-      idBodegaOrigen == 105 ? 'ORDEN DE COMPRA' : 'ORDEN DE DESPACHO'
+      idBodegaOrigen.compra ? 'ORDEN DE COMPRA' : 'ORDEN DE DESPACHO'
     );
-
-    if (idBodegaOrigen === idBodegaDestino) {
+    if (idBodegaOrigen.idBodega === idBodegaDestino.idBodega) {
       Swal.fire({
         icon: 'error',
         title: `Bodegas iguales!`,
@@ -267,7 +278,7 @@ export class DespachoComponent implements OnInit {
       return;  // Detener la ejecución si faltan las fechas
     }
 
-    if (idBodegaOrigen !== '0' && idBodegaDestino !== '0') {
+    if (idBodegaOrigen && idBodegaDestino) {
       // Limpiar listas antes de cargar nueva data
       this.listaItems = [];
       this.listaItemsFiltro = [];
@@ -282,7 +293,7 @@ export class DespachoComponent implements OnInit {
         }
       });
 
-      this.servicio.getMedicamentosBodegaOrdenDespacho(idBodegaOrigen, idBodegaDestino)
+      this.servicio.getMedicamentosBodegaOrdenDespacho(idBodegaOrigen.idBodega, idBodegaDestino.idBodega)
         .subscribe((resp: any) => {
           this.listaItems = resp.map((item: any) => ({
             ...item,
@@ -309,7 +320,7 @@ export class DespachoComponent implements OnInit {
     const bodegaActiva = Number(sessionStorage.getItem("bodega"));
     this.servicio.getRegistrosActivos()
       .subscribe((resp: any) => {
-        if (this.tieneAcceso(4)) {
+        if (this.tieneAcceso(4)) {         
           // Usuario con acceso completo
           this.listaregistrosOrigen = resp.filter((registro: any) =>
             registro.salida === true
@@ -354,14 +365,15 @@ export class DespachoComponent implements OnInit {
     itemt.editing = false;
   }
 
-  public guardarMedicamentoOrdenDespacho(itemt: any) {
-    // Validar que los campos obligatorios no estén vacíos
-    if (!itemt.invima || !itemt.laboratorio || !itemt.lote || !itemt.fechaVencimiento) {
-      Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
-      return;
-    }
 
-    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+public guardarMedicamentoOrdenDespacho(itemt: any) {
+  // 1. Validaciones de campos obligatorios (Blindaje inicial)
+  if (!itemt.invima || !itemt.laboratorio || !itemt.lote || !itemt.fechaVencimiento) {
+    Swal.fire('Campos incompletos', 'Por favor complete todos los campos, (Invima, aboratorio, lote, vencimiento).', 'warning');
+    return;
+  }
+
+   const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
 
     // Validar que la fecha de vencimiento no sea menor a la fecha actual
     const hoy = new Date();
@@ -369,16 +381,75 @@ export class DespachoComponent implements OnInit {
     const fechaVenc = new Date(itemt.fechaVencimiento);
     fechaVenc.setHours(0, 0, 0, 0);
 
-    if (fechaVenc < hoy && idBodegaDestino !== 106) {
+    if (fechaVenc < hoy && !idBodegaDestino.vencimiento) {
       Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
       return;
     }
 
+  // 2. Normalización de textos
+  itemt.invima = itemt.invima.toUpperCase();
+  itemt.laboratorio = itemt.laboratorio.toUpperCase();
+  itemt.lote = itemt.lote.toUpperCase();
+  itemt.editing = false;
+
+  if (itemt && itemt.idMedicamento) {
+    this.procesar = false;
+
+    // 3. BÚSQUEDA CRÍTICA: Extraemos el ID sin importar si es objeto o número
+    const itemExistente = this.ordenDespacho.itemsDespacho.find((item: any) => {
+    const idEnLista = typeof item.medicamento === 'object' 
+                        ? item.medicamento.idMedicamento 
+                        : item.medicamento;
+      return idEnLista === itemt.idMedicamento;
+    });
+
+    if (itemExistente) {
+      // SI EXISTE: Reemplazamos la cantidad y los datos del lote
+      // Usamos Number() para asegurar que no se concatene como texto
+      itemExistente.cantidad = Number(itemt.cantidadDespacho);
+      itemExistente.invima = itemt.invima;
+      itemExistente.laboratorio = itemt.laboratorio;
+      itemExistente.lote = itemt.lote;
+      itemExistente.fechaVencimiento = itemt.fechaVencimiento;
+            
+    } else {
+      // SI NO EXISTE: Agregamos el nuevo registro
+      if (Number(itemt.cantidadDespacho) > 0) {
+        let nuevoItem = new ItemOrdenDespachoI();
+        nuevoItem.medicamento = itemt.idMedicamento; 
+        nuevoItem.cantidad = Number(itemt.cantidadDespacho);
+        nuevoItem.invima = itemt.invima;
+        nuevoItem.laboratorio = itemt.laboratorio;
+        nuevoItem.lote = itemt.lote;
+        nuevoItem.fechaVencimiento = itemt.fechaVencimiento;
+        this.ordenDespacho.itemsDespacho.push(nuevoItem);        
+       }
+    }
+  }
+}
+
+
+/*
+  public guardarMedicamentoOrdenDespacho(itemt: any) {
+    // Validar que los campos obligatorios no estén vacíos
+    if (!itemt.invima || !itemt.laboratorio || !itemt.lote || !itemt.fechaVencimiento) {
+      Swal.fire('Campos incompletos', 'Por favor complete todos los campos antes de guardar.', 'warning');
+      return;
+    }
+    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+    // Validar que la fecha de vencimiento no sea menor a la fecha actual
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
+    const fechaVenc = new Date(itemt.fechaVencimiento);
+    fechaVenc.setHours(0, 0, 0, 0);
+    if (fechaVenc < hoy && !idBodegaDestino.vencimiento) {
+      Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
+      return;
+    }
     // Convertir a mayúsculas
     itemt.invima = itemt.invima.toUpperCase();
     itemt.laboratorio = itemt.laboratorio.toUpperCase();
     itemt.lote = itemt.lote.toUpperCase();
-
 
     itemt.editing = false;
     if (itemt && itemt.idMedicamento) {
@@ -416,7 +487,7 @@ export class DespachoComponent implements OnInit {
     return existe;
   }
 
-
+*/
 
   actualizarCantidad(id: number, nuevacantidad: number): void {
     if (nuevacantidad == 0 || nuevacantidad == null) {
@@ -563,7 +634,7 @@ export class DespachoComponent implements OnInit {
   create() {
     if (this.generalForm.valid) {
       if (this.ordenDespacho.itemsDespacho.length > 0) {
-        const idBodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
+        const bodegaSeleccionadaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
         const nitProvedor = this.generalForm.get('nitProvedor')?.value;
         const nomProvedor = this.generalForm.get('nomProvedor')?.value?.nombre;
         const numFactura = this.generalForm.get('numFactura')?.value;
@@ -571,7 +642,7 @@ export class DespachoComponent implements OnInit {
 
 
         // Si la bodega es 105 (orden de compra)
-        if (idBodegaOrigen == 105) {
+        if (bodegaSeleccionadaOrigen.compra) {
 
           // Verifica si alguno de los campos está vacío o nulo
           if (!nitProvedor || !nomProvedor || !numFactura || !tipoIngreso) { //|| !valor
@@ -599,14 +670,9 @@ export class DespachoComponent implements OnInit {
               return;
             }
           }
-
         }
 
-        const bodegaSeleccionadaOrigen = this.listaregistrosOrigen.find((item: { idBodega: any; }) => item.idBodega === idBodegaOrigen);
-        const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
-        // Encuentra el objeto en `listaregistros` que tiene el id igual a `idBodegaDestino`
-        const bodegaSeleccionadaDestino = this.listaregistrosDestino.find((item: { idBodega: any; }) => item.idBodega === idBodegaDestino);
-
+        const bodegaSeleccionadaDestino = this.generalForm.get('idBodegaDestino')?.value;       
         let funcionario = sessionStorage.getItem("nombre");
         let mensaje = "Bodega de origen:  <b>" + bodegaSeleccionadaOrigen.nombre + " </b> <br>"
         mensaje = mensaje + "Bodega de destino:  <b>" + bodegaSeleccionadaDestino.nombre + "</b> <br>"
@@ -662,8 +728,12 @@ export class DespachoComponent implements OnInit {
         Swal.showLoading();
       }
     });
-    this.ordenDespacho.bodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
-    this.ordenDespacho.bodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+    
+    const idBodegaOrigen = this.generalForm.get('idBodegaOrigen')?.value;
+    const idBodegaDestino = this.generalForm.get('idBodegaDestino')?.value;
+    this.ordenDespacho.bodegaOrigen = idBodegaOrigen.idBodega;
+    this.ordenDespacho.bodegaDestino = idBodegaDestino.idBodega;
+    
     this.ordenDespacho.fechaDespacho = this.generalForm.get('fechaDespacho')?.value;
     this.ordenDespacho.observacion = this.generalForm.get('observacion')?.value;
 
@@ -706,8 +776,8 @@ export class DespachoComponent implements OnInit {
     // Resetear el formulario al estado inicial
     this.generalForm.reset({
       idDespacho: '',
-      idBodegaOrigen: '',
-      idBodegaDestino: '',
+      idBodegaOrigen: null,
+      idBodegaDestino: null,
       fechaDespacho: '',
       observacion: '',
       nomProvedor: '',
@@ -895,7 +965,6 @@ export class DespachoComponent implements OnInit {
       nuevoItem.fechaVencimiento = data[i].fechaVencimiento;
       this.ordenDespacho.itemsDespacho.push(nuevoItem);
     }
-
   }
 
   onAjuste(valor: boolean): void {
@@ -916,6 +985,55 @@ export class DespachoComponent implements OnInit {
     }
   }
 
+
+
+sugerir(): void {
+  this.listaItems.forEach((itemt: any) => {
+    const surtido = itemt.cantidadEntregada + itemt.pendiente;
+    const proyeccion = itemt.stopMinimo - surtido;
+
+    if (surtido > 0) {
+      // Calculamos la cantidad sugerida (proyección en positivo)
+      const cantidadSugerida = proyeccion * -1;
+
+      if (proyeccion < 0 && (itemt.cantidad >= cantidadSugerida)) {
+        
+        // --- SUSTITUCIÓN DE existeItem ---
+        // Verificamos si ya existe en la lista de despacho
+        const yaExiste = this.ordenDespacho.itemsDespacho.some((item: any) => {
+          const idEnLista = typeof item.medicamento === 'object' 
+                            ? item.medicamento.idMedicamento 
+                            : item.medicamento;
+          return idEnLista === itemt.idMedicamento;
+        });
+
+        if (!yaExiste) {
+          itemt.cantidadDespacho = cantidadSugerida;
+          
+          let nuevoItem = new ItemOrdenDespachoI();
+          nuevoItem.medicamento = itemt.idMedicamento;
+          nuevoItem.cantidad = cantidadSugerida;
+          nuevoItem.invima = itemt.invima;
+          nuevoItem.laboratorio = itemt.laboratorio;
+          nuevoItem.lote = itemt.lote;
+          nuevoItem.fechaVencimiento = itemt.fechaVencimiento;
+          
+          this.ordenDespacho.itemsDespacho.push(nuevoItem);
+        }
+      }
+    }
+  });
+
+  this.listaItemsFiltro = [...this.listaItems]; // Clonamos para asegurar reactividad
+  this.generalForm.get('soloajuste')?.setValue(true);
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Ok',
+    text: 'Se llenaron las cantidades sugeridas a despachar hacia La bodega destino con la siguiente formula (envío= (Promedio de consumo + pendiente) - existencia actual ) siempre y cuando la cantidad en origen alcance para surtir esa proyección; por favor revisar y si estás de acuerdo crear la orden de despacho.',
+  });
+}
+/*
   sugerir(): void {
     this.listaItems.forEach((itemt: any) => {
       const surtido = itemt.cantidadEntregada + itemt.pendiente;
@@ -944,7 +1062,7 @@ export class DespachoComponent implements OnInit {
       text: 'Se llenaron las cantidades sugeridas a despachar hacia La bodega destino con la siguiente formula (envío= (Promedio de consumo + pendiente) - existencia actual ) siempre y cuando la cantidad en origen alcance para surtir esa proyección; por favor revisar y si estás de acuerdo crear la orden de despacho.',
     });
   }
-
+*/
   public primerasmayusculas(str: string): string {
     if (!str) {
       return str;
@@ -961,5 +1079,17 @@ export class DespachoComponent implements OnInit {
     }
     return nivelUsuario >= nivelRequerido;
   }
+
+ compararBodegas(o1: any, o2: any): boolean {
+  // Si ambos son null o undefined, son iguales
+  if (o1 === o2) return true;
+  
+  // Si uno es nulo y el otro no, no son iguales
+  if (!o1 || !o2) return false;
+  
+  // Si ambos son objetos, comparamos sus IDs
+  return o1.idBodega === o2.idBodega;
+}
+
 
 }

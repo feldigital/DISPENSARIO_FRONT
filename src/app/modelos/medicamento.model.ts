@@ -17,6 +17,7 @@ export class MedicamentoI {
     agotado: Boolean;
     controlado: Boolean;
     enseguimiento: Boolean;
+    idPadre: number;
 
 
 
@@ -39,6 +40,7 @@ export class MedicamentoI {
         this.agotado=false;
         this.controlado=false;
         this.enseguimiento=false;
+        this.idPadre = NaN;
     }
 
 }

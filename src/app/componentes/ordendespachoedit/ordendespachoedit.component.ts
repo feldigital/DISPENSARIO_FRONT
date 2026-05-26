@@ -23,6 +23,8 @@ export class OrdendespachoeditComponent implements OnInit {
   generalForm!: FormGroup;
   medicamentoSeleccionado: any;
   verItem: boolean = false;
+  cargando: boolean = false;
+  medicamentoSeleccionadoDestino: any;
 
   itemNuevo = {
     id: '',
@@ -65,22 +67,42 @@ export class OrdendespachoeditComponent implements OnInit {
       .subscribe(results => {
         this.medicamentosFiltrados = results;
       });
-
   }
 
+
+
   public buscarRegistro(id: number) {
-    this.ordenDespachoservicio.getOrdenDespachoId(id)
-      .subscribe((resp: any) => {
+    this.cargando = true; // Iniciamos el efecto de carga
+    this.ordenDespachoservicio.getOrdenDespachoId(id).subscribe({
+      next: (resp: any) => {
         this.listaregistros = resp;
-        //this.listaItemsFormula = resp.itemsDespacho;     
         this.listaItemsFormula = resp.itemsDespacho.map((item: any) => ({
           ...item,
-          control: false, // O cualquier lógica que determine el estado
-          //editing: false,
-          cantidadDespacho: '',
+          editing: false,
+          cantidadAnterior: item.cantidad,
+          // cantidadDespacho: '', // Inicializado vacío para el formulario
         }));
-        this.listaItemsFormula.sort((a: any, b: any) => a.medicamento.nombre.localeCompare(b.medicamento.nombre));
-      });
+
+        // Ordenar alfabéticamente por nombre de medicamento
+        this.listaItemsFormula.sort((a: any, b: any) =>
+          a.medicamento.nombre.localeCompare(b.medicamento.nombre)
+        );
+      },
+      error: (err) => {
+        console.error('Error al buscar registro:', err);
+        this.cargando = false; // Detenemos el spinner si hay error
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al consultar el servidor.',
+        });
+      },
+      complete: () => {
+        // Pequeño retraso para suavizar la transición del spinner
+        setTimeout(() => (this.cargando = false), 600);
+      }
+    }); // <--- Cierre correcto del subscribe
   }
 
   async seleccionarMedicamento(event: MatAutocompleteSelectedEvent) {
@@ -92,7 +114,7 @@ export class OrdendespachoeditComponent implements OnInit {
       }
       const idMedicamento = event.option.value.idMedicamento;
       this.medicamentoSeleccionado = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaOrigen.idBodega);
-
+     
       // Validación para evitar errores de acceso a propiedades de `undefined`
       if (!this.medicamentoSeleccionado) {
         Swal.fire({
@@ -102,7 +124,8 @@ export class OrdendespachoeditComponent implements OnInit {
         });
         return;
       }
-
+       this.medicamentoSeleccionadoDestino = await this.existenciaActual(idMedicamento, this.listaregistros.bodegaDestino.idBodega);
+       
       this.itemNuevo = {
         id: idMedicamento,
         medicamento: event.option.value.nombre,
@@ -210,6 +233,7 @@ export class OrdendespachoeditComponent implements OnInit {
                 title: 'Medicamento agregado',
                 text: `Se agregó ${cantidadSolicitada} unidad(es) del medicamento  ${this.itemNuevo.medicamento} a la orden de despacho correctamente.`,
               });
+              
             },
             error: (error) => {
               Swal.fire({
@@ -357,6 +381,256 @@ export class OrdendespachoeditComponent implements OnInit {
     return existe;
   }
 
+public procesarActualizacionCantidadItemOrden(item: any) {
+  // 1. Diferencia
+  const nuevaCantidadDiferencia = item.cantidad - item.cantidadAnterior;
+  // 2. Si no hubo cambios
+  if (nuevaCantidadDiferencia === 0) {
+    item.editing = false;
+    return;
+  }
+
+  // 3. Validación de Negativos/Nulos
+  if (item.cantidad === null || item.cantidad === undefined || item.cantidad < 0) {
+    Swal.fire('Atención', 'La cantidad no puede ser negativa o estar vacía', 'warning');
+    item.cantidad = item.cantidadAnterior;
+    item.editing = false;
+    return;
+  }
+
+  // 4. Validar permisos
+  if (!this.tieneAcceso(3)) {
+    item.cantidad = item.cantidadAnterior;
+    item.editing = false;
+    Swal.fire({
+      icon: 'warning',
+      title: 'Falta de permisos',
+      text: "No tienes permisos para realizar la modificación.",
+    });
+    return; // Cortamos la ejecución aquí
+  }
+
+  // 5. Mostrar Confirmación
+  // Invertimos para mostrar al usuario cuánto se quita o pone en BODEGA
+  const afectacionBodega = nuevaCantidadDiferencia * -1;
+  const textoBodega = afectacionBodega > 0 ? `sumarán ${afectacionBodega}` : `restarán ${Math.abs(afectacionBodega)}`;
+
+  Swal.fire({
+    title: '¿Confirmar ajuste?',
+    text: `Se ${textoBodega} unidades en la bodega ${this.listaregistros.bodegaOrigen.nombre} para el medicamento ${item.medicamento.nombre}.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, ajustar',
+    cancelButtonText: 'Cancelar',
+    allowOutsideClick: false // Evita que cierren el swal haciendo clic fuera y quede el loading
+  }).then((result) => {
+    if (result.isConfirmed) {
+      
+      this.cargando = true; // Iniciamos carga JUSTO antes de la petición
+
+      this.ordenDespachoservicio.actualizarItemBodega(
+        this.listaregistros.idDespacho,
+        item.id,
+        item.medicamento.idMedicamento,
+        nuevaCantidadDiferencia
+      ).subscribe({
+        next: (itemActualizado: any) => {
+          const index = this.listaItemsFormula.findIndex(
+            (i: any) => i.idItemDespacho === itemActualizado.idItemDespacho
+          );
+          if (index !== -1) {
+            this.listaItemsFormula[index] = { ...itemActualizado, editing: false ,cantidadAnterior: itemActualizado.cantidad };
+          }
+          
+          Swal.fire('Actualizado', 'Proceso completado con éxito.', 'success');
+          item.editing = false;
+        },
+        error: (err) => {
+          this.cargando = false; // Forzamos apagado de carga
+          item.cantidad = item.cantidadAnterior;
+          item.editing = false;
+          console.log(err);
+          // Mostramos el error que viene del backend (nuestro ResponseStatusException)
+          const errorMsg = err.error?.reason || err.error || 'Error interno del servidor';
+          Swal.fire('No se pudo ajustar', errorMsg, 'error');
+           console.error("Mensaje del servidor:", err.error.message); 
+    Swal.fire('Error', err.error.message || 'Error en la operación', 'error');
+        },
+        complete: () => {
+          this.cargando = false;
+        }
+
+      });
+    } else {
+      // Si cancela el Swal
+      item.cantidad = item.cantidadAnterior;
+      item.editing = false;
+      this.cargando = false; // Por si acaso
+    }
+  });
+}
+
+
+  procesarActualizacionCantidadItemOrdenProcesada(item: any) {
+    // 1. Diferencia
+  const nuevaCantidadDiferencia = item.cantidad - item.cantidadAnterior;
+  // 2. Si no hubo cambios
+  if (nuevaCantidadDiferencia === 0) {
+    item.editing = false;
+    return;
+  }
+
+  // 3. Validación de Negativos/Nulos
+  if (item.cantidad === null || item.cantidad === undefined || item.cantidad < 0) {
+    Swal.fire('Atención', 'La cantidad no puede ser negativa o estar vacía', 'warning');
+    item.cantidad = item.cantidadAnterior;
+    item.editing = false;
+    return;
+  }
+
+  // 4. Validar permisos
+  if (!this.tieneAcceso(3)) {
+    item.cantidad = item.cantidadAnterior;
+    item.editing = false;
+    Swal.fire({
+      icon: 'warning',
+      title: 'Falta de permisos',
+      text: "No tienes permisos para realizar la modificación.",
+    });
+    return; // Cortamos la ejecución aquí
+  }
+
+  // 5. Mostrar Confirmación
+  // Invertimos para mostrar al usuario cuánto se quita o pone en BODEGA
+  // 5. Preparar lógica de movimiento detallada
+const cantAbsoluta = Math.abs(nuevaCantidadDiferencia);
+const esAumento = nuevaCantidadDiferencia > 0;
+
+// Definimos variables de texto para mayor legibilidad
+const bodegaOrigen = this.listaregistros.bodegaOrigen.nombre;
+const bodegaDestino = this.listaregistros.bodegaDestino.nombre;
+
+// Construimos el cuerpo del mensaje dinámicamente con HTML
+let cuerpoMensaje = '';
+
+if (esAumento) {
+  // Caso: Se despacha más (Sale de Origen -> Entra a Destino)
+  cuerpoMensaje = `
+    <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #009A94;">
+      <p style="margin-bottom: 8px;"><b>Medicamento:</b> ${item.medicamento.nombre}</p>
+      <p style="color: #d33; margin-bottom: 5px;"> 
+        <i class="fas fa-minus-circle"></i> <b>RESTAREMOS:</b> ${cantAbsoluta} de ${bodegaOrigen} (Origen)
+      </p>
+      <p style="color: #28a745; margin-bottom: 5px;"> 
+        <i class="fas fa-plus-circle"></i> <b>SUMAREMOS:</b> ${cantAbsoluta} a ${bodegaDestino} (Destino)
+      </p>
+      <hr>
+      <p style="text-align: center; margin-bottom: 0;">Cantidad final en orden: <b>${item.cantidad}</b></p>
+    </div>
+  `;
+} else {
+  // Caso: Se devuelve producto (Sale de Destino -> Regresa a Origen)
+  cuerpoMensaje = `
+    <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #ffa500;">
+      <p style="margin-bottom: 8px;"><b>Medicamento:</b> ${item.medicamento.nombre}</p>
+      <p style="color: #d33; margin-bottom: 5px;"> 
+        <i class="fas fa-arrow-left"></i> <b>QUITAREMOS:</b> ${cantAbsoluta} de ${bodegaDestino} (Destino)
+      </p>
+      <p style="color: #28a745; margin-bottom: 5px;"> 
+        <i class="fas fa-undo"></i> <b>REGRESARÁN:</b> ${cantAbsoluta} a ${bodegaOrigen} (Origen)
+      </p>
+      <hr>
+      <p style="text-align: center; margin-bottom: 0;">Cantidad final en orden: <b>${item.cantidad}</b></p>
+    </div>
+  `;
+}
+Swal.fire({
+  title: '¿Confirmar movimiento entre bodegas?',
+  html: cuerpoMensaje,
+  icon: 'question',
+  showCancelButton: true,
+  confirmButtonColor: '#009A94',
+  cancelButtonColor: '#d33',
+  confirmButtonText: 'Sí, ejecutar ajuste',
+  cancelButtonText: 'Cancelar',
+  allowOutsideClick: false
+ 
+  
+  }).then((result) => {
+    if (result.isConfirmed) {
+      
+      this.cargando = true; // Iniciamos carga JUSTO antes de la petición
+      this.ordenDespachoservicio.actualizarItemBodegaOrigenDestino(
+        this.listaregistros.idDespacho,
+        item.id,
+        item.medicamento.idMedicamento,
+        nuevaCantidadDiferencia
+      ).subscribe({
+        next: (itemActualizado: any) => {
+          const index = this.listaItemsFormula.findIndex(
+            (i: any) => i.idItemDespacho === itemActualizado.idItemDespacho
+          );
+
+          if (index !== -1) {
+            this.listaItemsFormula[index] = { ...itemActualizado, editing: false ,cantidadAnterior: itemActualizado.cantidad };
+          }
+          Swal.fire('Actualizado', 'Proceso completado con éxito.', 'success');
+          item.editing = false;
+        },
+        error: (err) => {
+          this.cargando = false; // Forzamos apagado de carga
+          item.cantidad = item.cantidadAnterior;
+          item.editing = false;
+          console.log(err);
+          // Mostramos el error que viene del backend (nuestro ResponseStatusException)
+          const errorMsg = err.error?.reason || err.error || 'Error interno del servidor';
+          Swal.fire('No se pudo ajustar', errorMsg, 'error');
+        },
+        complete: () => {
+          this.cargando = false;
+        }
+      });
+    } else {
+      // Si cancela el Swal
+      item.cantidad = item.cantidadAnterior;
+      item.editing = false;
+      this.cargando = false; // Por si acaso
+    }
+  });
+  }
+
+  public editarCantidadItemOrdenDespacho(itemt: any) {
+    this.listaItemsFormula.forEach((p: any) => p.editing = false);
+    itemt.editing = true;
+  }
+
+  public cancelEdicionProcesada(itemt: any) {
+    itemt.cantidad = itemt.cantidadAnterior; // Restauramos el valor
+    itemt.editing = false;
+  }
+
+public editarCantidadItemOrdenDespachoProcesada(itemt: any) {
+    this.listaItemsFormula.forEach((p: any) => p.editing = false);
+    itemt.editing = true;
+  }
+
+  public cancelEdicion(itemt: any) {
+    itemt.cantidad = itemt.cantidadAnterior; // Restauramos el valor
+    itemt.editing = false;
+  }
+
+
+  public bloquearNegativos(event: any): boolean {
+  // Bloquea la tecla del signo menos (-) y la letra 'e' (notación científica)
+  const charCode = (event.which) ? event.which : event.keyCode;
+  if (charCode === 189 || charCode === 109 || charCode === 69 || charCode === 107) {
+    return false;
+  }
+  return true;
+}
+
   eliminarItemOrden(idItemOrden: any) {
     if (this.tieneAcceso(3)) {
       Swal.fire({
@@ -396,60 +670,104 @@ export class OrdendespachoeditComponent implements OnInit {
     }
   }
 
-  eliminarItemOrdenProcesada(idItemOrden: any) {
-    if (this.tieneAcceso(4)) {
+
+eliminarItemOrdenProcesada(idItemOrden: any) {
+  if (!this.tieneAcceso(4)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Falta de permisos',
+      text: "No tienes permisos para realizar la eliminación en la orden procesada.",
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: '¿Desea eliminar el registro?',
+    html: `
+      <div class="text-left">
+        <p>Se eliminará: <b>${idItemOrden.medicamento.nombre}</b></p>
+        <p style="color: #28a745;"><b>+</b> Regresarán <b>${idItemOrden.cantidad}</b> a: ${this.listaregistros.bodegaOrigen.nombre}</p>
+        <p style="color: #d33;"><b>-</b> Se quitarán de: ${this.listaregistros.bodegaDestino.nombre}</p>
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, devolver y eliminar',
+    cancelButtonText: 'Cancelar',
+    allowOutsideClick: false
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // 1. BLOQUEO DE SEGURIDAD: Evita que el usuario haga clic de nuevo
+      this.cargando = true; 
       Swal.fire({
-        title: 'Desea eliminar?',
-        text: 'Esta seguro de quitar el medicamento ' + idItemOrden.medicamento.nombre + ' de la orden de despacho ya procesada, se devolvera la cantidad a la bodega de origen ' + this.listaregistros.bodegaOrigen.nombre + ' y se disminuira la cantidad en la bodega destino ' + this.listaregistros.bodegaDestino.nombre + ' cantidad a afectar +/- ' + idItemOrden.cantidad + '.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Si, devolver cantidad y eliminar registro!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-
-          this.ordenDespachoservicio.regresarItemDestino_a_Origen(this.listaregistros.idDespacho, idItemOrden.id, idItemOrden.medicamento.idMedicamento, idItemOrden.cantidad)
-           .subscribe({
-
-    // ✅ SI TODO SALE BIEN
-    next: (resp: any) => {
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Devolución exitosa',
-        text: resp + ' El medicamento  ' + idItemOrden.medicamento.nombre + ' de la orden se ha eliminado y devuelto a la bodega de origen ' + this.listaregistros.bodegaOrigen.nombre + ' la cantidad de ' + idItemOrden.cantidad + ' correctamente! ya puede verificarlo en su existencia',
-        confirmButtonText: 'OK'
+        title: 'Procesando devolución...',
+        text: 'Por favor espere mientras sincronizamos los inventarios.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(); // Muestra el spinner de carga
+        }
       });
 
-      // refrescar tabla o recargar despacho
-      this.buscarRegistro(this.parametro);
-    },
+      this.ordenDespachoservicio.regresarItemDestino_a_Origen(
+        this.listaregistros.idDespacho, 
+        idItemOrden.id, 
+        idItemOrden.medicamento.idMedicamento, 
+        idItemOrden.cantidad
+      ).subscribe({
+        next: (resp: any) => {
+          // 2. REFRESCAR LA VISTA ANTES DEL MENSAJE FINAL
+          // Esto garantiza que si el SweetAlert final se queda abierto, la tabla atrás ya está bien.
+         const msgExito = resp.mensaje || `El medicamento ${idItemOrden.medicamento.nombre} fue devuelto con éxito.`;
+    
+    this.buscarRegistro(this.parametro);
 
-    // ❌ SI FALLA
-    error: (err) => {
+    Swal.fire({
+      icon: 'success',
+      title: '¡Completado!',
+      text: msgExito,
+      confirmButtonText: 'Excelente'
+    });
+        },
+        error: (err) => {
+         this.cargando = false;
+    
+    // Lógica para extraer el texto real y evitar el [object Object]
+    let errorMsg = 'No se pudo procesar la devolución';
 
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al devolver medicamento',
-        text: err.error, // mensaje que viene del backend
-        confirmButtonText: 'Entendido'
-      });
+    if (err.error) {
+      // 1. Si el error viene como un objeto con propiedad 'error' (nuestro Map de Java)
+      if (typeof err.error === 'object' && err.error.error) {
+        errorMsg = err.error.error;
+      } 
+      // 2. Si el error viene como propiedad 'message'
+      else if (err.error.message) {
+        errorMsg = err.error.message;
+      }
+      // 3. Si el error es un string directo
+      else if (typeof err.error === 'string') {
+        errorMsg = err.error;
+      }
     }
-  });
 
+    Swal.fire({
+      icon: 'error',
+      title: 'Error en el proceso',
+      text: errorMsg,
+      confirmButtonText: 'Entendido'
+    });
+    
+    // IMPORTANTE: Refrescamos la vista incluso en error por si algo cambió parcialmente
+    this.buscarRegistro(this.parametro);
+        },
+        complete: () => {
+          this.cargando = false;
         }
       });
     }
-    else {
-      Swal.fire({
-        icon: 'warning',
-        title: `Falta de permisos`,
-        text: "No tienes permisos para realizar la modificación en la devolución del medicamento en la orden de despacho, comunicate con el funcionario encargado!",
-      });
-    }
-  }
-
+  });
+}
 
   public primerasmayusculas(str: string): string {
     if (!str) {

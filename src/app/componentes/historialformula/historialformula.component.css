@@ -138,3 +138,16 @@
     margin: 0 2px; /* Espacio entre el input y la etiqueta 'al' */
   }
   
+/* Avatar circular para el paciente */
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  background-color: #e3f2fd;
+  color: #0d6efd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}

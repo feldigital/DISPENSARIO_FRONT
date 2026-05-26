@@ -82,7 +82,9 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
     padding: 0.3rem 1rem;
     font-size: 14px;
   }
-  
+  .btn-custom-gradient-d:hover {
+    color: black; /* Color del texto al pasar el mouse */
+  }
 
 
 
@@ -117,4 +119,15 @@ body { margin: 10; font-family: Roboto, "Helvetica Neue", sans-serif;}
     width: 550px !important;
   }
   
+.btn-custom {
+    border-radius: 8px;
+    padding: 8px 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
 
+.btn-custom:hover {
+    transform: translateY(-2px); /* Pequeño salto al pasar el mouse */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}

@@ -8,6 +8,7 @@ export class ItemOrdenDespachoI {
   lote:string;
   fechaVencimiento:Date;
   estadoEntradaBodega :boolean;
+  cantidadComprobada: number;  
 
   constructor() {
     this.medicamento = NaN;
@@ -17,6 +18,7 @@ export class ItemOrdenDespachoI {
     this.laboratorio = "";
     this.invima = "";
     this.estadoEntradaBodega = false;   
+    this.cantidadComprobada = NaN;
 }
 
 }
