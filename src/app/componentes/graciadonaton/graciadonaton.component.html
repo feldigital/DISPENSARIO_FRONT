@@ -1,0 +1,261 @@
+<div class="container">
+  <!-- Encabezado Principal con Cronómetro -->
+  <header class="hero">
+    <h1>Gran Venta de Garaje <span (click)="activarVenta()"> ⛪</span></h1>
+    <h2>18 de Septiembre 2026 a las 7:00 pm</h2>
+    <h3>Calle 15 # 20 -17 El jardin</h3>
+    <p>Adquiere un artículo y apoya la construcción del templo</p>
+    <p>Mayor información 3157033641</p>
+
+
+    <!-- Cronómetro de Cuenta Regresiva -->
+    <div class="countdown-container">
+      <span class="countdown-label">Tiempo restante para el evento:</span>
+      <div class="timer">
+        <div class="time-box">
+          <span class="number">{{ cuentaRegresiva.dias }}</span>
+          <span class="unit">Días</span>
+        </div>
+        <div class="time-box">
+          <span class="number">{{ cuentaRegresiva.horas | number:'2.0-0' }}</span>
+          <span class="unit">Horas</span>
+        </div>
+        <div class="time-box">
+          <span class="number">{{ cuentaRegresiva.minutos | number:'2.0-0' }}</span>
+          <span class="unit">Min</span>
+        </div>
+        <div class="time-box">
+          <span class="number">{{ cuentaRegresiva.segundos | number:'2.0-0' }}</span>
+          <span class="unit">Seg</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" (click)="mostrarFormularioAdmin = !mostrarFormularioAdmin">
+      {{ mostrarFormularioAdmin ? 'Cerrar Formulario' : '+ Registrar Nueva Donación' }}
+    </button>
+  </header>
+
+  <!-- Formulario de Registro (Admin / Donaciones) -->
+  <section class="form-card" *ngIf="mostrarFormularioAdmin">
+    <h2>Registrar Artículo Donado</h2>
+    <form (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <!-- Nombre del Producto -->
+        <div class="form-group">
+          <label>Nombre del Producto *</label>
+          <input type="text" [(ngModel)]="nuevaDonacion.nombreProducto" name="nombreProducto" required
+            placeholder="Ej: Guitarra acústica">
+        </div>
+
+        <!-- Categoría -->
+        <div class="form-group">
+          <label>Categoría *</label>
+          <select [(ngModel)]="nuevaDonacion.categoria" name="categoria" required>
+            <option value="" disabled selected>Seleccione una categoría</option>
+            <option *ngFor="let cat of listaCategorias" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <!-- Tipo / Estado de Producto -->
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select [(ngModel)]="nuevaDonacion.tipoProducto" name="tipoProducto" required>
+            <option value="usado">Usado</option>
+            <option value="nuevo">Nuevo</option>
+          </select>
+        </div>
+
+        <!-- Valor -->
+        <div class="form-group">
+          <label>Valor ($) *</label>
+          <input type="number" [(ngModel)]="nuevaDonacion.valor" name="valor" required placeholder="0.00">
+        </div>
+
+        <!-- Selección de Ministerio Donante -->
+        <div class="form-group">
+          <label>Ministerio que lo Dona *</label>
+          <select [(ngModel)]="nuevaDonacion.ministerio" name="ministerio" required>
+            <option value="" disabled selected>Seleccione un ministerio</option>
+            <option *ngFor="let min of listaMinisterios" [value]="min">{{ min }}</option>
+          </select>
+        </div>
+
+        <!-- Nombre del Donante -->
+        <div class="form-group">
+          <label>Nombre de quien lo Dona *</label>
+          <input type="text" [(ngModel)]="nuevaDonacion.donante" name="nombreDonante" required
+            placeholder="Ej: Juan Pérez">
+        </div>
+
+        <!-- Celular del Donante -->
+        <div class="form-group">
+          <label>Celular de quien lo Dona *</label>
+          <input type="tel" [(ngModel)]="nuevaDonacion.celularDonante" name="celularDonante" required
+            placeholder="Ej: 3001234567">
+        </div>
+
+        <!-- Archivo / Imagen -->
+        <div class="form-group full-width">
+          <label>Imagen del Producto</label>
+          <input type="file" (change)="onFileChange($event)" accept="image/*">
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group full-width">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="nuevaDonacion.descripcion" name="descripcion" rows="3"
+            placeholder="Detalles o estado del producto..."></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-success" [disabled]="guardando">Guardar y Publicar</button>
+    </form>
+  </section>
+
+  <!-- Filtros de Visualización   -->
+  <section class="filters-container">
+
+    <div class="categories-bar">
+      <span class="filter-label">Categoría:</span>
+      <button *ngFor="let cat of categoriasFiltro" class="chip" [class.active]="cat === categoriaSeleccionada"
+        (click)="filtrarPorCategoria(cat)">
+        {{ cat }}
+      </button>
+    </div>
+
+
+    <!-- NUEVO: Filtro por Estado (Todos, Disponibles, Apartados, Vendidos) -->
+    <div class="status-filter-bar">
+      <span class="filter-label">Estado:</span>
+      <button class="chip-status" [class.active]="estadoSeleccionado === 'todos'" (click)="filtrarPorEstado('todos')">
+        🌐 Todos ({{ contadorEstados.todos }})
+      </button>
+      <button class="chip-status disponible" [class.active]="estadoSeleccionado === 'pendiente'"
+        (click)="filtrarPorEstado('pendiente')">
+        🟢 Disponibles ({{ contadorEstados.pendiente }})
+      </button>
+      <button class="chip-status apartado" [class.active]="estadoSeleccionado === 'apartado'"
+        (click)="filtrarPorEstado('apartado')">
+        🟡 Apartados ({{ contadorEstados.apartado }})
+      </button>
+      <button class="chip-status vendido" [class.active]="estadoSeleccionado === 'vendido'"
+        (click)="filtrarPorEstado('vendido')">
+        🔴 Vendidos ({{ contadorEstados.vendido }})
+      </button>
+    </div>
+  </section>
+
+  <!-- Estado sin productos -->
+  <div class="empty-state" *ngIf="donacionesFiltradas.length === 0">
+    <p>No se encontraron productos con los filtros seleccionados.</p>
+  </div>
+
+  <!-- Galería de Tarjetas -->
+  <main class="grid-cards" *ngIf="donacionesFiltradas.length > 0">
+    <div class="card" *ngFor="let item of donacionesFiltradas">
+
+
+      <div class="card-image">
+        <img [src]="item.foto ? item.foto : 'https://soporte-formula.s3.amazonaws.com/productos/nodisponible.png'"
+          [alt]="item.nombreProducto">
+        <span class="badge status" [ngClass]="item.estado">
+          {{ item.estado === 'pendiente' ? 'Disponible' : (item.estado | titlecase) }}
+        </span>
+        <!-- Badge de Tipo -->
+        <span class="badge condition" [ngClass]="item.tipoProducto">
+          {{ item.tipoProducto | titlecase }}
+        </span>
+      </div>
+
+      <!-- Detalle de la Card -->
+      <div class="card-content">
+        <span class="category-tag">{{ item.categoria }}</span>
+        <h3>{{ item.nombreProducto | titlecase }}  (Ref:# {{ item.id }} )</h3>
+        <p class="description">{{ item.descripcion }}</p>
+
+        <div class="card-footer">
+          <div class="price">${{ item.valor | number:'1.0-2' }}</div>
+
+          <mat-icon *ngIf="item.estado != 'vendido' && modoventa" title="Eliminar el Articulo" class="pointer-cursor"
+            [ngStyle]="{'color':'red'}" (click)="eliminarArticulo(item)">clear</mat-icon>
+
+          <mat-icon *ngIf="item.estado != 'vendido' && modoventa" title="Editar el Articulo" class="pointer-cursor"
+            [ngStyle]="{'color':'blue'}" (click)="abrirModalEditar(item)">edit</mat-icon>
+
+          <mat-icon *ngIf="item.estado != 'vendido' && modoventa" title="comprar el Articulo" class="pointer-cursor"
+            [ngStyle]="{'color':'green'}" (click)="abrirModalCompra(item)">shopping_cart</mat-icon>
+
+
+          <button *ngIf="item.estado === 'pendiente'" class="btn-apartar" (click)="abrirModalApartar(item)">
+            Apartar
+          </button>
+
+          <span *ngIf="item.estado === 'apartado'" class="text-apartado">
+            📌 Apartado: <b>{{ item.nombreApartado }} 24h</b>
+          </span>
+
+          <span *ngIf="item.estado === 'vendido'" class="text-vendido">
+            ✅ Vendido
+          </span>
+
+
+
+        </div>
+        <div *ngIf="modoventa"><span style="font-weight: bold;">Ministerio:</span> {{ item.ministerio | titlecase }}</div>
+        <div *ngIf="modoventa"><span style="font-weight: bold;">Donador:</span> {{ item.donante | titlecase }} - {{
+          item.celularDonante }}</div>
+           <div *ngIf="item.estado === 'vendido' && modoventa"><span style="font-weight: bold;">Comprador:</span> {{ item.comprador | titlecase }} - {{
+          item.celularComprador }}</div>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- Modal para Apartar Producto -->
+  <div class="modal-backdrop" *ngIf="productoSeleccionado && esModoCompra">
+    <div class="modal-content">
+      <h3>Comprar: {{ productoSeleccionado.nombreProducto }}</h3>
+      <p class="modal-subtitle">Por favor ingresa tus datos para confirmar la compra.</p>
+
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" [(ngModel)]="nombrePersona" placeholder="Ej: Isaac Correa">
+      </div>
+
+      <div class="form-group">
+        <label>Número de Celular *</label>
+        <input type="tel" [(ngModel)]="celularPersona" placeholder="Ej: 3001234567">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-confirm" (click)="confirmarCompra()">Confirmar Compra</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal para Apartar Producto -->
+  <div class="modal-backdrop" *ngIf="productoSeleccionado && !esModoCompra ">
+    <div class="modal-content">
+      <h3>Apartar: {{ productoSeleccionado.nombreProducto }}</h3>
+      <p class="modal-subtitle">Por favor ingresa tus datos para confirmar el apartado.</p>
+
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" [(ngModel)]="nombrePersona" placeholder="Ej: Isaac Correa">
+      </div>
+
+      <div class="form-group">
+        <label>Número de Celular *</label>
+        <input type="tel" [(ngModel)]="celularPersona" placeholder="Ej: 3001234567">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-confirm" (click)="confirmarApartado()">Confirmar Apartado</button>
+      </div>
+    </div>
+  </div>
+</div>

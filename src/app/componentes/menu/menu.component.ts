@@ -44,6 +44,7 @@ tooltipMap: { [key: string]: string | null } = {};
         { name:"Medicamentos",route:"medicamento",icon:"medication",nivel:3}, 
         { name:"Bodegas",route:"bodega",icon:"domain",nivel:2},
         { name:"Dispensar Formula",route:"formula",icon:"playlist_add",nivel:2},
+        { name:"Devolver Formula",route:"devolverformula",icon:"settings_backup_restore",nivel:2},
         { name:"Editar Formula",route:"editformula",icon:"edit",nivel:4},        
         { name:"Historial de entrega",route:"historialentrega",icon:"group_add",nivel:1}
       ]
@@ -74,10 +75,14 @@ tooltipMap: { [key: string]: string | null } = {};
       nombre: 'Reportes',
       icon: 'analytics',
       items: [
+        {name:"Indicadores",route:"estadistica",icon:"analytics",nivel:2},
+        {name:"Entrega de Pendientes",route:"entregapendiente",icon:"pending_actions",nivel:2},
         {name:"Prescritos y entregas",route:"prescritos",icon:"donut_small",nivel:2},
         {name:"Captados por Dx",route:"captadosdx",icon:"query_stats",nivel:2},        
         {name:"Medicamento entregado",route:"entregados",icon:"check_circle_outline",nivel:2},
-        {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:3},
+        {name:"Medicamento contrato",route:"medicamentoeps",icon:"list_alt",nivel:2},
+         {name:"Por Gracia",route:"graciadonaton",icon:"analytics",nivel:6}, 
+      
     
       ]
     }

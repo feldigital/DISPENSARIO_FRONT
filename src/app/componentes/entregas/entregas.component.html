@@ -135,12 +135,7 @@
 
                 </div>
             </div>
-            <div class="col-md-6">
-                <!--
-                <div class="card-header">
-                    Datos de la formula Nro. <strong>{{listaregistros?.idFormula}}</strong>              
-                 </div>
-                <div class="card-body">
+            <div class="col-md-6">              
 -->
                 <div class="card-body p-1">
                     <h6 class="mb-0 fw-bold text-secondary"
@@ -156,7 +151,6 @@
                     <p><strong>Medico prescribe:</strong> {{listaregistros?.medico?.nombre}}
                         <strong>PGP:</strong> {{ listaregistros?.pgp ? 'SI' : 'NO' }} <strong>Origen:</strong> {{
                         listaregistros?.origenurgencia ? 'URGENCIA' : 'CONSULTA EXTERNA' }}
-
                     </p>
                     <p><strong>Fecha de prescripción:</strong> {{listaregistros?.fecPrescribe | date: 'dd/MM/yyyy'}}
                         <strong>Fecha y hora de solicitud:</strong>{{listaregistros?.fecSolicitud | date: 'dd/MM/yyyy :
@@ -167,9 +161,13 @@
 
                     <p><strong>Diagnostico:</strong> {{listaregistros?.cieP}} {{listaregistros?.cieR1}}
                         {{listaregistros?.cieR2}} <strong>Funcionario crea formula: </strong>
-                        {{listaregistros?.funcionariocreaformula}}</p>
-                    <p><strong>Observación de la formula:</strong> {{listaregistros?.observacion}}</p>
+                         <span class="text-success fw-bold">{{ listaregistros?.funcionariocreaformula }}</span>
+                       </p>
 
+                    <p  *ngIf="listaregistros?.funcionarioEditformula" ><strong>Funcionario que la edita: </strong> 
+                        <span class="text-danger fw-bold">{{ listaregistros?.funcionarioEditformula }}</span>
+                         <strong> Fecha: </strong> {{listaregistros?.fechaEditformula | date: 'dd/MM/yyyy : hh:mm'}}</p>                        
+                    <p><strong>Observación de la formula:</strong> {{listaregistros?.observacion}}</p>
                 </div>
 
             </div>
@@ -220,7 +218,10 @@
                     <th>Quien entrega</th>
                     <th>Quien recibe</th>
                     <th><mat-icon title="Proceso con permisos" [ngStyle]="{'color':'white'}">account_circle</mat-icon>
+                     
                     </th>
+                    <th *ngIf="tieneAcceso(4)">F. Proceso</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -373,6 +374,10 @@
                                 class="pointer-cursor" [ngStyle]="{'color':'red'}"
                                 (click)="eliminarRegistroEntrega(entrega,item.medicamento.idMedicamento)">clear</mat-icon>
                         </td>
+                        <td *ngIf="tieneAcceso(4)"> <span *ngIf="tieneAcceso(4)"> {{ entrega.fecProceso | date: 'dd/MM/YYYY : hh:mm' || '' }} </span>  
+                              
+                               
+                        </td> 
                     </tr>
                 </ng-container>
             </tbody>

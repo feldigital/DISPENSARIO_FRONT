@@ -92,7 +92,7 @@
       </thead>
 
       <tbody>
-        <ng-container *ngFor="let itemt of listaOrdendespacho; let i = index">        
+        <ng-container *ngFor="let itemt of listaOrdendespacho; let i = index">
 
           <tr [ngClass]="{'text-danger': itemt.bodegaOrigen.idBodega === idBodegaSeleccionada,
            'fila-expandida': filaExpandida === i }" (click)="toggleDetalles(i)" class="puntero">
@@ -102,8 +102,7 @@
                 [title]="itemt?.tipoIngreso || ''">
                 <mat-icon [ngStyle]="{ 'color': getColorPorTipo(itemt?.tipoIngreso), 'font-size': '18px' }">
                   add_circle</mat-icon>
-                <small class="fw-bold" style="margin-left: 2px;"
-                  [ngStyle]="{'color': getColorPorTipo(itemt?.tipoIngreso), 'font-size': '14px', 'position': 'relative',
+                <small class="fw-bold" style="margin-left: 2px;" [ngStyle]="{'color': getColorPorTipo(itemt?.tipoIngreso), 'font-size': '14px', 'position': 'relative',
                   'top': (itemt?.tipoIngreso?.slice(0, 1)?.toUpperCase() === 'D') ? '1px' : '0'}">
                   {{ (itemt?.tipoIngreso?.slice(0, 1) || '').toUpperCase() }}
                 </small>
@@ -144,9 +143,9 @@
                   title="Editar la orden despacho" [ngStyle]="{'color':'green'}"
                   [matMenuTriggerFor]="menuEdicion">edit</mat-icon>
 
-                  <mat-icon class="puntero" *ngIf="itemt.estado==='Recepción' && tieneAcceso(4)"
+                <mat-icon class="puntero" *ngIf="itemt.estado==='Recepción' && tieneAcceso(4)"
                   title="Editar la orden de despacho procesada" [ngStyle]="{'color':'green'}"
-                  [routerLink]="['/menu/ordendespachoedit', itemt.idDespacho]" >edit</mat-icon> 
+                  [routerLink]="['/menu/ordendespachoedit', itemt.idDespacho]">edit</mat-icon>
               </div>
 
 
@@ -171,6 +170,17 @@
                   <mat-icon [ngStyle]="{'color':'green'}">compare_arrows</mat-icon>
                   <span>Agregar o quitar item</span>
                 </button>
+
+                <button *ngIf="itemt.estado==='Creación'" (click)='reporteEnConstruccion()' mat-menu-item>
+                  <mat-icon [ngStyle]="{'color':'red'}">move_up</mat-icon>
+                  <span>Cambiar bodega origen</span>
+                </button>
+                <button *ngIf="itemt.estado!='Recepción' && tieneAcceso(3)" (click)='reporteEnConstruccion()'
+                  mat-menu-item>
+                  <mat-icon [ngStyle]="{'color':'orange'}">move_down</mat-icon>
+                  <span>Cambiar bodega Destino</span>
+                </button>
+
               </mat-menu>
 
             </td>
@@ -208,10 +218,11 @@
                     <th>Laboratorio</th>
                     <th>Lote</th>
                     <th>Vencimiento</th>
+                    <th *ngIf="itemt.estado==='Creación' && tieneAcceso(2)">...</th>
                   </tr>
                 </thead>
                 <tbody>
-                 <!--- <tr *ngFor="let med of itemt.itemsDespacho; let j = index">-->
+                  <!--- <tr *ngFor="let med of itemt.itemsDespacho; let j = index">-->
                   <tr *ngFor="let med of getItemsOrdenados(itemt); let j = index">
                     <td>{{ j + 1 }}</td>
                     <td>{{ med.medicamento?.nombre }}</td>
@@ -223,6 +234,10 @@
                     <td>{{ med.laboratorio }}</td>
                     <td>{{ med.lote }}</td>
                     <td class="text-center">{{ med.fechaVencimiento | date: 'dd/MM/yyyy' }}</td>
+                    <td *ngIf="itemt.estado==='Creación' && tieneAcceso(2)">
+                      <mat-icon class="puntero" title="Eliminar el item de la orden despacho" [ngStyle]="{'color':'red'}"
+                        (click)="quitarItemOrdenDespacho(itemt,med)">delete_sweep</mat-icon>
+                    </td>
                   </tr>
                 </tbody>
               </table>

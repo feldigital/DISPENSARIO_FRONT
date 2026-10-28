@@ -688,6 +688,56 @@ export class HistorialordendespachoComponent {
 }
 
 
+quitarItemOrdenDespacho(orden: any, item: any): void {
+  console.log('Orden:', orden);
+  console.log('Item a eliminar:', item);
+  
+  Swal.fire({
+    title: '¿Desea eliminar?',
+    text: `El ítem de la orden de despacho de la base de datos.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.ordendespachoservicio.deleteItem(item.id).subscribe(
+        (response) => {
+          
+          // ELIMINACIÓN DIRECTA: Solo filtramos los ítems de esta orden específica
+          if (orden && orden.itemsDespacho) {
+            orden.itemsDespacho = orden.itemsDespacho.filter((i: any) => i.id !== item.id);
+          }
+
+          // Nota: Si usas `listaOrdendespachofiltrada` y apunta a las mismas referencias de memoria, 
+          // los cambios se reflejarán automáticamente. Si deseas asegurar ambas listas por separado:
+          this.listaOrdendespachofiltrada.forEach((o: any) => {
+            if (o.idDespacho === orden.idDespacho && o.itemsDespacho) {
+              o.itemsDespacho = o.itemsDespacho.filter((i: any) => i.id !== item.id);
+            }
+          });
+
+          Swal.fire({
+            icon: 'success',
+            title: `¡Ítem eliminado!`,
+            text: `El ítem de la orden de despacho ha sido eliminado correctamente.`,
+          });
+
+        },
+        err => {
+          Swal.fire({
+            icon: 'error',
+            title: `Error`,
+            text: err.mensaje || 'No se pudo eliminar el ítem',
+          });
+        }
+      );
+    }
+  });
+}
+
+
   reporteEnConstruccion() {
     Swal.fire({
       icon: 'info',

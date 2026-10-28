@@ -7,24 +7,24 @@
 
 
 
-<!-- Info Paciente -->
-        <div class="col-md-4">
-          <div class="d-flex align-items-center">
-            <div class="avatar-circle me-2"
-            [ngClass]="{'bg-danger text-white border border-danger shadow-sm': pacienteActual?.pave}"
-                  [matTooltip]="pacienteActual?.pave ? 'PAVE: Paciente de Alto Valor Estratégico' : 'Paciente normal'">
-              {{ pacienteActual?.pNombre?.charAt(0) }}{{ pacienteActual?.pApellido?.charAt(0) }}
+            <!-- Info Paciente -->
+            <div class="col-md-4">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle me-2"
+                        [ngClass]="{'bg-danger text-white border border-danger shadow-sm': pacienteActual?.pave}"
+                        [matTooltip]="pacienteActual?.pave ? 'PAVE: Paciente de Alto Valor Estratégico' : 'Paciente normal'">
+                        {{ pacienteActual?.pNombre?.charAt(0) }}{{ pacienteActual?.pApellido?.charAt(0) }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-primary text-uppercase">
+                            {{ pacienteActual?.pNombre }} {{ pacienteActual?.sNombre }}
+                            {{ pacienteActual?.pApellido }} {{ pacienteActual?.sApellido }}
+                        </h6>
+                        <small class="text-muted">Historial de Fórmulas</small>
+                    </div>
+                </div>
             </div>
-            <div>
-              <h6 class="mb-0 fw-bold text-primary text-uppercase">
-                {{ pacienteActual?.pNombre }} {{ pacienteActual?.sNombre }}
-                {{ pacienteActual?.pApellido }} {{ pacienteActual?.sApellido }}
-              </h6>
-              <small class="text-muted">Historial de Fórmulas</small>
-            </div>
-          </div>
-        </div>
-           
+
 
             <!-- Grupo alineado a la derecha -->
             <div class="d-flex align-items-center gap-3 ms-auto">
@@ -87,12 +87,12 @@
                         </div>
 
                         <mat-icon *ngIf="!itemt.urlFormula && !itemt.editingSoporte" class="pointer-cursor"
-                            title="Adicionar soporte pdf de la formula" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
-                            (click)="editarSoporte(itemt)">
+                            title="Adicionar soporte pdf de la formula"
+                            [ngStyle]="{'font-size': '18px', 'color':'#009A94'}" (click)="editarSoporte(itemt)">
                             add_circle
                         </mat-icon>
-                        <mat-icon *ngIf="itemt.urlFormula && !itemt.editingSoporte" title="Gestión pdf formula" class="pointer-cursor"
-                            [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
+                        <mat-icon *ngIf="itemt.urlFormula && !itemt.editingSoporte" title="Gestión pdf formula"
+                            class="pointer-cursor" [ngStyle]="{'font-size': '18px', 'color':'#009A94'}"
                             [matMenuTriggerFor]="menu">attach_file</mat-icon>
 
                         <mat-icon *ngIf="itemt.editingSoporte" title="Cancelar" class="pointer-cursor"
@@ -158,9 +158,9 @@
                         <mat-icon *ngIf="itemt.estadoanulada" title="Formula anulada" class="pointer-cursor"
                             [ngStyle]="{'color':'red'}" (click)="informeAnulacion(itemt)">block</mat-icon>
 
-                        <button [disabled]="procesando" *ngIf="!itemt.estado && !itemt.estadoanulada" title="generar la entrega de medicamentos"
-                            type="button" class="btn btn-success btn-sm btn-custom-gradient-d"
-                            (click)="guardarEntregaFormula(itemt)">
+                        <button [disabled]="procesando" *ngIf="!itemt.estado && !itemt.estadoanulada"
+                            title="generar la entrega de medicamentos" type="button"
+                            class="btn btn-success btn-sm btn-custom-gradient-d" (click)="guardarEntregaFormula(itemt)">
                             Generar entrega </button>
                         <button *ngIf="itemt.estado" title="ver la entrega" type="button"
                             class="btn btn-sm btn-custom-gradient" [routerLink]="['/menu/entrega', itemt.idFormula]">
@@ -177,9 +177,17 @@
                             class="pointer-cursor" [ngStyle]="{'color':'orange'}"
                             (click)="anularFormula(itemt)">block</mat-icon>
                         <!--*ngIf="!itemt.estadoanulada && tieneAcceso(4)"-->
-                        <mat-icon *ngIf="(!itemt.estado && tieneAcceso(2) && !itemt.estadoanulada) || (tieneAcceso(4) )"
-                            title="Editar la formula" class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
-                            [routerLink]="['/menu/editformula', itemt.idFormula]">edit</mat-icon>
+                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                            <mat-icon
+                                *ngIf="(!itemt.estado && tieneAcceso(2) && !itemt.estadoanulada) || (tieneAcceso(4) || (itemt.estado && esTiempoparaModificar(itemt)))"
+                                title="Editar la formula" class="pointer-cursor" [ngStyle]="{'color':'#009A94'}"
+                                [routerLink]="['/menu/editformula', itemt.idFormula]">edit</mat-icon>
+                            <mat-icon *ngIf="esTiempoparaModificar(itemt)"
+                                title="El tiempo para editar está corriendo (5 min)"
+                                class="reloj-corriendo animacion-girar">
+                                access_time
+                            </mat-icon>
+                        </div>
 
                     </td>
                 </tr>

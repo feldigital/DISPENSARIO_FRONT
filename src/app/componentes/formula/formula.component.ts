@@ -455,32 +455,6 @@ public buscarDocumento() {
   }
 
 
-  /*
-  convertirAMayusculasCieP(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.toUpperCase();
-    this.facturaForm.get('cieP')?.setValue(input.value, { emitEvent: false });
-  }
-
-  convertirAMayusculasCieR1(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.toUpperCase();
-    this.facturaForm.get('cieR1')?.setValue(input.value, { emitEvent: false });
-  }
-  convertirAMayusculasCieR2(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.toUpperCase();
-    this.facturaForm.get('cieR2')?.setValue(input.value, { emitEvent: false });
-  }
-
-  convertirAMayusculasCieR3(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.toUpperCase();
-    this.facturaForm.get('cieR3')?.setValue(input.value, { emitEvent: false });
-  }
-*/
-
-
   habilitarControles(): void {
     this.facturaForm.get('observacion')?.enable();
     this.facturaForm.get('ips')?.enable();

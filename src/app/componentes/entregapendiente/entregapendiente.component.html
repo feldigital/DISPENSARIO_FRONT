@@ -1,0 +1,120 @@
+<div class="container mt-2">
+
+
+  <form [formGroup]="generalForm" class="px-2">
+    <div class="row align-items-end g-2 mb-2">
+      <!-- Selector de Bodega -->
+      <div class="col-md-3">
+        <label class="form-label mb-1 fw-bold">Bodega</label>
+        <select class="form-select form-select-sm" formControlName="idBodega">
+          <option selected value="0">TODAS LAS BODEGAS</option>
+          <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+            {{ item.nombre }}
+          </option>
+        </select>
+      </div>
+  
+      <!-- Rango de Fechas -->
+      <div class="col-md-4">
+        <label class="form-label mb-1 fw-bold">Rango de fechas</label>
+        <div class="d-flex gap-1">
+          <input type="date" formControlName="fechainicial" class="form-control form-control-sm">
+          <span class="px-1 text-muted">al</span>
+          <input type="date" formControlName="fechafinal" class="form-control form-control-sm">
+        </div>
+      </div>
+  
+      <!-- Botón Buscar -->
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-info w-100 d-flex align-items-center justify-content-center"
+          (click)="buscarRegistro( parametro)">
+          <mat-icon class="me-1">search</mat-icon> Buscar
+        </button>
+
+          <button type="button" class="btn  w-100 d-flex align-items-center justify-content-center"
+          (click)='reporteEntregadosDetalldos(parametro)'>
+          <img src="assets/iconos/excel.svg" alt="icono reporte" width="22" height="22" /> Exportar
+        </button>
+      </div>
+  
+      <!-- Total Entregado -->
+      <div *ngIf="listaentregas?.length > 0" class="col-md-3 d-flex align-items-end">
+        <div class="alert alert-danger w-100 text-center mb-0 py-2">
+          <small>
+            <strong>Total pendientes entregado:</strong> {{ listaentregas?.length || 0 }}
+          </small>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Buscador de Medicamento -->
+    <div class="row mt-2">
+      <div class="col-md-6">
+        <label class="form-label mb-1 fw-bold">Buscar por medicamento</label>
+        <!-- Campo de búsqueda con ícono -->
+          <div class="input-group flex-grow-1 me-2">
+            <span class="input-group-text bg-white border-end-0">
+              <mat-icon class="text-info">search</mat-icon>
+            </span>
+            <input type="text" formControlName="medicamento" class="form-control form-control-sm border-start-0"
+              placeholder="Digite el nombre del medicamento" />
+          </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label mb-1 fw-bold">Buscar por paciente</label>
+        <!-- Campo de búsqueda con ícono -->
+          <div class="input-group flex-grow-1 me-2">
+            <span class="input-group-text bg-white border-end-0">
+              <mat-icon class="text-info">search</mat-icon>
+            </span>
+            <input type="text" formControlName="paciente" class="form-control form-control-sm border-start-0"
+              placeholder="Digite el nombre del paciente" />
+          </div>
+      </div>
+    </div>
+  </form>
+  
+      
+      
+ 
+    <div class="alert alert-info my-2" *ngIf="listaentregas?.length == 0">
+        No hay trazabilidad en la entrega de este medicamento en la fecha y bodega seleccionada!
+    </div>
+
+    <div *ngIf="listaentregas?.length > 0">
+        <table class="table table-striped table-hover table-sm">
+            <thead class="thead-colored">
+                <tr>
+                    <th>Item</th>
+                    <th>Documento</th>
+                    <th>Nombres y apellidos paciente</th>
+                    <th>Medicamento </th>
+                    <th>Formula </th>
+                    <th>Fecha de solicitud</th>
+                    <th>Fecha de entrega</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let itemt of registrosFiltrados let i= index">
+                    <td> {{i+1}}</td>
+                    <td>{{itemt.tipoDoc || ''}}-{{itemt.numDocumento || ''}}</td>
+                    <td>{{itemt.pNombre || ''}} {{itemt.sNombre || ''}} {{itemt.pApellido || ''}} {{itemt.sApellido ||
+                        ''}}       
+                      <mat-icon *ngIf="itemt.pave === 'SI'" title="paciente PAVE" [ngStyle]="{'color':'red'}">person_outline</mat-icon>
+                    </td>
+                     <td>{{itemt.nombreMedicamento}}</td>
+                    <td>{{itemt.idFormula || ''}}</td>
+                    <td>{{itemt.fecSolicitud | date: 'dd/MM/yyyy'}}</td>
+                    <td>{{itemt.fecEntrega | date: 'dd/MM/YYYY : hh:mm'}}</td>                                         
+                    <td style="color: green; text-align: right;"> <mat-icon class="pointer-cursor"
+                            title="Ver la entrega" [ngStyle]="{'color':'#009A94'}"
+                            [routerLink]="['/menu/entrega', itemt.idFormula]">zoom_in</mat-icon>
+                        <strong>{{itemt.cantidadEntrega}}</strong>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

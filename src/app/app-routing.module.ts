@@ -35,10 +35,15 @@ import { VencidosComponent } from './componentes/vencidos/vencidos.component';
 import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.component';
 import { HistorialpqrsComponent } from './componentes/historialpqrs/historialpqrs.component';
 import { InicioComponent } from './componentes/inicio/inicio.component';
+import { EntregapendienteComponent } from './componentes/entregapendiente/entregapendiente.component';
+import { GraciaComponent } from './componentes/gracia/gracia.component';
+import { GraciadonatonComponent } from './componentes/graciadonaton/graciadonaton.component';
+import { DevolverformulaComponent } from './componentes/devolverformula/devolverformula.component';
 
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'graciadonaton', component: GraciadonatonComponent },
   { path: 'menu', component: MenuComponent, canActivate: [AuthGuard],
     children: [
       { path: 'inicio', component: InicioComponent },
@@ -80,65 +85,15 @@ const routes: Routes = [
       { path: 'ordendespachoedit/:id', component: OrdendespachoeditComponent },  
       { path: 'pacientependiente/:idBodega/:idMedicamento/:fInicial/:fFinal', component: PacientependienteComponent },
       { path: 'historialpqrs', component: HistorialpqrsComponent },
+      { path: 'entregapendiente', component: EntregapendienteComponent },
+      { path: 'devolverformula', component: DevolverformulaComponent },
+      { path: 'gracia', component: GraciaComponent },
       { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto 
     ]
   }, 
   { path: '', redirectTo: '/login', pathMatch: 'full' }
+ 
 ];
-
-/*
-const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'menu', component: MenuComponent, canActivate: [AuthGuard],
-    children: [
-      { path: 'bodega', component: BodegaComponent },
-      { path: 'medicamento', component: MedicamentoComponent },
-      { path: 'ffarmaceutica', component: FfarmaceuticaComponent },
-      { path: 'vadministracion', component: VadministracionComponent },
-      { path: 'paciente', component: PacienteComponent },
-      { path: 'paciente/:id', component: PacienteComponent },
-      { path: 'formula', component: FormulaComponent },
-      { path: 'formula/:id', component: FormulaComponent },
-      { path: 'formula/formula/:idFormula', component: FormulaComponent },
-      { path: 'historialformula/:id', component: HistorialformulaComponent },
-      { path: 'entrega/:id', component: EntregasComponent },    
-      { path: 'medico', component: MedicosComponent },
-      { path: 'ips', component: IpsComponent },
-      { path: 'despacho', component: DespachoComponent },
-      { path: 'despacho/:id', component: DespachoComponent },
-      { path: 'medicamentobodega/:id', component: MedicamentobodegaComponent },
-      { path: 'pendiente/:id', component: PendientesComponent },
-      { path: 'estadistica', component: EstadisticaComponent },
-      { path: 'historialordendespacho', component: HistorialordendespachoComponent },
-      { path: 'verordendespacho/:id', component: VerordendespachoComponent },  
-      { path: '', redirectTo: '/menu/formula', pathMatch: 'full' } // Ruta por defecto
-    ]
-  }, 
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'bodega', component: BodegaComponent },
-  { path: 'medicamento', component: MedicamentoComponent },
-  { path: 'ffarmaceutica', component: FfarmaceuticaComponent },
-  { path: 'vadministracion', component: VadministracionComponent },
-  { path: 'paciente', component: PacienteComponent },
-  { path: 'paciente/:id', component: PacienteComponent },
-  { path: 'formula', component: FormulaComponent },
-  { path: 'formula/:id', component: FormulaComponent },
-  { path: 'formula/formula/:idFormula', component: FormulaComponent },
-  { path: 'historialformula/:id', component: HistorialformulaComponent },
-  { path: 'entrega/:id', component: EntregasComponent },
-  { path: 'medico', component: MedicosComponent },
-  { path: 'ips', component: IpsComponent },
-  { path: 'despacho', component: DespachoComponent },
-  { path: 'despacho/:id', component: DespachoComponent },
-  { path: 'medicamentobodega/:id', component: MedicamentobodegaComponent },
-  { path: 'pendiente/:id', component: PendientesComponent },
-  { path: 'estadistica', component: EstadisticaComponent }, 
-  { path: 'historialordendespacho', component: HistorialordendespachoComponent },
-  { path: 'verordendespacho/:id', component: VerordendespachoComponent },
-  
-
-
-];*/
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

@@ -1,28 +1,128 @@
+/* ==============================
+   Layout
+============================== */
+
 mat-sidenav-container {
-    height: 100vh; /* Asegúrate de que el contenedor tenga altura */
-    display: flex; /* Asegura que el contenedor use Flexbox */
-  }
-  
-  mat-sidenav {
+    height: 100vh;
+    display: flex;
+}
+
+mat-sidenav {
     width: 250px;
-    background: #fff; /* Asegúrate de que el fondo sea visible */
-  }
-  
-  mat-toolbar {
+    background: #fff;
+}
+
+mat-toolbar {
     position: fixed;
     top: 0;
     width: 100%;
-  }
-  
-  mat-nav-list {
-    margin-top: 56px; /* Offset for toolbar */
-  }
-  
-  mat-list-item {
+}
+
+mat-nav-list {
+    margin-top: 56px;
+}
+
+mat-list-item {
     display: flex;
     align-items: center;
-  }
-  
-  mat-icon {
+}
+
+mat-icon {
     margin-right: 16px;
-  }
+}
+
+/* ==============================
+   Cards
+============================== */
+
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    font-size: 17px;
+    background: linear-gradient(135deg, #6FD5D2, #67ACD6);
+}
+
+/* ==============================
+   Botones
+============================== */
+
+.btn {
+    min-width: 220px;
+    /*background:linear-gradient(90deg,#cbd1d6,#718ddf);*/
+}
+
+/* ==============================
+   Angular Material
+============================== */
+
+.mat-mdc-form-field {
+    width: 100%;
+}
+
+/* ==============================
+   Reportes
+============================== */
+
+.reporte-item {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.reporte-item:hover {
+    background: #EFF6FF;
+    border-color: #2563EB;
+}
+
+.form-check-input {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.form-check-label {
+    width: 100%;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* ==============================
+   KPI
+============================== */
+
+.kpi-card {
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .15);
+}
+/* KPI DIA (actividad diaria) */
+.tot {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+}
+
+/* KPI SEMANA (procesos) */
+.porc {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+
+.kpi-card .card-body {
+    padding: 15px 20px;
+}
+
+.kpi-icon {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 10px;
+    font-size: 45px !important;
+}
+
+.kpi-card h4 {
+    margin-bottom: 2px;
+    font-size: 30px;
+    font-weight: 700;
+}

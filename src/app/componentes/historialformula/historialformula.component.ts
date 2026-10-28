@@ -22,6 +22,8 @@ export class HistorialformulaComponent implements OnInit {
   selectedFile: File | null = null;
   bodegaActual: any;
   procesando: boolean = false;
+  intervalId: any;
+  controlFuncionario: string = '';
 
 
   constructor(
@@ -52,10 +54,41 @@ export class HistorialformulaComponent implements OnInit {
       this.buscarRegistro(this.parametro);
     }
 
+    this.controlFuncionario = sessionStorage.getItem("nombre") ?? '';
+
+    this.intervalId = setInterval(() => {
+      // Esto obliga a Angular a ejecutar la detección de cambios de manera segura
+    }, 30000);
 
   }
 
+  ngOnDestroy(): void {
+    // Muy importante limpiar el intervalo cuando salgas de la pantalla para evitar fugas de memoria
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
 
+  // Método que valida ambas condiciones
+  esTiempoparaModificar(item: any): boolean {
+    // 🛡️ CONTROL DE NULOS: Si el ítem no existe, o no tiene fecha, o no tiene funcionario, oculta el ícono de inmediato
+    if (!item || !item.fecSolicitud || !item.funcionariocreaformula) {
+      return false;
+    }
+    // 1. Validar que sea el mismo funcionario (¡Excelente!)
+    if (item.funcionariocreaformula !== this.controlFuncionario) {
+      return false;
+    }
+    // 2. Validar que no hayan pasado más de 5 minutos
+    const fechaProcesado = new Date(item.fecSolicitud).getTime();
+    // Control extra por si la fecha en la BD tiene un formato extraño que JavaScript no entienda
+    if (isNaN(fechaProcesado)) {
+      return false;
+    }
+    const fechaActual = new Date().getTime();
+    const diferenciaMinutos = (fechaActual - fechaProcesado) / (1000 * 60);
+    return diferenciaMinutos <= 5;
+  }
 
   onInputChange(event: any, itemt: any) {
     itemt.tipoRecibe = event.target.value.toUpperCase();
@@ -79,10 +112,25 @@ export class HistorialformulaComponent implements OnInit {
 
 
 
-  public verDetalles(itemt: any) {
+  public verDetalles(itemt: any) {    
     let mensaje = `Medico que prescribe: ${itemt.medico.nombre} <br> <br>`;
     for (let i = 0; i < itemt.items.length; i++) {
-      mensaje += (i + 1) + ` - ${itemt.items[i].medicamento.nombre} - Cantidad  ${itemt.items[i].cantidad}<br>`;
+      // mensaje += (i + 1) + ` - ${itemt.items[i].medicamento.nombre} - Cantidad  ${itemt.items[i].cantidad}<br>`;
+      const item = itemt.items[i];
+      const esPendiente = item.cantidad !== item.totalEntregado;     
+      const estilo =
+        item.entregaEfectiva === false
+          ? 'color:#fd7e14;font-weight:bold;'
+          : esPendiente
+            ? 'color:#dc3545;font-weight:bold;'
+            : '';
+
+      mensaje += `
+  <div style="${estilo}">
+    ${i + 1} - ${item.medicamento.nombre} - Cantidad: ${item.cantidad} / ${item.totalEntregado}
+  </div>
+`;
+
     }
     Swal.fire({
       icon: 'success',
@@ -391,8 +439,15 @@ export class HistorialformulaComponent implements OnInit {
   }
 
   verArchivo(url: string) {
-    // Si la URL es pública o accesible, se abre en nueva pestaña
-    window.open(url, '_blank');
+     if (!url) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Sin soporte',
+      text: 'Esta fórmula no tiene un documento de soporte asociado.'
+    });
+    return;
+  }
+  window.open(url, '_blank');
   }
 
   public editarSoporte(itemt: any) {

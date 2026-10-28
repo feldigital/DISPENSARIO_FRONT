@@ -374,6 +374,14 @@ buscarMedicamentos(filterValue: string): Observable<any[]> {
       });
     }
 
+  tieneAcceso(nivelRequerido: number): boolean {
+    const nivelUsuario = Number(sessionStorage.getItem("nivel"));
+    if (isNaN(nivelUsuario)) {
+      //console.warn("El nivel del usuario no es válido o no está definido");
+      return false;
+    }
+    return nivelUsuario >= nivelRequerido;
+  }
 
 
   public primerasmayusculas(str: string): string {

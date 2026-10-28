@@ -7,6 +7,7 @@ import { PermisosService } from './servicios/permisos.service';
 
 
 
+
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MenuComponent } from './componentes/menu/menu.component';
@@ -38,6 +39,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
 
 
 import { DetalleformulaComponent } from './componentes/detalleformula/detalleformula.component';
@@ -71,6 +73,10 @@ import { FormulasdxComponent } from './componentes/formulasdx/formulasdx.compone
 import { ProveedorComponent } from './componentes/proveedor/proveedor.component';
 import { HistorialpqrsComponent } from './componentes/historialpqrs/historialpqrs.component';
 import { InicioComponent } from './componentes/inicio/inicio.component';
+import { EntregapendienteComponent } from './componentes/entregapendiente/entregapendiente.component';
+import { GraciaComponent } from './componentes/gracia/gracia.component';
+import { GraciadonatonComponent } from './componentes/graciadonaton/graciadonaton.component';
+import { DevolverformulaComponent } from './componentes/devolverformula/devolverformula.component';
 
 
 
@@ -118,7 +124,12 @@ export function initPermisos(permisosService: PermisosService) {
     FormulasdxComponent,
     ProveedorComponent,
     HistorialpqrsComponent,
-    InicioComponent,    
+    InicioComponent,
+    EntregapendienteComponent,
+    GraciaComponent,
+    DevolverformulaComponent,
+   
+    
 
   ],
   imports: [
@@ -148,6 +159,8 @@ export function initPermisos(permisosService: PermisosService) {
     MatCardModule,
     MatExpansionModule,
     MatTooltipModule,
+    MatSelectModule,
+    GraciadonatonComponent,    
    
 
   ],

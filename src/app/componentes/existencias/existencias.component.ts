@@ -34,7 +34,8 @@ export class ExistenciasComponent {
     this.generalForm = this.fb.group
     ({
       medicamento:[''],
-      estado:['true'],
+      estado:[true],
+      estadoPendiente:[false],
      });
 
     this.generalForm.get('medicamento')!.valueChanges
@@ -63,7 +64,13 @@ export class ExistenciasComponent {
 
     // Escucha cambios del checkbox
   this.generalForm.get('estado')?.valueChanges.subscribe(() => {
+    this.generalForm.get('estadoPendiente')?.setValue(false, { emitEvent: false });
     this.aplicarFiltroCantidad();
+  });
+
+  // Escucha cambios del checkbox
+  this.generalForm.get('estadoPendiente')?.valueChanges.subscribe(() => {
+    this.aplicarFiltroCantidadPendiente();
   });
 
   }
@@ -123,6 +130,15 @@ aplicarFiltroCantidad(): void {
   }
 }
 
+aplicarFiltroCantidadPendiente(): void {
+  const soloConExistenciasPendiente = this.generalForm.get('estadoPendiente')?.value === true || this.generalForm.get('estadoPendiente')?.value === 'true';
+  
+  if (soloConExistenciasPendiente) {
+    this.listaItemBodega = this.listaExistencia.filter((item: any) => item.d_2 > 0);
+  } else {
+    this.listaItemBodega =this.listaExistencia;
+  }
+}
 
 
   public primerasmayusculas(str: string): string {

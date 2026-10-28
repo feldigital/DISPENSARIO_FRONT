@@ -57,7 +57,7 @@
                                         class="form-control border-end-0 search-input" placeholder="Digite descuento">
                                 </td>
                                 <td>
-                                    <button class="btn btn-outline-primary" title="Agregar medicamento al contrato"
+                                    <button  *ngIf="tieneAcceso(4)" class="btn btn-outline-primary" title="Agregar medicamento al contrato"
                                         (click)="validarYGuardarMedicamentoContratado()">
                                         Agregar</button>
                                 </td>
@@ -104,11 +104,11 @@
                             <td>{{ ((itemt.valor ?? 0) | currency) }}</td>
                             <td>{{ (itemt.descuento ?? 0) + ' %' }}</td>
                             <td>
-                                <mat-icon class="pointer-cursor" title="Actualizar valores"
+                                <mat-icon *ngIf="tieneAcceso(3)" class="pointer-cursor" title="Actualizar valores"
                                     [ngStyle]="{'color':'#009A94'}">
                                     edith</mat-icon>
 
-                                <mat-icon class="pointer-cursor" title="Eliminar item del contrato"
+                                <mat-icon *ngIf="tieneAcceso(3)" class="pointer-cursor" title="Eliminar item del contrato"
                                     [ngStyle]="{'color':'red'}" (click)="quitarMedicamentoContrato(itemt)">
                                     clear</mat-icon>
                             </td>
@@ -196,11 +196,11 @@
                                 <td>{{ '$ ' + ((itemt.valor ?? 0) | number:'1.0-0') }}</td>
                                 <td>{{ (itemt.descuento ?? 0) + ' %' }}</td>
                                 <td>
-                                    <mat-icon class="pointer-cursor" title="Actualizar valores"
+                                    <mat-icon *ngIf="tieneAcceso(3)" class="pointer-cursor" title="Actualizar valores"
                                         [ngStyle]="{'color':'#009A94'}">
                                         edith</mat-icon>
 
-                                    <mat-icon class="pointer-cursor" title="Eliminar item del contrato"
+                                    <mat-icon *ngIf="tieneAcceso(3)" class="pointer-cursor" title="Eliminar item del contrato"
                                         [ngStyle]="{'color':'red'}" (click)="quitarMedicamentoContrato(itemt)">
                                         clear</mat-icon>
                                 </td>

@@ -1,41 +1,199 @@
-<div class="login-container">
-  <div class="login-form">
-    <h2>Iniciar Sesión</h2>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div>
-            <label for="idBodega">Dispensario de medicamento:</label>
-            <select class="form-select" formControlName="idBodega" required>
-                <option selected value="">Seleccione la bodega</option>
-                <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">{{item.nombre }} - {{item.puntoEntrega }}</option>
-            </select>
-            <div *ngIf="loginForm.get('idBodega')?.invalid && loginForm.get('idBodega')?.touched">
-              <small *ngIf="loginForm.get('idBodega')?.errors?.['required']">Dispensario es requerido.</small>
-              
-            </div>
+<div class="login-page">
+  <div class="login-card shadow-lg">
+    <!-- PANEL IZQUIERDO -->
+    <div class="login-left">
+      <div class="text-center mb-4">
+        <img src="assets/logosism.png" class="logo">
+        <h2 class="titulo">
+          Gestor Farmacéutico
+        </h2>
+        <p class="subtitulo">
+          Sistema de gestión y dispensación de medicamentos
+        </p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- DISPENSARIO -->
+        <div class="mb-3">
+          <label class="form-label">
+            <i class="material-icons">local_pharmacy</i>
+            Dispensario de medicamentos
+          </label>
+
+          <select
+          class="form-select"
+          formControlName="idBodega">
+
+            <option value="">Seleccione la bodega</option>
+
+            <option
+            *ngFor="let item of listaregistros"
+            [ngValue]="item.idBodega">
+
+              {{item.nombre}} - {{item.puntoEntrega}}
+
+            </option>
+
+          </select>
+
+        </div>
+
+        <!-- USUARIO -->
+
+        <div class="mb-3">
+
+          <label class="form-label">
+
+            <i class="material-icons">person</i>
+
+            Usuario
+
+          </label>
+
+          <input
+          type="number"
+          class="form-control"
+          formControlName="usuario"
+          placeholder="Ingrese su usuario">
+
+        </div>
+
+        <!-- PASSWORD -->
+
+        <div class="mb-2">
+
+          <label class="form-label">
+
+            <i class="material-icons">lock</i>
+
+            Contraseña
+
+          </label>
+
+          <div class="input-group">
+
+            <input
+            [type]="mostrarPassword ? 'text':'password'"
+            class="form-control"
+            formControlName="password"
+            placeholder="Ingrese su contraseña">
+
+            <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="mostrarPassword=!mostrarPassword">
+
+              <i class="material-icons">
+                {{mostrarPassword?'visibility_off':'visibility'}}
+              </i>
+
+            </button>
+
           </div>
-      
-        <div>
-        <label for="Usuario">Usuario:</label>
-        <input class="form-select"  id="usuario" formControlName="usuario" type="number">
-        <div *ngIf="loginForm.get('usuario')?.invalid && loginForm.get('usuario')?.touched">
-          <small *ngIf="loginForm.get('usuario')?.errors?.['required']">El Usuario es requerido.</small>
-         
+
         </div>
-      </div>
-      
-      <div>
-        <label for="password">Password:</label>
-        <input  class="form-select" id="password" formControlName="password" type="password">
-        <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-          <small *ngIf="loginForm.get('password')?.errors?.['required']">Password es requerido.</small>
-          <small *ngIf="loginForm.get('password')?.errors?.['minlength']">Contraseña debe ser mayor a 6 characteres de longitud.</small>
+
+        <!-- OLVIDO PASSWORD -->
+
+        <div class="text-end mb-4">
+
+          <a class="recuperar">
+
+            <i class="material-icons">lock_reset</i>
+
+            ¿Olvidó su contraseña?
+
+          </a>
+
         </div>
+
+        <!-- BOTON -->
+
+        <button
+        class="btn btn-login w-100">
+
+          <i class="material-icons me-2">
+
+            login
+
+          </i>
+
+          Ingresar
+
+        </button>
+
+      </form>
+
+      <div class="seguridad">
+
+        <i class="material-icons">
+
+          verified_user
+
+        </i>
+
+        Tus datos están protegidos y son confidenciales.
+
       </div>
-      
-      <button class="btn-custom-gradient" type="submit" [disabled]="loginForm.invalid">Ingresar</button>
-    </form>
-  </div>
-    <div class="login-image">
-      <img src="assets/logosism.png" alt="Login Image" />
+
     </div>
+
+
+
+    <!-- PANEL DERECHO -->
+
+    <div class="login-right">
+
+      <img
+      src="assets/dispensarios.png"
+      class="imagen">
+  <!--class="overlay" -->
+      <div >
+        <h1>
+
+          Gestión eficiente,
+          salud garantizada
+
+        </h1>
+
+        <p>
+          Administre, controle y optimice la dispensación
+          de medicamentos con seguridad y confianza.
+
+        </p>
+
+        <div class="features">
+
+          <div>
+
+            <i class="material-icons">inventory_2</i>
+
+            <span>Control Inventario</span>
+
+          </div>
+
+          <div>
+
+            <i class="material-icons">analytics</i>
+
+            <span>Indicadores</span>
+
+          </div>
+
+          <div>
+
+            <i class="material-icons">verified</i>
+
+            <span>Seguridad</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
+
+</div>

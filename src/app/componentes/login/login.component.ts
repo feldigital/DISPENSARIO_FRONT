@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 export class LoginComponent {
   loginForm: FormGroup;
   listaregistros: any;
+  public mostrarPassword: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -87,4 +88,10 @@ export class LoginComponent {
       });
     }
   }
+
+ 
+
+togglePassword(): void {
+  this.mostrarPassword = !this.mostrarPassword;
+}
 }

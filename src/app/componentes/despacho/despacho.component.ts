@@ -380,17 +380,42 @@ public guardarMedicamentoOrdenDespacho(itemt: any) {
     hoy.setHours(0, 0, 0, 0); // Eliminar hora para comparar solo fecha
     const fechaVenc = new Date(itemt.fechaVencimiento);
     fechaVenc.setHours(0, 0, 0, 0);
+   
 
-    if (fechaVenc < hoy && !idBodegaDestino.vencimiento) {
-      Swal.fire('Fecha de vencimiento inválida', 'La fecha de vencimiento no puede ser menor a la fecha actual.', 'error');
-      return;
-    }
+    const estaVencido = fechaVenc <= hoy;
+const esBodegaVencimiento = idBodegaDestino.vencimiento === true;
+
+// 2. Evaluamos las dos reglas permitidas utilizando el operador O (||)
+const cumpleRegla1 = estaVencido && esBodegaVencimiento;
+const cumpleRegla2 = !estaVencido && !esBodegaVencimiento;
+
+// 3. Si NO cumple la Regla 1 Y TAMPOCO cumple la Regla 2, se bloquea el proceso
+if (!cumpleRegla1 && !cumpleRegla2) {
+  
+  if (estaVencido) {
+    Swal.fire(
+      'Operación No Permitida',
+      'Este medicamento está vencido. Solo se permite su ingreso si la bodega de destino es de Vencimiento.',
+      'error'
+    );
+  } else {
+    Swal.fire(
+      'Operación No Permitida',
+      'Los medicamentos vigentes (no vencidos) no deben ser ingresados a la bodega de vencimiento.',
+      'error'
+    );
+  }
+  
+  return; // Detiene la ejecución
+}
 
   // 2. Normalización de textos
   itemt.invima = itemt.invima.toUpperCase();
   itemt.laboratorio = itemt.laboratorio.toUpperCase();
   itemt.lote = itemt.lote.toUpperCase();
   itemt.editing = false;
+
+
 
   if (itemt && itemt.idMedicamento) {
     this.procesar = false;
@@ -406,7 +431,8 @@ public guardarMedicamentoOrdenDespacho(itemt: any) {
     if (itemExistente) {
       // SI EXISTE: Reemplazamos la cantidad y los datos del lote
       // Usamos Number() para asegurar que no se concatene como texto
-      itemExistente.cantidad = Number(itemt.cantidadDespacho);
+      this.actualizarCantidad(itemt.idMedicamento, itemt.cantidadDespacho);
+      //itemExistente.cantidad = Number(itemt.cantidadDespacho);
       itemExistente.invima = itemt.invima;
       itemExistente.laboratorio = itemt.laboratorio;
       itemExistente.lote = itemt.lote;
@@ -989,7 +1015,7 @@ public guardarMedicamentoOrdenDespacho(itemt: any) {
 
 sugerir(): void {
   this.listaItems.forEach((itemt: any) => {
-    const surtido = itemt.cantidadEntregada + itemt.pendiente;
+    const surtido = itemt.cantidadEntregada + itemt.pendiente + Math.floor(itemt.cantidadEntregada / 2);
     const proyeccion = itemt.stopMinimo - surtido;
 
     if (surtido > 0) {
@@ -1030,7 +1056,7 @@ sugerir(): void {
   Swal.fire({
     icon: 'success',
     title: 'Ok',
-    text: 'Se llenaron las cantidades sugeridas a despachar hacia La bodega destino con la siguiente formula (envío= (Promedio de consumo + pendiente) - existencia actual ) siempre y cuando la cantidad en origen alcance para surtir esa proyección; por favor revisar y si estás de acuerdo crear la orden de despacho.',
+    text: 'Se llenaron las cantidades sugeridas a despachar hacia La bodega destino con la siguiente formula (Pedido= (Máximo de consumo + pendiente + adicional del 50% de consumo) - existencia actual ) siempre y cuando la cantidad en origen alcance para surtir esa proyección; por favor revisar y si estás de acuerdo crear la orden de despacho.',
   });
 }
 /*

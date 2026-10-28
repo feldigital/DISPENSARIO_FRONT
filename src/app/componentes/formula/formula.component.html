@@ -211,7 +211,7 @@
               <mat-autocomplete #automedico="matAutocomplete"
                 (optionSelected)="onOptionSelectedMedico($event.option.value)" [displayWith]="displayMedico">
                 <mat-option *ngFor="let option of medicosFiltrados" [value]="option" style="font-size: 13px;">{{
-                  option.nombre }}</mat-option>
+                  option.nombre }} - {{ option.especialidad }}</mat-option>
               </mat-autocomplete>
             </div>
 

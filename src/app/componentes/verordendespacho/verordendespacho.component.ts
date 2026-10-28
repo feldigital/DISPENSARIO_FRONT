@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { debounceTime, Observable, of, switchMap } from 'rxjs';
 import { OrdendespachoService } from 'src/app/servicios/ordendespacho.service';
 import Swal from 'sweetalert2';
 
@@ -11,14 +13,23 @@ import Swal from 'sweetalert2';
 export class VerordendespachoComponent implements OnInit {
 
   listaItemsFormula: any;
+  listaItemsFormulaFiltro: any = [];
   listaregistros: any;
   parametro: any;
   cargando:boolean =false; 
+  generalForm!: FormGroup;
 
   existencias: { [key: number]: number } = {};
   constructor(   
     private ordenDespachoservicio: OrdendespachoService,
-    private activatedRoute: ActivatedRoute) { }
+    private activatedRoute: ActivatedRoute,
+   private fb: FormBuilder) { 
+      this.generalForm = this.fb.group
+          ({
+            medicamento: [''],     
+    
+          });
+   }
 
 
   ngOnInit(): void {   
@@ -29,10 +40,32 @@ export class VerordendespachoComponent implements OnInit {
       }
     });   
 
+     this.generalForm.get('medicamento')!.valueChanges
+          .pipe(
+            debounceTime(300), // Espera 300 ms después de que el usuario deja de escribir
+            switchMap(query => this.buscarMedicamentos(query))
+          )
+          .subscribe(results => {
+            this.listaItemsFormulaFiltro = results
+          });
+    
     
   }
 
 
+  buscarMedicamentos(filterValue: string): Observable<any[]> {
+    if (filterValue && filterValue.trim().length > 3) {
+      const palabras = filterValue.toLowerCase().trim().split(/\s+/); // dividir por espacios
+      const filteredResults = this.listaItemsFormula.filter((item: any) => {
+        const nombre = item.medicamento.nombre.toLowerCase();
+        // Verificar que todas las palabras estén en el nombre
+        return palabras.every(palabra => nombre.includes(palabra));
+      });
+      return of(filteredResults);
+    }
+    // Si no hay filtro, devolver la lista completa
+    return of(this.listaItemsFormula);
+  }
 
 
 public buscarRegistro(id: number) {
@@ -41,7 +74,7 @@ public buscarRegistro(id: number) {
     .subscribe({
       next: (resp: any) => {
         this.listaregistros = resp;
-        
+              
         // Mapeo y lógica de control
         this.listaItemsFormula = resp.itemsDespacho.map((item: any) => ({
           ...item,
@@ -53,6 +86,7 @@ public buscarRegistro(id: number) {
         this.listaItemsFormula.sort((a: any, b: any) => 
           a.medicamento.nombre.localeCompare(b.medicamento.nombre)
         );
+        this.listaItemsFormulaFiltro=this.listaItemsFormula;
       },
       error: (err) => {
         console.error('Error al refrescar:', err);
@@ -81,12 +115,10 @@ public buscarRegistro(id: number) {
   }
 */
 
-verificarCantidad(item: any, event: any): void {
-  // 1. Asignación directa del estado de control
+verificarCantidad(item: any, event: any): void {  
   item.control = (item.cantidad === item.cantidadDespacho);
- console.log(item);
-  // 2. Ejecutar guardado solo si la condición se cumple
-  if (item.control) {
+   // 2. Ejecutar guardado solo si la condición se cumple
+  //if (item.control) {
     this.ordenDespachoservicio.updateCantidadComprobadaItemOrden(item.id, item.cantidadDespacho)
       .subscribe({
         next: () => { /* Guardado silencioso exitoso */ },
@@ -96,7 +128,7 @@ verificarCantidad(item: any, event: any): void {
           console.error('Fallo en guardado automático:', err);
         }
       });
-  }
+  //}
 }
 
 

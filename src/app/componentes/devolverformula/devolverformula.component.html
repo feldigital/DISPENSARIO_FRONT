@@ -1,0 +1,350 @@
+<div class="container-fluid py-1 px-3">
+  <form [formGroup]="facturaForm">
+    <div class="row g-2">
+
+      <!-- ========================================== -->
+      <!-- PANEL 1: DATOS DEL PACIENTE Y BUSQUEDA     -->
+      <!-- ========================================== -->
+      <div class="card shadow-sm border-0 mb-1 bg-gradient-patient">
+        <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+          <mat-icon inline class="me-1 text-primary">person</mat-icon>Datos del paciente
+        </h6>
+        <div class="card-body p-2">
+
+          <div class="row align-items-center g-2">
+            <!-- Título y Búsqueda Compacta (Todo en una sola fila) -->
+            <div class="col-md-3">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white fw-bold text-muted" style="font-size: 13px;">Doc *</span>
+                <input type="text" (keyup.enter)="buscarDocumento()" formControlName="paciente" class="form-control"
+                  style="font-size: 13px;" placeholder="Ej: 10203040"
+                  [class.is-invalid]="facturaForm.get('paciente')?.invalid && facturaForm.get('paciente')?.touched">
+
+                <button
+                  class="btn border-0 shadow-sm d-inline-flex align-items-center justify-content-center px-3 btn-buscar-premium"
+                  type="button" (click)="buscarDocumento()" matTooltip="Consultar documento en base de datos">
+                  <!-- Icono alineado perfectamente -->
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">search</mat-icon>
+                  <span class="fw-semibold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Buscar</span>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Datos Dinámicos del Paciente (Si está cargado)   -->
+            <ng-container *ngIf="mostrarComponente">
+
+              <div class="col-auto position-relative">
+                <!-- Avatar dinámico con color rojo y Tooltip explicativo si es PAVE -->
+                <div class="avatar-circle-sm"
+                  [ngClass]="{'bg-danger text-white border border-danger shadow-sm': pacienteActual?.pave}"
+                  [matTooltip]="pacienteActual?.pave ? 'PAVE: Paciente de Alto Valor Estratégico' : 'Paciente normal'">
+                  {{pacienteActual?.pNombre[0]}}{{pacienteActual?.pApellido[0]}}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <h6 class="mb-0 text-dark fw-bold text-uppercase" style="font-size: 13px;">
+                  {{pacienteActual?.pNombre}} {{pacienteActual?.sNombre}} {{pacienteActual?.pApellido}}
+                  {{pacienteActual?.sApellido}}
+                </h6>
+                <span class="text-muted d-block" style="font-size: 12px; font-weight: 500;">
+                  <span class="fw-bold" style="color: #10b981;">{{pacienteActual?.eps?.nombre}}</span>
+                  | {{pacienteActual?.sexo}} |
+                  {{calcularEdad(pacienteActual?.fecNacimiento)}} años
+                </span>
+              </div>
+
+
+
+              <div class="col-auto">
+                <div *ngIf="pacienteActual?.portabilidad"
+                  class="d-inline-flex align-items-center bg-info-subtle border border-info rounded px-2 py-1 shadow-sm">
+                  <!-- Icono indicador -->
+                  <mat-icon class="text-info me-1"
+                    style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">sync_alt</mat-icon>
+
+                  <!-- Texto principal -->
+                  <span class="text-info-dark fw-bold text-uppercase me-2"
+                    style="font-size: 11px; letter-spacing: 0.5px;">
+                    Portabilidad: {{pacienteActual.mpoportabilidad.nombre}}
+                  </span>
+
+                  <!-- Divisor visual interno -->
+                  <span class="text-info opacity-50 me-2">|</span>
+
+                  <!-- Alerta de Vencimiento Resaltada -->
+                  <span class="badge bg-danger text-white fw-bold" style="font-size: 10px; padding: 3px 6px;">
+                    VENCE: {{pacienteActual.fecVencePortabilidad | date: 'dd/MM/yyyy'}}
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Información Detallada del Contacto -->
+          <div class="row g-2 mt-1 pt-1 border-top text-muted" style="font-size: 12px;" *ngIf="mostrarComponente">
+            <div class="col-md-5 d-flex align-items-center gap-2">
+              <span>
+                <!-- Color rojo vivo para localización -->
+                <mat-icon inline style="color: #ea4335; font-size: 14px; vertical-align: middle;">location_on</mat-icon>
+                {{pacienteActual.municipio.nombre}} - {{pacienteActual.municipio.departamento.nombre}},
+                {{pacienteActual.direccion}}
+              </span>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-center gap-2">
+              <span>
+                <!-- Color verde llamadas/comunicación -->
+                <mat-icon inline style="color: #198754; font-size: 14px; vertical-align: middle;">phone</mat-icon>
+                {{pacienteActual.celularPrincipal}}
+              </span>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-center justify-content-between">
+              <span>
+                <!-- Color azul médico para la institución/dispensario -->
+                <mat-icon inline
+                  style="color: #0d6efd; font-size: 14px; vertical-align: middle;">local_hospital</mat-icon>
+                Disp: {{pacienteActual.dispensario}}
+              </span>
+
+              <!-- Botón de edición con un naranja ejecutivo más llamativo y profesional -->
+              <button mat-button class="p-0 h-auto border-0 bg-transparent fw-bold text-uppercase"
+                style="font-size: 11px; color: #d97706; letter-spacing: 0.3px;" (click)="enEdicion()">
+                <mat-icon inline style="font-size: 13px; margin-right: 2px; vertical-align: middle;">edit</mat-icon>
+                Editar contacto
+              </button>
+            </div>
+
+            <!-- Formulario de Edición Desplegable -->
+            <div class="col-12" *ngIf="editarContacto">
+              <div class="p-2 border rounded bg-white mt-1">
+                <div class="row g-1 align-items-center">
+                  <!-- Añadido align-items-center para que inputs y botones queden en la misma línea visual -->
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="number"
+                      formControlName="celularPrincipal" placeholder="Tel Principal" />
+                  </div>
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="number"
+                      formControlName="celularSecundario" placeholder="Tel Secundario" />
+                  </div>
+                  <div class="col-md-3">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="direccion" placeholder="Dirección" />
+                  </div>
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="barrio" placeholder="Barrio" />
+                  </div>
+                  <div class="col-md-2">
+                    <input class="form-control form-control-xs" style="font-size: 12px;" type="text"
+                      formControlName="email" placeholder="Correo electrónico" />
+                  </div>
+
+                  <!-- Contenedor de acciones optimizado -->
+                  <div class="col-md-1 d-flex justify-content-end gap-1">
+                    <!-- Botón Guardar (Check) -->
+                    <button type="button"
+                      class="btn btn-success p-0 d-flex align-items-center justify-content-center btn-accion-compacta"
+                      (click)="guardarDatosContacto()" matTooltip="Guardar cambios">
+                      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">check</mat-icon>
+                    </button>
+
+                    <!-- Botón Cancelar (Close) -->
+                    <button type="button"
+                      class="btn btn-danger p-0 d-flex align-items-center justify-content-center btn-accion-compacta"
+                      (click)="cancelarEdicion()" matTooltip="Cancelar edición">
+                      <mat-icon style="font-size: 14px; width: 14px; height: 14px;">close</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- PANEL 2: DATOS DE LA FÓRMULA               -->
+      <!-- ========================================== -->
+      <div class="card shadow-sm border-0 mb-1 bg-gradient-patient">
+        <h6 class="mb-0 fw-bold text-secondary" style="font-size: 14px;">
+          <mat-icon inline class="me-1 text-warning">assignment</mat-icon>Datos de la prescripción en Fórmula
+        </h6>
+        <div class="card-body p-2">
+
+          <!-- FILA 1: IPS, Médico, Fechas y Urgencia -->
+          <div class="row g-2 align-items-center mb-1">
+            <!-- IPS Autocomplete -->
+            <div class="col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted"><mat-icon
+                    style="font-size: 14px; width:14px; height:14px;">store</mat-icon></span>
+                <input type="text" class="form-control" style="font-size: 13px;" formControlName="ips"
+                  [matAutocomplete]="autoips" placeholder="IPS Prescribe">
+                <button type="button" class="btn btn-light border text-dark d-flex align-items-center px-2"
+                  (click)="openDialogIps()" matTooltip="Agregar nueva IPS">
+                  <mat-icon style="font-size: 18px; width:18px; height:18px;">add_circle</mat-icon>
+                </button>
+              </div>
+              <mat-autocomplete #autoips="matAutocomplete" (optionSelected)="onOptionSelectedIps($event.option.value)"
+                [displayWith]="displayIps">
+                <mat-option *ngFor="let option of ipsFiltrados" [value]="option" style="font-size: 13px;">{{
+                  option.nombre }}</mat-option>
+              </mat-autocomplete>
+            </div>
+
+            <!-- Médico Autocomplete -->
+            <div class="col-md-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted"><mat-icon
+                    style="font-size: 14px; width:14px; height:14px;">person</mat-icon></span>
+                <input type="text" class="form-control" style="font-size: 13px;" formControlName="medico"
+                  [matAutocomplete]="automedico" placeholder="Médico Tratante">
+                <button type="button" class="btn btn-light border text-dark d-flex align-items-center px-2"
+                  (click)="openDialogMedico()" matTooltip="Agregar nuevo Médico">
+                  <mat-icon style="font-size: 18px; width:18px; height:18px;">add_circle</mat-icon>
+                </button>
+              </div>
+              <mat-autocomplete #automedico="matAutocomplete"
+                (optionSelected)="onOptionSelectedMedico($event.option.value)" [displayWith]="displayMedico">
+                <mat-option *ngFor="let option of medicosFiltrados" [value]="option" style="font-size: 13px;">{{
+                  option.nombre }} - {{ option.especialidad }}</mat-option>
+              </mat-autocomplete>
+            </div>
+
+            <!-- Fechas Unidas -->
+            <div class="col-md-2">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 11px; font-weight: bold;">F.
+                  Pres</span>
+                <input type="date" formControlName="fecPrescribe" class="form-control px-1" style="font-size: 13px;"
+                  [max]="hoy">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light px-1 text-muted" style="font-size: 11px; font-weight: bold;">F.
+                  Entr</span>
+                <input type="date" formControlName="fecSolicitud" class="form-control px-1" style="font-size: 13px;"
+                  [max]="hoy" [min]="minimohoy">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+
+
+    <div class="devolucion-container">
+  <!-- Header compacto -->
+  <div class="card-header">
+    <div class="header-content">
+      <div class="header-title-group">
+        <span class="material-icons header-icon">assignment_return</span>
+        <div>
+          <h2>Devolución de Fórmula Médica</h2>
+          <p>Seleccione las causales correspondientes de acuerdo a la Resolución 2200 de 2005.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="section-title">
+      <span class="material-icons">rule</span>
+      <span>Causales de Devolución</span>
+    </div>
+
+    <!-- Mensaje de Error si no ha seleccionado ninguna causal -->
+    <div class="alert-error animate-fade-in" *ngIf="errorCausales">
+      <span class="material-icons">error_outline</span>
+      <span>Debe seleccionar al menos una causal de devolución para continuar.</span>
+    </div>
+
+    <!-- Grid de Tarjetas Acomodado a Ancho Completo -->
+    <div class="causales-grid">
+      <div 
+        *ngFor="let causa of causasList" 
+        class="causa-card" 
+        [class.selected]="causa.selected"
+        (click)="toggleCausa(causa)"
+      >
+        <div class="checkbox-wrapper">
+          <input 
+            type="checkbox" 
+            [id]="causa.id" 
+            [(ngModel)]="causa.selected" 
+            (click)="$event.stopPropagation()"
+            (change)="onCausaChange(causa)"
+          >
+        </div>
+        <label [for]="causa.id" class="causa-label">{{ causa.label }}</label>
+      </div>
+    </div>
+
+    <!-- Sección de Entradas Adicionales distribuidas horizontalmente -->
+    <div class="inputs-row">
+      <!-- Campo "Otro" condicional con validación -->
+      <div class="otro-container animate-fade-in" *ngIf="isOtroSelected()" [class.full-width]="!isOtroSelected()">
+        <label for="otraCausaInput" class="form-label text-blue-900">
+          <span class="material-icons text-blue-600">edit_note</span>
+          Especifique la otra causa de devolución <span class="required">*</span>
+        </label>
+
+        <input 
+          type="text" 
+          id="otraCausaInput" 
+          class="form-control" 
+          [class.is-invalid]="errorOtraCausa"
+          [(ngModel)]="otraCausaTexto" 
+          (input)="onInputOtroChange()"
+          placeholder="Escriba detalladamente la razón de la devolución..."
+        >
+
+        <div class="text-error" *ngIf="errorOtraCausa">
+          <span class="material-icons">warning</span>
+          <span>Por favor, especifique la descripción de la causa seleccionada.</span>
+        </div>
+      </div>
+
+      <!-- Campo de Observaciones Generales -->
+      <div class="observaciones-container" [class.flex-grow]="!isOtroSelected()">
+        <label for="observaciones" class="form-label">
+          <span class="material-icons">notes</span>
+          Observaciones Adicionales
+        </label>
+        <textarea 
+          id="observaciones" 
+          [rows]="isOtroSelected() ? 2 : 2" 
+          class="form-control" 
+          [(ngModel)]="observaciones"
+          placeholder="Añada notas aclaratorias para la auditoría o el prescriptor..."
+        ></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie de Tarjeta con Botones de Acción -->
+  <div class="card-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelar()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-primary" (click)="guardarDevolucion()">
+      <span class="material-icons">check_circle</span>
+      Confirmar Devolución
+    </button>
+  </div>
+</div>
+
+  </form>
+
+
+  <hr class="my-2 opacity-10">
+
+</div>

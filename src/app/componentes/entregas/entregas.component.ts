@@ -94,6 +94,7 @@ export class EntregasComponent implements OnInit, OnChanges {
       next: (resp: any) => {
         this.listaregistros = resp;
         this.pacienteActual = resp.paciente;
+        console.log(this.listaregistros);
 
         // Transformación de items
         this.listaItemsFormula = resp.items.map((item: any) => ({
@@ -116,7 +117,13 @@ export class EntregasComponent implements OnInit, OnChanges {
 
         // Simplificación de la lógica de alerta
         // No importa si es 'procesar' o no, llamas a la misma función
-        this.chequearMostrarAlertaCodigo();
+
+        // esto fue lo que inactive para que no le siga saliendo el verificador
+
+        //this.chequearMostrarAlertaCodigo();
+
+
+
       },
       error: (err) => {
         console.error('Error al refrescar:', err);
@@ -185,7 +192,190 @@ export class EntregasComponent implements OnInit, OnChanges {
 
 
 
+public async entregarPendiente(itemt: any) {
+  if (this.enProceso) return;
 
+  try {
+    const bodegaString = sessionStorage.getItem("bodega");
+    const bodega = parseInt(bodegaString || "0", 10);
+    const funcionario = sessionStorage.getItem("nombre");
+
+    if (!funcionario || !bodegaString) {
+      Swal.fire('Sesión no válida', 'Usuario no está logueado para realizar la dispensación.', 'error');
+      return;
+    }
+
+    const cantidadEnBodega = await this.existenciaAcutal(itemt.medicamento.idMedicamento, bodega);
+    const pendienteMaximo = itemt.cantidad - itemt.totalEntregado;
+
+    const { value: formValues } = await Swal.fire({
+      title: '<span style="font-size: 1.25rem; font-weight: 600;">Entrega de Medicamento Pendiente</span>',
+      html: `
+        <div class="swal-container text-start p-2" style="font-size: 0.95rem;">
+          <div class="alert alert-info py-2 mb-3">
+            <strong>Medicamento:</strong> ${itemt.medicamento.nombre}<br>
+            <strong>Disponible en bodega:</strong> <span class="badge bg-secondary">${cantidadEnBodega}</span> | 
+            <strong>Pendiente por entregar:</strong> <span class="badge bg-warning text-dark">${pendienteMaximo}</span>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Cantidad a entregar</label>
+            <input id="swal-cantidad" type="number" class="form-control" placeholder="Ej. ${pendienteMaximo}" max="${pendienteMaximo}" min="1" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Medio de entrega</label>
+            <select id="swal-medio" class="form-select">
+              <option value="">Seleccione el medio...</option>
+              <option value="Presencial">Presencial</option>
+              <option value="Domicilio">Domicilio</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Fecha de entrega</label>
+            <input id="swal-fecha" type="date" class="form-control" max="${this.hoy}" value="${this.fechaPosibleEntregapendiente(this.listaregistros.fecSolicitud)}" />
+          </div>
+
+          <hr class="my-3">
+
+          <div class="form-check mb-3">
+            <input id="checkRecibe" class="form-check-input" type="checkbox" />
+            <label class="form-check-label fw-bold" for="checkRecibe">¿Recibe el mismo paciente?</label>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label small text-muted">Tipo de documento</label>
+              <input id="tipoRecibe" type="text" class="form-control" placeholder="Tipo" />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label small text-muted">Número de documento</label>
+              <input id="documentoRecibe" type="text" class="form-control" placeholder="Documento" />
+            </div>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar Entrega',
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        popup: 'rounded-4 shadow'
+      },
+      didOpen: () => {
+        // Vinculamos el evento change del checkbox para autocompletar usando los IDs originales
+        const checkRecibe = document.getElementById('checkRecibe') as HTMLInputElement;
+        if (checkRecibe) {
+          checkRecibe.addEventListener('change', (event) => this.onRecibeChange(event, itemt));
+        }
+      },
+      preConfirm: () => {
+        const cantidad = parseInt((document.getElementById('swal-cantidad') as HTMLInputElement).value, 10);
+        const medio = (document.getElementById('swal-medio') as HTMLSelectElement).value;
+        const fecha = (document.getElementById('swal-fecha') as HTMLInputElement).value;
+        const tipo = (document.getElementById('tipoRecibe') as HTMLInputElement).value.trim();
+        const documento = (document.getElementById('documentoRecibe') as HTMLInputElement).value.trim();
+
+        // Validaciones interactivas
+        if (!cantidad || cantidad <= 0) {
+          Swal.showValidationMessage('Debe ingresar una cantidad válida a entregar.');
+          return false;
+        }
+        if (cantidad > pendienteMaximo) {
+          Swal.showValidationMessage(`La cantidad supera el pendiente del paciente (${pendienteMaximo}).`);
+          return false;
+        }
+        if (cantidad > cantidadEnBodega) {
+          Swal.showValidationMessage('No hay suficiente existencia en la bodega.');
+          return false;
+        }
+        if (!medio) {
+          Swal.showValidationMessage('Por favor seleccione un medio de entrega.');
+          return false;
+        }
+        if (!fecha) {
+          Swal.showValidationMessage('Por favor seleccione la fecha de entrega.');
+          return false;
+        }
+        if (!tipo || !documento) {
+          Swal.showValidationMessage('Debe completar los datos de la persona que recibe.');
+          return false;
+        }
+
+        return { cantidad, medio, fecha, tipo, documento };
+      }
+    });
+
+    if (!formValues) return;
+
+
+// --- VALIDACIÓN DE FECHAS ---
+    if (!this.listaregistros.fecSolicitud) {
+      Swal.fire('Error', 'No se encontró la fecha de solicitud de la fórmula.', 'error');
+      return;
+    }
+
+    const fechaSolicitud = this.convertirFechaSinDesfase(this.listaregistros.fecSolicitud);
+    // AQUÍ ESTÁ EL CAMBIO: Usamos formValues.fecha en lugar de una variable obsoleta
+    const fechaEntrega = this.convertirFechaSinDesfase(formValues.fecha);
+    const hoy = new Date();
+
+    fechaSolicitud.setHours(0, 0, 0, 0);
+    fechaEntrega.setHours(0, 0, 0, 0);
+    hoy.setHours(0, 0, 0, 0);
+
+    if (fechaEntrega < fechaSolicitud || fechaEntrega > hoy) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fecha de entrega no válida',
+        html: `
+          La fecha seleccionada (<b>${this.formatFecha(fechaEntrega)}</b>) no es válida.<br><br>
+          <ul class="text-start">
+            <li>No puede ser anterior a la solicitud: <b>${this.formatFecha(fechaSolicitud)}</b></li>
+            <li>No puede ser posterior a hoy: <b>${this.formatFecha(hoy)}</b></li>
+          </ul>
+        `
+      });
+      return;
+    }
+
+// --- PROCESAR ENVÍO ---
+    this.enProceso = true;    
+    // Obtenemos la fecha limpia directamente del input HTML para evitar desfases de zona horaria
+    const fechaInputFinal = (document.getElementById('swal-fecha') as HTMLInputElement).value;
+    this.servicioformula.saveItemEntregaFormula(
+      itemt.idItem,
+      bodega,
+      funcionario,
+      formValues.medio,
+      formValues.cantidad,
+      formValues.tipo,
+      formValues.documento,
+      fechaInputFinal, // <-- Usamos esta variable asegurando que viaja la fecha exacta seleccionada
+      this.listaregistros.idBodega
+    ).subscribe({
+      next: () => {
+        this.enProceso = false;
+        Swal.fire('¡Éxito!', `Medicamento pendiente ${itemt.medicamento.nombre} entregado y registrado correctamente.`, 'success');
+        this.buscarRegistro(this.parametro);
+      },
+      error: (err) => {
+        this.enProceso = false;
+        console.error('Error al guardar la entrega', err);
+        Swal.fire('Error', 'Ocurrió un error al procesar la entrega.', 'error');
+      }
+    });
+
+
+
+  } catch (error) {
+    this.enProceso = false;
+    console.error('Error general en entregarPendiente:', error);
+  }
+}
+
+/*
   public async entregarPendiente(itemt: any) {
     if (this.enProceso) {
       return; // ❌ Evita doble clic si ya está en proceso
@@ -226,7 +416,7 @@ export class EntregasComponent implements OnInit, OnChanges {
 
           let selectElementdate = document.getElementById('fechaentrega') as HTMLInputElement;
           const selectedValueDate = selectElementdate.value;
-          
+
           if (selectedValue !== '-1' && selectedValueDate !== '') {
             let selectElementinput = document.getElementById('cantidadentregada') as HTMLInputElement;
             const cantidadAentregar = parseInt(selectElementinput.value);
@@ -330,7 +520,7 @@ export class EntregasComponent implements OnInit, OnChanges {
       console.error('Error obteniendo la existencia actual:', error);
     }
   }
-
+*/
 
   formatFecha(fecha: Date): string {
     const dia = String(fecha.getDate()).padStart(2, '0');
@@ -532,7 +722,7 @@ export class EntregasComponent implements OnInit, OnChanges {
     return '-';
   }
 
-
+/*
   async imprimir(tipo: number): Promise<void> {
     const contenido = tipo === 1
       ? await this.generarContenidoPOSPendiente(this.listaregistros)
@@ -584,6 +774,8 @@ export class EntregasComponent implements OnInit, OnChanges {
 
 
   async generarContenidoPOSPendiente(formula: any): Promise<string> {
+
+    //Impresión: ${fechaimpresionFormateada} linea que imprime la fecha de impresion
     const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
     const fechaSolicitud = new Date(formula.fecSolicitud);
     const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
@@ -649,6 +841,198 @@ através de WhatsApp ${bodega?.telefono}
   `;
   }
 
+  */
+
+async imprimir(tipo: number): Promise<void> {
+  const contenido = tipo === 1
+    ? await this.generarContenidoPOSPendiente(this.listaregistros)
+    : await this.generarContenidoPOSEntrega(this.listaregistros);
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+          body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            width: 72mm;
+            margin: 0 auto;
+            padding: 4mm 2mm;
+            color: #000;
+            font-size: 11px;
+            line-height: 1.3;
+            -webkit-print-color-adjust: exact;
+          }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .bold { font-weight: bold; }
+          .title { font-size: 14px; margin-bottom: 2px; }
+          .subtitle { font-size: 12px; margin-bottom: 6px; }
+          .divider { border-top: 1px dashed #000; margin: 6px 0; }
+          .info-table, .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+          }
+          .info-table td {
+            padding: 2px 0;
+            vertical-align: top;
+          }
+          .items-table th {
+            border-bottom: 1px solid #000;
+            text-align: left;
+            padding: 3px 0;
+          }
+          .items-table td {
+            padding: 3px 0;
+            vertical-align: top;
+          }
+          .signature-section {
+            margin-top: 15px;
+            font-size: 10px;
+          }
+          .signature-line {
+            border-bottom: 1px solid #000;
+            margin-top: 18px;
+            display: inline-block;
+            width: 100%;
+          }
+          .footer-note {
+            font-size: 9.5px;
+            margin-top: 10px;
+            text-align: center;
+          }
+        </style>
+      </head>
+      <body onload="window.print(); setTimeout(() => window.close(), 500);">
+        ${contenido}
+      </body>
+      </html>
+    `);
+    doc.close();
+  }
+
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 3000);
+}
+
+async generarContenidoPOSPendiente(formula: any): Promise<string> {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(fechaSolicitud);
+
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(new Date());
+
+  const nombrePaciente = `${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''} ${formula.paciente?.pApellido ?? ''} ${formula.paciente?.sApellido ?? ''}`.trim();
+
+  const itemsHTML = formula.items
+    .filter((med: any) => med.pendiente > 0)
+    .map((med: any, index: number) => `
+      <tr>
+        <td style="width: 75%;">
+          <div class="bold">${index + 1}. ${med.medicamento.nombre}</div>
+          <div style="font-size: 9.5px; color: #333;">Presentación: ${med.medicamento.forma.nombre}</div>
+        </td>
+        <td style="width: 25%;" class="text-right bold">${med.pendiente}</td>
+      </tr>
+    `).join('');
+
+  return `
+    <div class="text-center bold title">FORMATO DE PENDIENTES</div>
+    <div class="text-center bold subtitle">SISM - SUPLYMEDICAL</div>
+    <div class="text-center" style="font-size: 10px;">Nit 900018045-5</div> 
+    <div class="text-center" style="font-size: 10px;">${bodega?.direccion ?? ''}</div>
+    
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Nro:</td><td>${formula.idFormula}</td></tr>
+      <tr><td class="bold">Impresión:</td><td>${fechaimpresionFormateada}</td></tr>
+      <tr><td class="bold">Documento:</td><td>${formula.paciente.numDocumento}</td></tr>
+      <tr><td class="bold">Paciente:</td><td>${nombrePaciente}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Dispensario:</td><td>${bodega?.puntoEntrega ?? ''}</td></tr>
+      <tr><td class="bold">Funcionario:</td><td>${formula.funcionariocreaformula}</td></tr>
+      <tr><td class="bold">Pendiente:</td><td>${fechaFormateada}</td></tr>
+      <tr><td class="bold">Convenio:</td><td>${formula.paciente.eps.nombre}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="text-center bold" style="margin-bottom: 4px;">DETALLE DE MEDICAMENTOS</div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Medicamento</th>
+          <th class="text-right">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHTML}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <!-- SECCIÓN DE FIRMA MEJORADA -->
+    <div class="signature-section" style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px;">
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Firma recibe:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Documento:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Parentesco:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Celular:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+    </div>
+
+   
+
+    <div class="footer-note bold" style="margin-top: 15px;">
+      Este documento es válido hasta 90 días para hacer su reclamo.
+    </div>
+    
+    <div class="footer-note">
+      Si quieres saber si tu pendiente ya está disponible, contáctanos a través de WhatsApp: <span class="bold">${bodega?.telefono ?? ''}</span>
+    </div>
+  `;
+}
+
   dividirEnLineas(texto: string, maxCaracteres: number): string[] {
     const palabras = texto.split(' '); // Divide el texto en palabras
     let lineaActual = '';
@@ -670,6 +1054,106 @@ através de WhatsApp ${bodega?.telefono}
     return lineas;
   }
 
+async generarContenidoPOSEntrega(formula: any): Promise<string> {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(fechaSolicitud);
+
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(new Date());
+
+  const nombrePaciente = `${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''} ${formula.paciente?.pApellido ?? ''} ${formula.paciente?.sApellido ?? ''}`.trim();
+
+  const itemsHTML = formula.items
+    .filter((med: any) => med.totalEntregado > 0)
+    .map((med: any, index: number) => `
+      <tr>
+        <td style="width: 75%;">
+          <div class="bold">${index + 1}. ${med.medicamento.nombre}</div>
+          <div style="font-size: 9.5px; color: #333;">Presentación: ${med.medicamento.forma.nombre}</div>
+        </td>
+        <td style="width: 25%;" class="text-right bold">${med.totalEntregado}</td>
+      </tr>
+    `).join('');
+
+  return `
+    <div class="text-center bold title">FORMATO DE ENTREGA</div>
+    <div class="text-center bold subtitle">SISM - SUPLYMEDICAL</div>
+    <div class="text-center" style="font-size: 10px;">Nit 900018045-5</div>
+    <div class="text-center" style="font-size: 10px;">${bodega?.direccion ?? ''}</div>
+    
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Nro:</td><td>${formula.idFormula}</td></tr>
+      <tr><td class="bold">Impresión:</td><td>${fechaimpresionFormateada}</td></tr>
+      <tr><td class="bold">Documento:</td><td>${formula.paciente.numDocumento}</td></tr>
+      <tr><td class="bold">Paciente:</td><td>${nombrePaciente}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Dispensario:</td><td>${bodega?.puntoEntrega ?? ''}</td></tr>
+      <tr><td class="bold">Funcionario:</td><td>${formula.funcionariocreaformula}</td></tr>
+      <tr><td class="bold">Entrega:</td><td>${fechaFormateada}</td></tr>
+      <tr><td class="bold">Convenio:</td><td>${formula.paciente.eps.nombre}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="text-center bold" style="margin-bottom: 4px;">DETALLE DE MEDICAMENTOS</div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Medicamento</th>
+          <th class="text-right">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHTML}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <!-- SECCIÓN DE FIRMA MEJORADA -->
+    <div class="signature-section" style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px;">
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Firma recibe:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Documento:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Parentesco:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Celular:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+    </div>
+
+   
+    <div class="footer-note bold" style="margin-top: 15px;">
+      Donar medicamentos puede hacer la diferencia en la vida de alguien.
+    </div>
+    <div class="footer-note">
+      ¡Recuerde! No los deje vencer.
+    </div>
+  `;
+}
+
+  /*
 
   async generarContenidoPOSEntrega(formula: any): Promise<string> {
     const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
@@ -737,9 +1221,9 @@ Recuerde! no los deje vencer.
 
   `;
   }
+*/
 
-
-
+/*
   async imprimirRecibo(): Promise<void> {
     const contenido = await this.generarContenidoPOSRecibo(this.listaregistros);
     // Crear un iframe oculto
@@ -892,8 +1376,184 @@ Recaudada:   ${valorCuota}
       document.body.removeChild(iframe);
     }, 3000); // Se elimina el iframe después de imprimir
   }
+*/
+
+private async imprimirHTML(contenido: string): Promise<void> {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+          body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            width: 72mm;
+            margin: 0 auto;
+            padding: 4mm 2mm;
+            color: #000;
+            font-size: 11px;
+            line-height: 1.3;
+            -webkit-print-color-adjust: exact;
+          }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .bold { font-weight: bold; }
+          .title { font-size: 14px; margin-bottom: 2px; }
+          .subtitle { font-size: 12px; margin-bottom: 6px; }
+          .divider { border-top: 1px dashed #000; margin: 6px 0; }
+          .info-table, .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+          }
+          .info-table td {
+            padding: 2px 0;
+            vertical-align: top;
+          }
+          .items-table th {
+            border-bottom: 1px solid #000;
+            text-align: left;
+            padding: 3px 0;
+          }
+          .items-table td {
+            padding: 3px 0;
+            vertical-align: top;
+          }
+          .signature-section {
+            margin-top: 15px;
+            font-size: 10px;
+          }
+          .signature-line {
+            border-bottom: 1px solid #000;
+            margin-top: 18px;
+            display: inline-block;
+            width: 100%;
+          }
+          .total-box {
+            font-size: 13px;
+            padding: 4px 0;
+            margin-top: 6px;
+            border-top: 1px solid #000;
+            border-bottom: 1px double #000;
+          }
+        </style>
+      </head>
+      <body onload="window.print(); setTimeout(() => window.close(), 500);">
+        ${contenido}
+      </body>
+      </html>
+    `);
+    doc.close();
+  }
+
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+  }, 3000);
+}
+
+async imprimirRecibo(): Promise<void> {
+  const contenido = await this.generarContenidoPOSRecibo(this.listaregistros);
+  await this.imprimirHTML(contenido);
+}
+
+async imprimirTirilla(): Promise<void> {
+  const contenido = await this.generarContenidoPOSTirilla(this.listaregistros);
+  await this.imprimirHTML(contenido);
+}
 
 
+async generarContenidoPOSRecibo(formula: any): Promise<string> {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(fechaSolicitud);
+
+  const fechaimpresionFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(new Date());
+
+  const valorCuota = (formula.valorCM ?? 0).toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0
+  });
+
+  const nombrePaciente = `${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''} ${formula.paciente?.pApellido ?? ''} ${formula.paciente?.sApellido ?? ''}`.trim();
+
+  return `
+    <div class="text-center bold title">RECIBO DE CAJA</div>
+    <div class="text-center bold subtitle">SISM - SUPLYMEDICAL</div>
+    <div class="text-center" style="font-size: 10px;">Nit 900018045-5</div>
+    <div class="text-center" style="font-size: 10px;">${bodega?.direccion ?? ''}</div>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Nro:</td><td>${formula.idFormula}</td></tr>
+      <tr><td class="bold">Impresión:</td><td>${fechaimpresionFormateada}</td></tr>
+      <tr><td class="bold">Documento:</td><td>${formula.paciente.numDocumento}</td></tr>
+      <tr><td class="bold">Paciente:</td><td>${nombrePaciente}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Dispensario:</td><td>${bodega?.puntoEntrega ?? ''}</td></tr>
+      <tr><td class="bold">Funcionario:</td><td>${formula.funcionariocreaformula}</td></tr>
+      <tr><td class="bold">Fecha:</td><td>${fechaFormateada}</td></tr>
+      <tr><td class="bold">Convenio:</td><td>${formula.paciente.eps.nombre}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <div class="total-box">
+      <table style="width: 100%;">
+       <tr>
+          <td class="bold">Regimen:</td>
+          <td class="text-left">${formula.regimen === 'C' ? 'Contributivo' : 'Subsidiado'}</td>
+        </tr>
+         <tr>
+          <td class="bold">Categoria:</td>
+          <td class="text-left">${formula.categoria}</td>
+        </tr>
+        <tr>
+          <td class="bold">Cuota Moderadora Recaudada:</td>
+          <td class="text-right bold">${valorCuota}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="footer-note bold" style="margin-top: 15px;">
+      Servicios Integrales de Salud del Magdalena.
+    </div>
+    <div class="footer-note">
+      ¡Su salud en buenas manos!.
+    </div>
+
+  `;
+}
+
+/*
   async generarContenidoPOSTirilla(formula: any): Promise<string> {
     const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
     const fechaSolicitud = new Date(formula.fecSolicitud);
@@ -942,6 +1602,143 @@ Documento:___________________________
   `;
   }
 
+*/
+
+async generarContenidoPOSTirilla(formula: any): Promise<string> {
+  const bodega = await this.serviciobodega.getRegistroId(formula.idBodega).toPromise();
+
+  const fechaSolicitud = new Date(formula.fecSolicitud);
+  const fechaFormateada = new Intl.DateTimeFormat('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  }).format(fechaSolicitud);
+
+  const nombrePaciente = `${formula.paciente?.pNombre ?? ''} ${formula.paciente?.sNombre ?? ''} ${formula.paciente?.pApellido ?? ''} ${formula.paciente?.sApellido ?? ''}`.trim();
+
+  const { itemsHTML, totalFormateado } = this.generarDetallePrefactura(formula);
+
+  return `
+    <div class="text-center bold title">FORMATO DE PREFACTURA</div>
+    <div class="text-center bold subtitle">SISM</div>
+    <div class="text-center" style="font-size: 10px;">Nit 900018045-5</div>
+    <div class="text-center" style="font-size: 10px;">${bodega?.direccion ?? ''}</div>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Nro:</td><td>${formula.idFormula}</td></tr>
+      <tr><td class="bold">Fecha:</td><td>${fechaFormateada}</td></tr>
+      <tr><td class="bold">Documento:</td><td>${formula.paciente.numDocumento}</td></tr>
+      <tr><td class="bold">Paciente:</td><td>${nombrePaciente}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <table class="info-table">
+      <tr><td class="bold" style="width: 30%;">Dispensario:</td><td>${bodega?.puntoEntrega ?? ''}</td></tr>
+      <tr><td class="bold">Funcionario:</td><td>${formula.funcionariocreaformula}</td></tr>
+      <tr><td class="bold">Convenio:</td><td>${formula.paciente.eps.nombre}</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="text-center bold" style="margin-bottom: 4px;">DETALLE DE MEDICAMENTOS</div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Medicamento</th>
+          <th class="text-center" style="width: 25%;">Cantidad</th>
+          <th class="text-right" style="width: 25%;">  V. Unitario  </th>
+          <th class="text-right" style="width: 25%;">  Total  </th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHTML}
+      </tbody>
+    </table>
+
+    <div class="total-box">
+      <table style="width: 100%;">
+        <tr>
+          <td class="bold">TOTAL:</td>
+          <td class="text-right bold">${totalFormateado}</td>
+        </tr>
+      </table>
+    </div>
+
+ <!-- SECCIÓN DE FIRMA MEJORADA -->
+    <div class="signature-section" style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px;">
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Firma:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Documento:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+      <div style="display: flex; align-items: flex-end; width: 100%;">
+        <span style="white-space: nowrap; padding-right: 4px; font-weight: bold;">Celular:</span>
+        <span class="signature-line" style="flex: 1; border-bottom: 1px solid #000; height: 1px; display: inline-block;"></span>
+      </div>
+    </div>
+
+    <div class="footer-note bold" style="margin-top: 15px;">
+      Servicios Integrales de Salud del Magdalena.
+    </div>
+    <div class="footer-note">
+      ¡Su salud en buenas manos!.
+    </div>
+  `;
+}
+
+private generarDetallePrefactura(formula: any): { itemsHTML: string; totalFormateado: string } {
+  let total = 0;
+
+  const itemsHTML = formula.items
+    .filter((med: any) => med.totalEntregado > 0)
+    .map((med: any) => {
+      const valorUnitario = med.importe / med.cantidad;
+      const subTotal = valorUnitario * med.totalEntregado;
+      total += subTotal;
+
+      const valorUnitarioFormateado = valorUnitario.toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      });
+
+      const subTotalFormateado = subTotal.toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      });
+
+      return `
+        <tr>
+          <td colspan="4" class="bold" style="padding-top: 4px;">${med.medicamento.nombre}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="text-center">${med.totalEntregado}</td>
+          <td class="text-right">${valorUnitarioFormateado}</td>
+          <td class="text-right bold">${subTotalFormateado}</td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  const totalFormateado = total.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0
+  });
+
+  return { itemsHTML, totalFormateado };
+}
+
+
+
+/*
   private generarTextoEntrega(formula: any): string {
     let total = 0;
 
@@ -987,7 +1784,7 @@ Documento:___________________________
     return `${resultado}\n\n     TOTAL: ${totalFormateado}`;
   }
 
-
+*/
   tieneAcceso(nivelRequerido: number): boolean {
     const nivelUsuario = Number(sessionStorage.getItem("nivel"));
     if (isNaN(nivelUsuario)) {
@@ -1080,6 +1877,23 @@ Documento:___________________________
     if (isNaN(dateObj.getTime())) {
       return '';
     }
+    // Formato YYYY-MM-DD
+    return dateObj.toISOString().split('T')[0];
+  }
+
+
+  fechaPosibleEntregapendiente(fecha: string | Date | null): string {
+    if (!fecha) {
+      return '';
+    }
+    const dateObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
+    if (isNaN(dateObj.getTime())) {
+      return '';
+    }
+
+    // ➕ Sumamos 2 días a la fecha actual del objeto
+    dateObj.setDate(dateObj.getDate() + 1);
+
     // Formato YYYY-MM-DD
     return dateObj.toISOString().split('T')[0];
   }
@@ -1495,8 +2309,16 @@ Documento:___________________________
   }
 
   verArchivo() {
-    // Si la URL es pública o accesible, se abre en nueva pestaña
-    window.open(this.listaregistros.urlFormula, '_blank');
+    if (!this.listaregistros?.urlFormula) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Sin soporte',
+      text: 'Esta fórmula no tiene un documento de soporte asociado.'
+    });
+    return;
+  }
+
+  window.open(this.listaregistros.urlFormula, '_blank');
   }
 
   public editarSoporte() {

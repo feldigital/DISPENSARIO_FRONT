@@ -31,12 +31,12 @@ export class FormulaI {
   fecIngreso: Date;
   estadoanulada: boolean;
   funcionariocreaformula: string;
-  funcionarioEditformula: string;
+  funcionarioEditformula: string | null;
   fechaEditformula: Date | null;
   codEps: string;
   regimen: string;
   categoria: string;
-  urlFormula: string;
+  urlFormula: string | null;
   
 
 
@@ -66,12 +66,12 @@ export class FormulaI {
     this.idBodega = NaN;
     this.estadoanulada = false;
     this.funcionariocreaformula="";
-    this.funcionarioEditformula="";
+    this.funcionarioEditformula=null;
     this.fechaEditformula=null;
     this.codEps="";
     this.regimen="";
     this.categoria="";
-    this.urlFormula="";
+    this.urlFormula=null;
 }
 
   calcularGranTotal(): number {

@@ -1,0 +1,476 @@
+/* ==========================================================================
+   1. COMPONENTES DE ANGULAR MATERIAL (Ajustes de Altura y Fuentes)
+   ========================================================================== */
+
+/* Hace más compactas las opciones del autocompletar */
+.mat-option {
+  font-size: 12px;
+  line-height: 1.0;
+  padding: 2px 12px;
+  transition: background-color 0.2s;
+}
+
+.mat-option:hover {
+  background-color: #f1f1f1;
+}
+
+/* Controla el contenedor flotante del autocompletar */
+.mat-autocomplete-panel {
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Responsivo para pantallas móviles en componentes Material */
+@media (max-width: 768px) {
+  .mat-option {
+    font-size: 13px;
+    padding: 5px 12px;
+  }
+}
+
+/* ==========================================================================
+   2. AJUSTES COMPLEMENTARIOS PARA UTILERÍAS DE BOOTSTRAP
+   ========================================================================== */
+
+/* Forzado de bordes redondeados consistentes en inputs y botones */
+.form-control,
+.btn {
+  border-radius: 5px;
+}
+
+
+
+.thead-colored {
+  background-color: #0f4c5c; /* Azul/Verde petróleo profundo */
+  color: #ffffff;
+}
+
+/* Botón Principal Guardar - FarmaSara */
+.btn-guardar-farma {
+  background: linear-gradient(135deg, #0f5132, #198754) !important; /* Degradado verde clínico/esmeralda */
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  height: 34px; /* Altura estilizada para mantener la línea compacta */
+  box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2) !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+/* Efecto al pasar el mouse (Solo si el formulario es válido) */
+.btn-guardar-farma:not([disabled]):hover {
+  background: linear-gradient(135deg, #146c43, #157347) !important;
+  box-shadow: 0 4px 10px rgba(21, 115, 71, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+/* Efecto de pulsación */
+.btn-guardar-farma:not([disabled]):active {
+  transform: translateY(0);
+}
+
+/* Estado DESHABILITADO (Cuando faltan datos por llenar en la fórmula) */
+.btn-guardar-farma[disabled] {
+  background: #e2e8f0 !important; /* Gris azulado muy suave y limpio */
+  color: #94a3b8 !important;       /* Texto apagado pero legible */
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.avatar-circle-sm {
+  width: 28px;
+  height: 28px;
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+
+.btn-buscar-premium {
+  background-color: #1e3a8a !important; /* Azul naval profundo */
+  color: white !important;
+  border-radius: 6px;
+  height: 31px; /* Ajuste perfecto para formularios xs/sm compactos */
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-buscar-premium:hover {
+  background-color: #1d4ed8 !important; /* Brillo azul al pasar el mouse */
+  box-shadow: 0 4px 8px rgba(30, 58, 138, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.btn-buscar-premium:active {
+  transform: translateY(0);
+}
+
+/* Control total del área de clic para botones compactos en FarmaSara */
+.btn-accion-compacta {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 4px !important; /* Bordes suaves acordes a tus inputs */
+  border: none !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-accion-compacta:hover {
+  transform: scale(1.08); /* Pequeño efecto visual al pasar el mouse */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Forzamos al icono a centrarse y no desbordar */
+.btn-accion-compacta mat-icon {
+  line-height: 14px !important;
+  display: inline-block !important;
+}
+
+/* Mensajes de error y validaciones */
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
+.alert-error .material-icons {
+  font-size: 1.2rem;
+  color: #dc2626;
+}
+
+.form-control.is-invalid {
+  border-color: #dc2626 !important;
+  background-color: #fff5f5;
+}
+
+.text-error {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 0.35rem;
+}
+
+.text-error .material-icons {
+  font-size: 1rem;
+}
+
+/* Footer & Botones */
+.card-footer {
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 1rem 1.75rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn .material-icons {
+  font-size: 1.1rem;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* Contenedor principal que aprovecha todo el espacio */
+.devolucion-container {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 100%; /* Aprovecha el 100% de la pantalla */
+  margin: 0 auto;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Encabezado */
+.card-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 1rem 1.5rem;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon {
+  font-size: 2rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.header-title-group h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.header-title-group p {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.4rem;
+}
+
+.section-title .material-icons {
+  color: #2563eb;
+  font-size: 1.25rem;
+}
+
+/* Grilla optimizada a 4 o 3 columnas en pantallas anchas */
+.causales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.causa-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  user-select: none;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.causa-card:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.causa-card.selected {
+  background-color: #eff6ff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.causa-label {
+  font-size: 0.825rem;
+  color: #334155;
+  cursor: pointer;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+.causa-card.selected .causa-label {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+/* Distribución horizontal para inputs */
+.inputs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.otro-container, 
+.observaciones-container {
+  flex: 1 1 400px; /* Se dividen 50%-50% si hay espacio disponible */
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Errores y Validaciones */
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.form-control.is-invalid {
+  border-color: #dc2626 !important;
+  background-color: #fff5f5;
+}
+
+.text-error {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #dc2626;
+  font-size: 0.775rem;
+  font-weight: 500;
+  margin-top: 0.3rem;
+}
+
+/* Pie y Botones */
+.card-footer {
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn .material-icons {
+  font-size: 1.1rem;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

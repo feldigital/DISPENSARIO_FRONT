@@ -151,3 +151,28 @@
   font-weight: bold;
   font-size: 14px;
 }
+
+/* Estilo para el reloj pequeño */
+.reloj-corriendo {
+  font-size: 16px;      /* Más pequeño que el lápiz */
+  width: 16px;         /* Ajusta el contenedor del ícono */
+  height: 16px;        /* Ajusta el contenedor del ícono */
+  color: #0dea1b;      /* Color naranja/alerta suave (puedes cambiarlo a #757575 si lo prefieres gris) */
+  cursor: default;     /* No tiene comportamiento de clic */
+}
+
+/* 🔄 Clase que activa la animación */
+.animacion-girar {
+  animation: rampaGiro 8s linear infinite; /* Gira de forma continua cada 8 segundos */
+  transform-origin: center; /* Asegura que gire justo sobre su propio centro */
+}
+
+/* 🎞️ Definición del movimiento de rotación */
+@keyframes rampaGiro {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

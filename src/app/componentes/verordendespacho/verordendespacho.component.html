@@ -4,12 +4,14 @@
             <div class="card-header">
                 Origen <strong>({{listaregistros?.bodegaOrigen?.nombre}})</strong>
             </div>
-            <div class="card-body">                
+            <div class="card-body">
                 <p><strong>Dirección:</strong> {{listaregistros?.bodegaOrigen?.direccion}}</p>
-                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}} <strong>Funcionario despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>
-                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaOrigen?.departamento}} - {{listaregistros?.bodegaOrigen?.municipio}}</p>
-                <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>      
-              
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaOrigen?.telefono}} <strong>Funcionario
+                        despacho:</strong> {{listaregistros?.funcionarioDespacho}}</p>
+                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaOrigen?.departamento}} -
+                    {{listaregistros?.bodegaOrigen?.municipio}}</p>
+                <p><strong>Observación:</strong> {{listaregistros?.observacion}}</p>
+
             </div>
         </div>
 
@@ -18,98 +20,140 @@
             <div class="card-header">
                 Destino <strong>({{listaregistros?.bodegaDestino?.nombre}})</strong>
             </div>
-            <div class="card-body">              
+            <div class="card-body">
                 <p><strong>Dirección:</strong> {{listaregistros?.bodegaDestino?.direccion}}</p>
-                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}} <strong>Funcionario ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>
-                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaDestino?.departamento}} - {{listaregistros?.bodegaDestino?.municipio}}</p>
-            
-            </div>     
+                <p><strong>Teléfono:</strong> {{listaregistros?.bodegaDestino?.telefono}} <strong>Funcionario
+                        ingreso:</strong> {{listaregistros?.funcionarioEntradaDestino}}</p>
+                <p><strong>Departamento y municipio:</strong> {{listaregistros?.bodegaDestino?.departamento}} -
+                    {{listaregistros?.bodegaDestino?.municipio}}</p>
+
+            </div>
         </div>
     </div>
 
+<!--
+    <div class="col-12 d-flex align-items-center justify-content-between mt-1">
+        <div>
+            <input type="text" formControlName="listFilter" class="form-control border-end-0 search-input"
+                placeholder="Buscar por nombre del medicamento">
+            <span class="input-group-text bg-transparent">
+                <mat-icon [ngStyle]="{'color':'#009A94'}">zoom_in</mat-icon>
+            </span>
+        </div>
 
-<div class="col-12 d-flex align-items-center justify-content-between mt-1">  
-    <div class="flex-grow-1 text-center ms-5">
+        <div class="flex-grow-1 text-center ms-5">
+
+            <span class="fw-bold">
+                MEDICAMENTOS ASOCIADOS A LA ORDEN DE DESPACHO Nro.
+                <strong [ngStyle]="{'color':'red'}">{{listaregistros?.idDespacho}}</strong>
+                DEL {{listaregistros?.fechaDespacho}}
+            </span>
+        </div>
+
+        <button type="button" class="btn btn-sm d-flex align-items-center" [disabled]="cargando"
+            [style.background-color]="cargando ? '#ffc107' : '#67ACD6'"
+            [style.border-color]="cargando ? '#ffc107' : '#67ACD6'" (click)="buscarRegistro(listaregistros.idDespacho)">
+
+            <mat-icon class="me-1" [class.spinner-animacion]="cargando"
+                style="font-size: 18px; width: 18px; height: 18px;">
+                {{ cargando ? 'sync' : 'loop' }}
+            </mat-icon>
+
+            <span>{{ cargando ? 'Cargando...' : 'Refrescar' }}</span>
+        </button>
+
+    </div>
+-->
+
+<div class="col-12 d-flex align-items-center justify-content-between mt-1 " [formGroup]="generalForm">
+    <!-- Input con más espacio (ancho ajustado a 320px o el que prefieras) -->
+    <div class="input-group" style="width: 450px;">
+        <input type="text" formControlName="medicamento" class="form-control border-end-0 search-input"
+            placeholder="Buscar por nombre del medicamento">
+       
+    </div>
+
+    <!-- Descripción centrada -->
+    <div class="flex-grow-1 text-center px-3">
         <span class="fw-bold">
-            MEDICAMENTOS ASOCIADOS A LA ORDEN DE DESPACHO Nro. 
-            <strong [ngStyle]="{'color':'red'}">{{listaregistros?.idDespacho}}</strong> 
+            MEDICAMENTOS ASOCIADOS A LA ORDEN DE DESPACHO Nro.
+            <strong [ngStyle]="{'color':'red'}">{{listaregistros?.idDespacho}}</strong>
             DEL {{listaregistros?.fechaDespacho}}
         </span>
     </div>
 
-   <button type="button" 
-        class="btn btn-sm d-flex align-items-center"
-        [disabled]="cargando"
-     
-        [style.background-color]="cargando ? '#ffc107' : '#67ACD6'"
-        [style.border-color]="cargando ? '#ffc107' : '#67ACD6'"
-        (click)="buscarRegistro(listaregistros.idDespacho)">
-    
-    <mat-icon class="me-1" 
-              [class.spinner-animacion]="cargando"
-              style="font-size: 18px; width: 18px; height: 18px;">
-        {{ cargando ? 'sync' : 'loop' }}
-    </mat-icon> 
-    
-    <span>{{ cargando ? 'Cargando...' : 'Refrescar' }}</span>
-</button>
+    <!-- Botón alineado a la derecha -->
+    <div>
+        <button type="button" class="btn btn-sm d-flex align-items-center" [disabled]="cargando"
+            [style.background-color]="cargando ? '#ffc107' : '#67ACD6'"
+            [style.border-color]="cargando ? '#ffc107' : '#67ACD6'" (click)="buscarRegistro(listaregistros.idDespacho)">
 
+            <mat-icon class="me-1" [class.spinner-animacion]="cargando"
+                style="font-size: 18px; width: 18px; height: 18px;">
+                {{ cargando ? 'sync' : 'loop' }}
+            </mat-icon>
+
+            <span>{{ cargando ? 'Cargando...' : 'Refrescar' }}</span>
+        </button>
+    </div>
 </div>
 
-<div *ngIf="listaItemsFormula?.length > 0">
-    <table class="table table-striped table-hover table-sm">
-        <thead class="thead-colored">
-            <tr>
-                <th>Item</th>
-                <th>ID</th>
-                <th>Medicamento</th>
-                <th>Presentación</th>
-                <th>CUM</th>
-                <th>Invima</th>
-                <th>Laboratorio</th>
-                <th>Lote</th>
-                <th>Vencimiento</th>
-                <th>Cantidad</th>
-                <th *ngIf="listaregistros?.estado==='Envío'">Control</th>                
-            </tr>
-        </thead>
-        <tbody>       
-                <tr *ngFor="let item of listaItemsFormula; let i = index">     
-                    <td>{{ i+1 }}</td>               
+    <div *ngIf="listaItemsFormula?.length > 0">
+        <table class="table table-striped table-hover table-sm">
+            <thead class="thead-colored">
+                <tr>
+                    <th>Item</th>
+                    <th>ID</th>
+                    <th>Medicamento</th>
+                    <th>Presentación</th>
+                    <th>CUM</th>
+                    <th>Invima</th>
+                    <th>Laboratorio</th>
+                    <th>Lote</th>
+                    <th>Vencimiento</th>
+                    <th>Cantidad</th>
+                    <th *ngIf="listaregistros?.estado==='Envío'">Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of listaItemsFormulaFiltro; let i = index">
+                    <td>{{ i+1 }}</td>
                     <td>{{ item.medicamento.idMedicamento }}</td>
                     <td>{{ item.medicamento.nombre }}</td>
                     <td>{{ item.medicamento.forma.nombre }}</td>
-                    <td>{{ item.medicamento.codigoCum }}</td>   
-                    <td>{{ item.invima }}</td>  
-                    <td>{{ item.laboratorio }}</td>  
-                    <td>{{ item.lote }}</td>  
-                    <td>{{ item.fechaVencimiento }}</td>                 
+                    <td>{{ item.medicamento.codigoCum }}</td>
+                    <td>{{ item.invima }}</td>
+                    <td>{{ item.laboratorio }}</td>
+                    <td>{{ item.lote }}</td>
+                    <td>{{ item.fechaVencimiento }}</td>
                     <td>
                         <div *ngIf="!item.control && listaregistros?.estado==='Recepción'">
                             <mat-icon [ngStyle]="{'color':'green'}">check</mat-icon>
                             {{ item.cantidad }}
-                        </div> 
-                        <input *ngIf="listaregistros?.estado==='Envío'" type="number" [(ngModel)]="item.cantidadDespacho" placeholder="Cantidad recibida" class="form-control" 
-                        (change)="verificarCantidad(item, $event)"/>
-                    </td>  
+                        </div>
+                        <input *ngIf="listaregistros?.estado==='Envío'" type="number"
+                            [(ngModel)]="item.cantidadDespacho" placeholder="Cantidad recibida" class="form-control"
+                            (change)="verificarCantidad(item, $event)" />
+                    </td>
                     <td>
                         <mat-icon *ngIf="item.control" [ngStyle]="{'color':'#009A94'}">done</mat-icon>
-                        <mat-icon *ngIf="!item.control && listaregistros?.estado==='Envío'" [ngStyle]="{'color':'red'}">clear</mat-icon>
-                    </td>                   
-                </tr>          
-        </tbody>
-    </table>
-</div>
+                        <mat-icon *ngIf="!item.control && listaregistros?.estado==='Envío'"
+                            [ngStyle]="{'color':'red'}">clear</mat-icon>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<hr>
-<div class="row">
-    <div class="col-6">
-        <button class="btn btn-outline-primary w-50" [routerLink]="['/menu/historialordendespacho']" >
-           Regresar</button>
-    </div>       
-    <div class="col-6" *ngIf="listaregistros?.estado==='Envío' && (permisoBodega() || tieneAcceso(4) )">
-        <button class="btn btn-outline-primary w-50" (click)="procesarOrdenDespachoIngreso()">
-            Validar y Generar ingresos</button>
-    </div>              
-</div>           
+    <hr>
+    <div class="row">
+        <div class="col-6">
+            <button class="btn btn-outline-primary w-50" [routerLink]="['/menu/historialordendespacho']">
+                Regresar</button>
+        </div>
+        <div class="col-6" *ngIf="listaregistros?.estado==='Envío' && (permisoBodega() || tieneAcceso(4) )">
+            <button class="btn btn-outline-primary w-50" (click)="procesarOrdenDespachoIngreso()">
+                Validar y Generar ingresos</button>
+        </div>
+    </div>
 </div>

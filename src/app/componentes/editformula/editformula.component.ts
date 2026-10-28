@@ -1137,7 +1137,16 @@ guardarDatosContacto() {
   
   verArchivo() {
     // Si la URL es pública o accesible, se abre en nueva pestaña
-    window.open(this.formula.urlFormula, '_blank');
+    if (!this.formula?.urlFormula) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Sin soporte',
+      text: 'Esta fórmula no tiene un documento de soporte asociado.'
+    });
+    return;
+  }
+
+  window.open(this.formula.urlFormula, '_blank');
   }
 
   public editarSoporte() {

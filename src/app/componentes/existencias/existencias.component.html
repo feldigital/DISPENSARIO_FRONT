@@ -3,7 +3,7 @@
     <div class="card-body py-2 px-3" [formGroup]="generalForm">
       <label class="form-label fw-bold mb-1">Buscar medicamento</label>
       <div class="d-flex align-items-center gap-3">
-        
+
         <div class="flex-grow-1">
           <mat-form-field appearance="outline" class="w-100" style="margin-bottom: -1.25em;">
             <mat-label>Escriba el nombre del medicamento</mat-label>
@@ -17,108 +17,125 @@
           </mat-form-field>
         </div>
 
-        <div class="form-check form-switch white-space-nowrap border-end pe-3">
-          <input class="form-check-input" type="checkbox" role="switch" formControlName="estado" id="filtroExistencias" />
-          <label class="form-check-label fw-semibold small text-secondary" for="filtroExistencias">Existencias</label>
+
+        <div class="border-end pe-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" formControlName="estado"
+              id="filtroExistencias">
+            <label class="form-check-label fw-semibold small text-secondary" for="filtroExistencias">
+              Existencias
+            </label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" formControlName="estadoPendiente"
+              id="filtroPendientes">
+            <label class="form-check-label fw-semibold small text-danger" for="filtroPendientes">
+              Pendientes
+            </label>
+          </div>
         </div>
 
         <div class="d-flex gap-2">
-          <div class="border-start border-success border-4 bg-white rounded shadow-sm px-2 py-1 text-center" style="min-width: 90px;">
+          <div class="border-start border-success border-4 bg-white rounded shadow-sm px-2 py-1 text-center"
+            style="min-width: 90px;">
             <div class="text-uppercase" style="font-size: 0.65rem; font-weight: 700; color: #6c757d;">Existencias</div>
             <div class="fw-bold text-success fs-6">{{ totalCantidadExistencia || 0 }}</div>
           </div>
-          
-          <div class="border-start border-warning border-4 bg-white rounded shadow-sm px-2 py-1 text-center" style="min-width: 90px;">
+
+          <div class="border-start border-warning border-4 bg-white rounded shadow-sm px-2 py-1 text-center"
+            style="min-width: 90px;">
             <div class="text-uppercase" style="font-size: 0.65rem; font-weight: 700; color: #6c757d;">Canje</div>
             <div class="fw-bold text-warning fs-6">{{ totalCantidadCanje || 0 }}</div>
           </div>
 
-          <div class="border-start border-primary border-4 bg-white rounded shadow-sm px-2 py-1 text-center" style="min-width: 90px;">
+          <div class="border-start border-primary border-4 bg-white rounded shadow-sm px-2 py-1 text-center"
+            style="min-width: 90px;">
             <div class="text-uppercase" style="font-size: 0.65rem; font-weight: 700; color: #6c757d;">Max. Presc</div>
             <div class="fw-bold text-primary fs-6">{{ totalCantidadPromedio || 0 }}</div>
           </div>
 
-          <div class="border-start border-danger border-4 bg-white rounded shadow-sm px-2 py-1 text-center" style="min-width: 90px;">
+          <div class="border-start border-danger border-4 bg-white rounded shadow-sm px-2 py-1 text-center"
+            style="min-width: 90px;">
             <div class="text-uppercase" style="font-size: 0.65rem; font-weight: 700; color: #6c757d;">Pendientes</div>
             <div class="fw-bold text-danger fs-6">{{ totalCantidadPendiente || 0 }}</div>
           </div>
         </div>
 
-      </div> </div>
+      </div>
+    </div>
   </div>
 </div>
 
 
 
 <div class="container mt-2">
-    <div *ngIf="listaItemBodega?.length > 0">
-        <table class="table table-striped table-hover table-sm">
-            <thead class="thead-colored">
-                <tr>
-                    <th>Item</th>
-                    <th>ID</th>
-                    <th>Nombre del medicamento</th>
-                    <th>Cum</th>
-                    <th>Presentación</th>
-                    <th>Via</th>
-                    <th>Bodega</th>
-                    <th>Existencia</th>                    
-                    <th>Max. Presc último trimestre</th>  
-                    <th>Pendientes</th>  
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let itemt of listaItemBodega let i= index"
-                   [ngStyle]="{'color': itemt.d_1>0 ? 'black' : 'red' }">
-                    <td>{{i+1}}</td>
-                    <td>{{itemt.id}}</td>
-                    <td>{{itemt.dato_1}}</td>
-                    <td>{{itemt.dato_2}}</td>
-                    <td>{{itemt.dato_3}}</td>
-                    <td>{{itemt.dato_4}}</td>
-                    <td>{{itemt.dato_5}}</td>
-                    <td style="color: green; text-align: right;"><strong>{{itemt.d_1}}</strong></td>
-                  
-                    <td style="text-align: center;"><strong>{{itemt.d_3}}</strong></td>
+  <div *ngIf="listaItemBodega?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+      <thead class="thead-colored">
+        <tr>
+          <th>Item</th>
+          <th>ID</th>
+          <th>Nombre del medicamento</th>
+          <th>Cum</th>
+          <th>Presentación</th>
+          <th>Via</th>
+          <th>Bodega</th>
+          <th>Existencia</th>
+          <th>Max. Presc último trimestre</th>
+          <th>Pendientes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of listaItemBodega let i= index" [ngStyle]="{'color': itemt.d_1>0 ? 'black' : 'red' }">
+          <td>{{i+1}}</td>
+          <td>{{itemt.id}}</td>
+          <td>{{itemt.dato_1}}</td>
+          <td>{{itemt.dato_2}}</td>
+          <td>{{itemt.dato_3}}</td>
+          <td>{{itemt.dato_4}}</td>
+          <td>{{itemt.dato_5}}</td>
+          <td style="color: green; text-align: right;"><strong>{{itemt.d_1}}</strong></td>
 
-                    <td style="color: rgb(228, 16, 16); text-align: center;"><strong>{{itemt.d_2}}</strong></td>
+          <td style="text-align: center;"><strong>{{itemt.d_3}}</strong></td>
 
-                </tr>
-            </tbody>
-        </table>
+          <td style="color: rgb(228, 16, 16); text-align: center;"><strong>{{itemt.d_2}}</strong></td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="listaItemEnvio?.length > 0">
+    <div class="col-12 text-center">
+      <span class="text-green">
+        <strong> EXISTENCIA DEL MEDICAMENTO EN CANJE EN ESTADO ENVIO </strong>
+      </span>
     </div>
 
-    <div *ngIf="listaItemEnvio?.length > 0">
-        <div class="col-12 text-center">
-            <span class="text-green">
-                <strong> EXISTENCIA DEL MEDICAMENTO EN CANJE EN ESTADO ENVIO </strong>
-            </span>
-        </div>
+    <table class="table table-striped table-hover table-sm mt-2">
+      <thead class="thead-gradient-d">
+        <tr>
+          <th>Orden</th>
+          <th>Fecha </th>
+          <th>Origen </th>
+          <th>Destino</th>
+          <th>Nombre Medicamento</th>
+          <th>Presentacion</th>
+          <th>Cantidad</th>
 
-        <table class="table table-striped table-hover table-sm mt-2">
-            <thead class="thead-gradient-d">
-                <tr>
-                    <th>Orden</th>
-                    <th>Fecha </th>
-                    <th>Origen </th>
-                    <th>Destino</th>
-                    <th>Nombre Medicamento</th>
-                    <th>Presentacion</th>
-                    <th>Cantidad</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let itemt of listaItemEnvio let i= index">
-                    <td>{{itemt.idDespacho}}</td>
-                    <td>{{itemt.fechaDespacho | date: 'dd/MM/yyyy'}}</td>
-                    <td>{{itemt.bodegaOrigen}}</td>
-                    <td>{{itemt.bodegaDestino}}</td>
-                    <td>{{itemt.nombreMedicamento}}</td>
-                    <td>{{itemt.presentacion}}</td>
-                    <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
-                </tr>
-            </tbody>
-        </table>    
-</div>
-
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of listaItemEnvio let i= index">
+          <td>{{itemt.idDespacho}}</td>
+          <td>{{itemt.fechaDespacho | date: 'dd/MM/yyyy'}}</td>
+          <td>{{itemt.bodegaOrigen}}</td>
+          <td>{{itemt.bodegaDestino}}</td>
+          <td>{{itemt.nombreMedicamento}}</td>
+          <td>{{itemt.presentacion}}</td>
+          <td style="color: green; text-align: right;"><strong>{{itemt.cantidad}}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>

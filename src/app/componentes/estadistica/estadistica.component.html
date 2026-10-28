@@ -1,22 +1,523 @@
-<p>estadistica works!</p>
+<div class="container mt-1">
+  <form [formGroup]="generalForm" class="container-fluid mt-1">
+    <!-- ===================== TITULO ===================== -->
 
-<mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side" [fixedInViewport]="true">
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Dispensario SISM App</span>
-    </mat-toolbar>
-    
-    <mat-nav-list>
-      <a mat-list-item [routerLink]="['/home']">
-        <mat-icon>home</mat-icon>
-        Inicio
-      </a>
-      <!-- Agrega más elementos para prueba -->
-    </mat-nav-list>
-  </mat-sidenav>
+    <div class="card shadow-sm mb-1">
+      <div class="card-header  bg-light d-flex align-items-center">
+        <mat-icon class="me-2">assessment</mat-icon>
+        <strong>Centro de Reportes - (Seleccione el reporte)</strong>
+      </div>
 
- 
-</mat-sidenav-container>
+      <div class="card-body">
+        <div class="row">
+          <!-- REPORTES -->
+          <div class="col-12">
+            <div class="row">
+              <!-- Columna 1 -->
+              <div class="col-md-3">
+                <!--
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="PENDIENTES" id="r1"
+                 >
+
+                  <label class="form-check-label" for="r1">
+                    📋 Reporte de pendientes
+                  </label>
+                </div>
+-->
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="ENTREGA_PENDIENTES"
+                    id="r2">
+
+                  <label class="form-check-label" for="r2">
+                    ⏳ Entrega de pendientes
+                  </label>
+                </div>
+                <!--
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="MENSAJES" id="r3"
+                   >
+
+                  <label class="form-check-label" for="r3">
+                    💬 Gestión de mensajes
+                  </label>
+                </div>
+                -->
+
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="PROMEDIO" id="r6">
+
+                  <label class="form-check-label" for="r6">
+                    💊 Medicamentos Promedio
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="SUBSANACION" id="r4">
+
+                  <label class="form-check-label" for="r4">
+                    ⚠️ Subsanación Administrativa
+                  </label>
+                </div>
+
+
+
+              </div>
+
+              <!-- Columna 2 -->
+              <div class="col-md-3">
+                <!--
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="PROXIMOS" id="r5">
+
+                  <label class="form-check-label" for="r5">
+                    📅 Próximos a vencer
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="NOROTAN" id="r6">
+
+                  <label class="form-check-label" for="r6">
+                    🔄 Medicamentos que no rotan
+                  </label>
+                </div>
+-->
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="ENTREGADOS" id="r7">
+
+                  <label class="form-check-label" for="r7">
+                    💊 Medicamentos entregados
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="COMPLETAS" id="r8">
+
+                  <label class="form-check-label" for="r8">
+                    ✔ Fórmulas entregadas
+                  </label>
+                </div>
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="EDITADAS" id="r9">
+
+                  <label class="form-check-label" for="r9">
+                    ✏️ Fórmulas editadas
+                  </label>
+                </div>
+
+
+              </div>
+
+              <!-- Columna 3 -->
+              <div class="col-md-3">
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="ANULADAS" id="r10">
+                  <label class="form-check-label" for="r10">
+                    ❌ Fórmulas anuladas
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="CON_SOPORTE" id="r11">
+
+                  <label class="form-check-label" for="r11">
+                    📄 Fórmulas con soporte
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="PQRS" id="r12">
+
+                  <label class="form-check-label" for="r12">
+                    🎧 Reporte de PQRS
+                  </label>
+                </div>
+
+              </div>
+
+              <!-- Columna 4 -->
+              <div class="col-md-3">
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="TOP_IPS" id="r13">
+
+                  <label class="form-check-label" for="r13">
+                    🏥 Top de IPS
+                  </label>
+                </div>
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="TOP_MEDICOS" id="r14">
+
+                  <label class="form-check-label" for="r14">
+                    👨‍⚕️ Top de médicos
+                  </label>
+                </div>
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="TOP_MEDICAMENTOS_C"
+                    id="r15">
+
+                  <label class="form-check-label" for="r15">
+                    🏆 Top de medicamentos cantidad
+                  </label>
+                </div>
+
+                <div class="form-check reporte-item">
+                  <input class="form-check-input" type="radio" formControlName="reporte" value="TOP_MEDICAMENTOS_F"
+                    id="r16">
+
+                  <label class="form-check-label" for="r16">
+                    🏆 Top de medicamentos frecuencia
+                  </label>
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== FILTROS ===================== -->
+
+    <div class="card shadow-sm mb-1">
+
+      <div class="card-header bg-light">
+
+        <mat-icon class="align-middle me-1">filter_alt</mat-icon>
+
+        <strong>Filtros</strong>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <div class="row g-3">
+
+          <div class="col-md-3">
+
+            <label class="form-label fw-bold">
+              Dispensario
+            </label>
+
+            <select class="form-select" formControlName="idBodega">
+
+              <option value="0">
+                TODAS LAS BODEGAS
+              </option>
+
+              <option *ngFor="let item of listaregistros" [ngValue]="item.idBodega">
+
+                {{item.nombre}}
+
+              </option>
+
+            </select>
+
+          </div>
+
+          <div class="col-md-2">
+
+            <label class="form-label fw-bold">
+
+              Fecha Inicial
+
+            </label>
+
+            <input class="form-control" type="date" formControlName="fechainicial">
+
+          </div>
+
+          <div class="col-md-2">
+
+            <label class="form-label fw-bold">
+
+              Fecha Final
+
+            </label>
+
+            <input class="form-control" type="date" formControlName="fechafinal">
+
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label fw-bold">
+              Contrato
+            </label>
+            <mat-select class="form-select" multiple formControlName="eps">
+              <mat-option [value]=0>
+                Todos los contratos
+              </mat-option>
+              <mat-option *ngFor="let item of listarEps" [value]="item.codigo">
+                {{item.nombre}}
+              </mat-option>
+            </mat-select>
+          </div>
+
+          <!-- Filtro medicamento (solo Top Médicos) -->
+<div class="row mt-2"
+     *ngIf="generalForm.get('reporte')?.value === 'TOP_MEDICOS'">
+  <!-- Check -->
+  <div class="col-12 mb-2">
+    <div class="form-check form-switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        formControlName="checkMedicamento">
+      <label class="form-check-label fw-semibold">
+        Seleccionar medicamento específico
+      </label>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="col-md-6"
+       *ngIf="generalForm.get('checkMedicamento')?.value">
+
+    <label class="form-label fw-bold">
+      Medicamento
+    </label>
+
+    <div class="input-group input-group-sm">
+
+      <span class="input-group-text bg-light">
+        <mat-icon>medication</mat-icon>
+      </span>
+
+      <input
+        type="text"
+        class="form-control"
+        formControlName="medicamento"
+        [matAutocomplete]="automedicamento"
+        placeholder="Seleccione el medicamento">
+
+    </div>
+
+    <mat-autocomplete
+      #automedicamento="matAutocomplete"
+      (optionSelected)="onOptionSelectedMedicamento($event.option.value)"
+      [displayWith]="displayMedicamento">
+
+      <mat-option
+        *ngFor="let option of medicamentosFiltrados"
+        [value]="option">
+
+        {{ option.nombre }}
+
+      </mat-option>
+
+    </mat-autocomplete>
+
+  </div>
+
+</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===================== BOTONES ===================== -->
+    <div class="card shadow-sm">
+
+      <div class="card-body">
+
+        <div class="row align-items-center">
+
+          <!-- Botones -->
+          <div class="col-md-6">
+
+            <div class="d-flex justify-content-center justify-content-md-start gap-3 flex-wrap">
+
+              <button class="btn btn-primary btn-lg px-5" type="button" (click)="ejecutarReporte()">
+
+                <mat-icon class="me-2">search</mat-icon>
+
+                Buscar
+
+              </button>
+
+              <button class="btn btn-success btn-lg px-5" type="button" (click)="exportarReporte()">
+
+                <img src="assets/iconos/excel.svg" width="22" class="me-2">
+
+                Exportar Excel
+
+              </button>
+
+            </div>
+
+          </div>
+
+          <!-- KPI -->
+          <div *ngIf="columnas?.length > 3" class="col-md-3 mt-1 mt-md-0">
+            <div class="kpi-card h-100 tot">
+              <div class="card-body d-flex align-items-center">
+                <div class="me-3">
+                  <mat-icon class="kpi-icon">
+                    analytics
+                  </mat-icon>
+                </div>
+                <div>
+                  <h3 class="mb-0">
+                    {{ totalCantidadParcial }}
+                  </h3>
+                  Registros encontrados
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div *ngIf="columnas?.length > 3" class="col-md-3 mt-1 mt-md-0">
+            <div class="kpi-card h-100 porc">
+              <div class="card-body d-flex align-items-center">
+                <div class="me-3">
+                  <mat-icon class="kpi-icon">
+                    trending_up
+                  </mat-icon>
+                </div>
+                <div>
+                  <h3 class="mb-0">
+                    <ng-container [ngSwitch]="tipoCalculo">
+
+                      <!-- Porcentaje -->
+                      <span *ngSwitchCase="'PORCENTAJE'">
+                        {{
+                        totalCantidadTotal > 0
+                        ? ((totalCantidadParcial * 100) / totalCantidadTotal | number:'1.2-2')
+                        : 0
+                        }}%
+                      </span>
+
+                      <!-- Promedio -->
+                      <span *ngSwitchCase="'PROMEDIO'">
+                        {{
+                        totalCantidadTotal > 0
+                        ? ( totalCantidadTotal / totalCantidadParcial | number:'1.1-1')
+                        : 0
+                        }}
+                      </span>
+
+                      <!-- Valor por defecto -->
+                      <span *ngSwitchDefault>
+                        {{ totalCantidadParcial }}
+                      </span>
+
+                    </ng-container>
+                  </h3>
+                  Cumplimiento
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </form>
+
+
+  <div *ngIf="visorTabla?.length > 0">
+    <table class="table table-striped table-hover table-sm">
+      <thead class="thead-colored">
+        <tr>
+          <th>#</th>
+          <th *ngFor="let col of columnas">
+            {{ col.titulo }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let itemt of visorTabla let i= index">
+          <td> {{i+1}}</td>
+
+          <td *ngIf="generalForm.get('reporte')?.value != 'TOP_MEDICOS'">{{itemt.nombreBodega || ''}}</td>
+          <td  *ngIf="generalForm.get('reporte')?.value === 'TOP_MEDICOS'"> {{itemt.nombreMedico || ''}}</td>
+          <td  *ngIf="generalForm.get('reporte')?.value === 'TOP_MEDICOS'"> {{itemt.especialidad || ''}}</td>
+          <td>{{itemt.cantidadTotal || 0}}</td>
+          <td *ngIf="columnas?.length > 2">{{itemt.cantidadParcial || 0}} 
+
+            <mat-icon *ngIf="generalForm.get('reporte')?.value === 'TOP_MEDICOS'" class="pointer-cursor" title="Ver IPS" [ngStyle]="{'color':'#009A94'}" (click)="verIps(itemt,this.generalForm.get('checkMedicamento')?.value)">list_alt</mat-icon>
+          </td>
+          <td *ngIf="columnas?.length > 2">
+
+            <ng-container [ngSwitch]="tipoCalculo">
+
+              <!-- Porcentaje -->
+              <span *ngSwitchCase="'PORCENTAJE'">
+                {{
+                itemt.cantidadTotal > 0
+                ? ((itemt.cantidadParcial * 100) / itemt.cantidadTotal | number:'1.2-2')
+                : 0
+                }}%
+              </span>
+
+              <!-- Promedio -->
+              <span *ngSwitchCase="'PROMEDIO'">
+                {{
+                itemt.cantidadTotal > 0
+                ? (itemt.cantidadTotal / itemt.cantidadParcial | number:'1.1-1')
+                : 0
+                }}
+              </span>
+
+              <!-- Valor por defecto -->
+              <span *ngSwitchDefault>
+                {{ itemt.cantidadParcial }}
+              </span>
+
+            </ng-container>
+
+          </td>
+
+        </tr>
+
+        <tr *ngIf="columnas?.length > 3" class="table-secondary fw-bold">
+          <td></td>
+          <td>SUB TOTAL</td>
+          <td>{{ totalCantidadTotal }}</td>
+          <td>{{ totalCantidadParcial }}</td>
+          <td>
+            <ng-container [ngSwitch]="tipoCalculo">
+
+              <!-- Porcentaje -->
+              <span *ngSwitchCase="'PORCENTAJE'">
+                {{
+                totalCantidadTotal > 0
+                ? ((totalCantidadParcial * 100) / totalCantidadTotal | number:'1.2-2')
+                : 0
+                }}%
+              </span>
+
+              <!-- Promedio -->
+              <span *ngSwitchCase="'PROMEDIO'">
+                {{
+                totalCantidadTotal > 0
+                ? ( totalCantidadTotal / totalCantidadParcial | number:'1.1-1')
+                : 0
+                }}
+              </span>
+
+              <!-- Valor por defecto -->
+              <span *ngSwitchDefault>
+                {{ totalCantidadParcial }}
+              </span>
+
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
